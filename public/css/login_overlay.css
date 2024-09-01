@@ -77,6 +77,20 @@
     font-size: 2em;
 	color: #fff;
 }
+
+.wrap h6 {
+    color: #fff; /* Ensures text is visible against dark background */
+    font-size: 1em;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    text-align: center;
+}
+
+.overlay-login {
+    background-color: #212529; /* Ensure background color is dark */
+}
+
+
 .wrap ul.wrap-nav {
 	border-bottom: 1px solid #575757;
 	text-transform: capitalize;
@@ -197,3 +211,39 @@
 	color#333;
 	text-align: center;
 }
+
+/* Sign up button
+/* Base button styling */
+.btn {
+    display: inline-block;
+    font-size: 1em;
+    font-weight: 400;
+    text-align: center;
+    text-decoration: none;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s linear, color 0.2s linear;
+}
+
+/* Primary button styling (like the login button) */
+.btn-primary {
+    background-color: #0c8b21; /* Green color for login */
+    color: #0c0c0c;
+}
+
+.btn-primary:hover {
+    background-color: #0c0c0c; /* Darker green for hover */
+}
+
+/* Sign Up button styling */
+.btn-signup {
+    background-color: #ff5613; /* Red color */
+    color: #fff;
+}
+
+.btn-signup:hover {
+    background-color: #111111; /* Darker red for hover */
+}
+
