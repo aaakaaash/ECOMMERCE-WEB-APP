@@ -19,8 +19,9 @@ const userSchema = new Schema({
     },
     phone: {
         type: String,
-        required: true,
+        required: false,
         unique:true,
+        sparse:true,
         default: null
     },
     googleId: {
@@ -30,8 +31,7 @@ const userSchema = new Schema({
     },
     password: {
         type: String, 
-        default: '',
-        required: true
+        required: false
     },
     isBlocked: {
         type: Boolean,
@@ -43,7 +43,9 @@ const userSchema = new Schema({
     },
     role: {
         type: Number,
-        enum: [1, 2] 
+        enum: [0,1, 2],
+        default:0,
+        required:false
     },
     createdOn: {
         type: Date,

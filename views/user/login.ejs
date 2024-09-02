@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/login_overlay.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> <!-- Font Awesome for icons -->
+</head>
+<body class="d-flex align-items-center justify-content-center min-vh-100 bg-dark">
+
+<div class="login p-5 bg-dark mx-auto" style="max-width: 400px;">
+    <h5 class="text-center mb-4 text-white">Login Now</h5>
+    <form action="/login" method="post">
+        <div class="form-group">
+            <label for="exampleInputEmail1" class="mb-2 text-white">Email address</label>
+            <input type="email" name="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="" required>
+            <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+        </div>
+        <div class="form-group">
+            <label for="exampleInputPassword1" class="mb-2 text-white">Password</label>
+            <input type="password" name="password" class="form-control" id="exampleInputPassword1" placeholder="" required>
+    
+            <div id="error2" class="error-message"></div>
+        </div>
+            <%if(locals.message && message.length>0){%>
+            <div class="alert alert-danger text-center">
+                <%=message%>
+            </div>
+            <%}%>
+
+        <button type="submit"  class="btn btn-primary btn-block mb-4">Login</button>
+        <div class="d-flex justify-content-center mb-3">
+            <a href="/auth/google" class="btn btn-outline-dark me-2 rounded-circle p-2">
+                <i class="fab fa-google fa-lg"></i>
+            </a>
+            <a href="https://www.facebook.com/r.php" class="btn btn-outline-dark rounded-circle p-2">
+                <i class="fab fa-facebook-f fa-lg"></i>
+            </a>
+        </div>
+        <h6 class="text-center text-white mb-0">Don't have an account? 
+            <a href="/signup" class="btn btn-signup">Sign Up</a>
+        </h6>
+    </form>
+</div>
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

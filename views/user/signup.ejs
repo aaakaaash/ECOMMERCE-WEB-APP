@@ -44,6 +44,11 @@
                                 <input type="password" class="form-control" name="cPassword"  id="confirm-password" placeholder="Confirm Your Password" required>
                                 <div id="error5" class="error-message"></div>
                             </div>
+                            <%if(locals.message && message.length>0){%>
+                                <div class="alert alert-danger text-center">
+                                    <%=message%>
+                                </div>
+                                <%}%>
                             <div class="mb-3">
                                 <label for="referral" class="form-label">Referral Code (optional)</label>
                                 <input type="text" class="form-control" name="refCode" id="referral" placeholder="Referral Code">
@@ -53,7 +58,7 @@
                         <div class="text-center my-3">
                             <p>Or sign up with</p>
                             <div class="d-flex justify-content-center">
-                                <a href="https://accounts.google.com/signup" class="btn btn-outline-dark me-2 rounded-circle p-2">
+                                <a href="/auth/google" class="btn btn-outline-dark me-2 rounded-circle p-2">
                                     <i class="fab fa-google-plus-g fa-lg"></i>
                                 </a>
                                 <a href="https://www.facebook.com/r.php" class="btn btn-outline-dark rounded-circle p-2">
