@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const nocache = require("nocache")
 
 
 const userController = require("../controllers/user/userController");
@@ -7,7 +8,7 @@ const errorHandler = require('../middlewares/errorHandler');
 const preventCache = require("../middlewares/preventCache");
 const passport = require("../config/passport");
 
-
+router.use(nocache());
 router.get("/",userController.loadHomepage);
 router.get("/home",preventCache,userController.loadHomepage);
 router.get("/about",userController.loadAboutpage);
@@ -27,6 +28,8 @@ router.get('/auth/google/callback',passport.authenticate('google',{failureRedire
 
 router.get("/login",userController.loadLogin);
 router.post("/login",preventCache,userController.login);
+
+router.get("/logout",preventCache,userController.logout);
 
 
 

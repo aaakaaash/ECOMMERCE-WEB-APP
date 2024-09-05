@@ -1,6 +1,6 @@
 // errorHandler.js
 function errorHandler(err, req, res, next) {
-    console.error(err.stack); // Log error stack to the console for debugging
+    console.error(err.stack); 
 
     // Handle 404 errors
     if (err.status === 404) {

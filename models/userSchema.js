@@ -26,8 +26,9 @@ const userSchema = new Schema({
     },
     googleId: {
         type: String,
-        unique: true,
-        required: false
+        required: false,
+        unique:true,
+        sparse:true
     },
     password: {
         type: String, 
@@ -42,9 +43,9 @@ const userSchema = new Schema({
         default: false
     },
     role: {
-        type: Number,
-        enum: [0,1, 2],
-        default:0,
+        type: String,
+        enum: ["user","admin",'owner'],
+        default:"user",
         required:false
     },
     createdOn: {

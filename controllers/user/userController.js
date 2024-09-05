@@ -38,27 +38,51 @@ const loadHomepage = async (req, res, next) => {
 
 const loadAboutpage = async (req, res, next) => {
     try {
-        return res.render("about");
+        const userId = req.session.user;
+        if (userId) {
+            const userData = await User.findById(userId);
+            res.locals.user = userData; 
+            return res.render("about", { user: userData });
+        } else {
+            res.locals.user = null; 
+            return res.render("about");
+        }
     } catch (error) {
-        console.log("About page not found:", error);
+        console.log("about page not found:", error);
         next(error); 
     }
 };
 
 const loadShoppage = async (req, res, next) => {
     try {
-        return res.render("shop");
+        const userId = req.session.user;
+        if (userId) {
+            const userData = await User.findById(userId);
+            res.locals.user = userData; 
+            return res.render("shop", { user: userData });
+        } else {
+            res.locals.user = null; 
+            return res.render("shop");
+        }
     } catch (error) {
-        console.log("Shopping page not found:", error);
+        console.log("shop page not found:", error);
         next(error); 
     }
 };
 
 const loadContactpage = async (req, res, next) => {
     try {
-        return res.render("contact");
+        const userId = req.session.user;
+        if (userId) {
+            const userData = await User.findById(userId);
+            res.locals.user = userData; 
+            return res.render("contact", { user: userData });
+        } else {
+            res.locals.user = null; 
+            return res.render("contact");
+        }
     } catch (error) {
-        console.log("Contact not found:", error);
+        console.log("about page not found:", error);
         next(error); 
     }
 };
@@ -231,7 +255,7 @@ const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
         
-        const findUser = await User.findOne({ role: 0, email: email });
+        const findUser = await User.findOne({ role: "user", email: email });
 
         if (!findUser) {
             return res.render("login", { message: "User not found" });
@@ -257,6 +281,23 @@ const login = async (req, res, next) => {
     }
 };
 
+const logout = async (req,res,next)=>{
+    try {
+        
+        req.session.destroy((err)=>{
+            if(err){
+                console.log("Session destruction error", err.message);
+                return res.redirect("/pageNotFound");
+            }
+            return res.redirect("/login")
+        })
+
+    } catch (error) {
+        console.log("logout error",error)
+        next(error)
+    }
+}
+
 module.exports = {
     loadHomepage,
     loadAboutpage,
@@ -268,5 +309,6 @@ module.exports = {
     verifyOtp,
     resendOtp,
     loadLogin,
-    login
+    login,
+    logout
 }
