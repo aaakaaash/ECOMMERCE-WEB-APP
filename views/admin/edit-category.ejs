@@ -1,0 +1,48 @@
+<%- include("../../views/partials/admin/header") %>
+
+<div class="content">
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="content-title card-title">Edit Category</h2>
+            </div>
+        </div>
+
+        <!-- Empty White Header Space -->
+        <header class="card-header" style="background-color: white; height: 100px; margin-bottom: 20px;"></header>
+
+        <!-- Container for Form -->
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6 mt-4">
+                    <!-- Edit Category Form -->
+                    <form method="post" action="/admin/editCategory/<%= category._id %>">
+
+                        
+                        <!-- Form Field: Category Name -->
+                        <div class="mb-4">
+                            <label for="categoryName" class="form-label">Name</label>
+                            <br>
+                            <input type="text" name="categoryName" value="<%= category.name %>" class="form-control border" id="categoryName" />
+                        </div>
+
+                        <!-- Form Field: Description -->
+                        <div class="mb-4">
+                            <label for="description" class="form-label">Description</label>
+                            <br>
+                            <textarea name="description" class="form-control border" id="description"><%= category.description %></textarea>
+                        </div>
+
+                        <!-- Submit Button Aligned to the Right -->
+                        <div class="d-grid text-end mt-4">
+                            <button class="btn btn-primary" type="submit">Update Category</button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include("../../views/partials/admin/footer") %>

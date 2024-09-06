@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const path = require("path");
+const multer= require("multer");
 const session = require("express-session");
 
 
@@ -42,9 +43,11 @@ app.use(express.static(path.join(__dirname,"public")));
 app.use("/",userRouter);
 app.use("/admin",adminRouter);
 
+
 app.use(preventCache);
 
 app.use(errorHandler);
+
 
 app.listen(process.env.PORT,()=>{
     console.log("Server Running");

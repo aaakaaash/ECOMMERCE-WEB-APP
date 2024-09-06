@@ -3,7 +3,7 @@ const mongoose = require("mongoose")
 const bcrypt = require("bcrypt");
 
 
-const pageerror = async (req,res)=>{
+const pageerror =  (req,res)=>{
     res.render("admin-error")
 }
 
@@ -66,6 +66,7 @@ const logout = async (req,res)=>{
         res.redirect("/admin/pageerror");
     }
 }
+
 
 
 module.exports = {
