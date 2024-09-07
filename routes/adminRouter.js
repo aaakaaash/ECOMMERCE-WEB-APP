@@ -12,15 +12,16 @@ const productController = require("../controllers/admin/productController");
 const {userAuth, adminAuth} = require("../middlewares/auth");
 
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, '..', 'public', 'uploads', 'product-images'));
+    destination: function (req, file, cb) {
+      cb(null, 'public/resized/product-images'); // Final destination folder
     },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
+    filename: function (req, file, cb) {
+      const timestamp = Date.now();
+      cb(null, `${timestamp}-${file.originalname}`); // Unique file name
     }
-});
-
-const upload = multer({ storage: storage });
+  });
+  
+  const upload = multer({ storage: storage });
 
 
 
@@ -62,6 +63,17 @@ router.delete('/deleteCategory', adminAuth, categoryController.deleteCategory);
 
 router.get("/addProducts", adminAuth,productController.getProductAddPage);
 router.post("/addProducts",adminAuth, upload.array("images",3),productController.addProducts);
+router.get("/products",adminAuth,productController.getAllProducts);
+router.get("/blockProduct",adminAuth,productController.blockProduct);
+router.get("/unblockProduct",adminAuth,productController.unblockProduct);
+router.get("/editProduct",adminAuth,productController.getEditProduct);
+router.post("/editProduct/:id", adminAuth, upload.fields([
+  { name: 'images1', maxCount: 1 },
+  { name: 'images2', maxCount: 1 },
+  { name: 'images3', maxCount: 1 }
+]), productController.editProduct);
+
+router.post("/deleteImage",adminAuth,productController.deleteSingleImage);
 
 
 
