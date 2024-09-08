@@ -167,7 +167,7 @@
                         <a href="/admin/editCategory?id=<%= category._id %>" class="text-white">Edit</a>
                       </button>
                     </td>
-                    <!-- Add the Delete button here -->
+                    <!-- Delete button  -->
                     <td class="text-start">
                       <button class="btn btn-danger" onclick="confirmDelete('<%= category._id %>')">Delete</button>
                     </td>
@@ -205,10 +205,10 @@
     });
   
     function handleFormSubmit(event) {
-      event.preventDefault(); // Prevent the default form submission behavior
+      event.preventDefault(); 
   
       if (!validateForm()) {
-        return; // If validation fails, stop the function execution
+        return; 
       }
   
       const formData = new FormData(event.target);
@@ -233,7 +233,7 @@
         });
   
         document.querySelector('form').reset();
-        updateCategoryList(); // Update the category list after successful addition
+        updateCategoryList(); 
       })
       .catch(error => {
         Swal.fire({
@@ -279,11 +279,11 @@
     }
   
     function updateCategoryList() {
-      fetch("/admin/getCategories") // Make sure this endpoint is available
+      fetch("/admin/getCategories") 
         .then(response => response.json())
         .then(data => {
           const tbody = document.querySelector("#category-table tbody");
-          tbody.innerHTML = ""; // Clear existing rows
+          tbody.innerHTML = ""; 
           data.categories.forEach(category => {
             const row = document.createElement('tr');
             row.innerHTML = `

@@ -3,6 +3,8 @@ const app = express();
 const path = require("path");
 const multer= require("multer");
 const session = require("express-session");
+const cors = require("cors");
+const mongoose = require("mongoose");
 
 
 const env = require('dotenv').config();
@@ -16,6 +18,13 @@ const preventCache = require("./middlewares/preventCache");
 const nocache = require("nocache");
 db();
 
+app.use(cors({
+    origin: 'http://localhost:3000', 
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type']
+}));
+
+app.use(express.json()); 
 
 app.use(express.json());
 app.use(express.urlencoded({extended:true}))
@@ -41,6 +50,8 @@ app.set("views",[path.join(__dirname,'views/user'),path.join(__dirname,'views/ad
 app.use(express.static(path.join(__dirname,"public")));
 
 app.use("/",userRouter);
+
+
 app.use("/admin",adminRouter);
 
 

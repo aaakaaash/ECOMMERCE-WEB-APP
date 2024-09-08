@@ -1,13 +1,15 @@
 
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
-
+const mongoose = require("mongoose");
 
 
 const env = require("dotenv").config();
 const User = require("../../models/userSchema");
+const Product = require("../../models/productSchema")
 
 
+let sessionActive = false;
 
 const pageNotFound = async (req, res, next) => {
     try {
@@ -19,16 +21,24 @@ const pageNotFound = async (req, res, next) => {
 
 
 const loadHomepage = async (req, res, next) => {
+    
     try {
-        const userId = req.session.user;
+        const products = await Product.find().populate('category').exec();
+        const userId = req.user;
         if (userId) {
+            sessionActive =true;
             const userData = await User.findById(userId);
             res.locals.user = userData; 
-            return res.render("home", { user: userData });
+            return res.render("home", { user: userData ,
+                products:products
+            });
         } else {
             res.locals.user = null; 
-            return res.render("home");
-        }
+           
+            return res.render("home",{
+                products:products
+         });
+    }
     } catch (error) {
         console.log("Home page not found:", error);
         next(error); 
@@ -54,15 +64,22 @@ const loadAboutpage = async (req, res, next) => {
 };
 
 const loadShoppage = async (req, res, next) => {
+   
     try {
-        const userId = req.session.user;
+        const products = await Product.find().exec();
+        const userId = req.user;
         if (userId) {
             const userData = await User.findById(userId);
             res.locals.user = userData; 
-            return res.render("shop", { user: userData });
+            return res.render("shop", { user: userData,
+                products:products
+
+             });
         } else {
             res.locals.user = null; 
-            return res.render("shop");
+            return res.render("shop", {
+                products:products
+            });
         }
     } catch (error) {
         console.log("shop page not found:", error);
@@ -72,7 +89,7 @@ const loadShoppage = async (req, res, next) => {
 
 const loadContactpage = async (req, res, next) => {
     try {
-        const userId = req.session.user;
+        const userId = req.user;
         if (userId) {
             const userData = await User.findById(userId);
             res.locals.user = userData; 
@@ -87,10 +104,48 @@ const loadContactpage = async (req, res, next) => {
     }
 };
 
+const loadSingleProduct = async (req, res, next) => {
+    try {
+        let productId = req.params.productId.trim();
+
+        if (!mongoose.Types.ObjectId.isValid(productId)) {
+            return res.status(400).send('Invalid product ID');
+        }
+        
+        const product = await Product.findById(productId).exec();
+
+        if (!product) {
+            return res.status(404).send('Product not found');
+        }
+
+        const userId = req.user;
+        let userData = null;
+        
+        if (userId) {
+            userData = await User.findById(userId).exec();
+            res.render("single", { 
+                user: userData,
+                product: product
+            });
+        } else {
+            res.render("single", { 
+                product: product
+            });
+
+        }
+       
+    } catch (error) {
+        console.log("Error loading product:", error);
+        next(error);
+    }
+};
+
+
 const loadSignup = async (req, res, next) => {
     try {
+        if(sessionActive){}else{
         return res.render('signup');
-    } catch (error) {
+    } } catch (error) {
         console.log("Signup page not loading:", error);
         next(error); 
     }
@@ -137,6 +192,9 @@ async function sendVerificationEmail(email,otp){
 const signup = async (req, res, next) => {
     
     try {
+
+        
+
         const {name,phone,email,password,cPassword} = req.body;
 
         if(password !== cPassword){
@@ -144,6 +202,7 @@ const signup = async (req, res, next) => {
         }
         const findUser = await User.findOne({email});
         if(findUser){
+            console.log(findUser)
             return res.render("signup", {message:"User with this email already exists"});
         }
 
@@ -161,6 +220,7 @@ const signup = async (req, res, next) => {
         res.render("verify-otp");
 
         console.log("OTP Sent",otp);
+
 
     } catch (error) {
         
@@ -200,6 +260,7 @@ const verifyOtp = async (req, res, next)=>{
 
             await saveUserData.save();
             req.session.user = saveUserData._id;
+            sessionActive = true;
             res.json({success:true, redirectUrl:"/"})
         }else {
             res.status(400).json({success:false, message:"Invalid OTP, Please try again"})
@@ -240,10 +301,10 @@ const resendOtp = async (req, res, next) =>{
 
 const loadLogin = async (req,res,next)=>{
     try {
-        if(!req.session.user){
+        if(!req.user){
             return res.render("login");
         }else{
-            loggedIn=true;
+            
             res.redirect("/")
         }
     } catch (error) {
@@ -271,7 +332,8 @@ const login = async (req, res, next) => {
             return res.render("login", { message: "Incorrect password" });
         }
         
-        req.session.user = findUser._id;
+        req.user = findUser._id;
+        sessionActive = true;
 
         res.redirect("/");
         
@@ -281,6 +343,7 @@ const login = async (req, res, next) => {
     }
 };
 
+
 const logout = async (req,res,next)=>{
     try {
         
@@ -289,6 +352,7 @@ const logout = async (req,res,next)=>{
                 console.log("Session destruction error", err.message);
                 return res.redirect("/pageNotFound");
             }
+            sessionActive = false;
             return res.redirect("/login")
         })
 
@@ -302,6 +366,7 @@ module.exports = {
     loadHomepage,
     loadAboutpage,
     loadShoppage,
+    loadSingleProduct,
     loadContactpage,
     pageNotFound,
     loadSignup,
@@ -310,5 +375,6 @@ module.exports = {
     resendOtp,
     loadLogin,
     login,
-    logout
+    logout,
+
 }

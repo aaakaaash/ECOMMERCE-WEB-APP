@@ -1,6 +1,7 @@
 const User = require("../../models/userSchema");
 const mongoose = require("mongoose")
 const bcrypt = require("bcrypt");
+const express = require("express-session");
 
 
 const pageerror =  (req,res)=>{

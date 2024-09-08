@@ -65,6 +65,7 @@ const addProducts = async (req, res)=> {
             const newProduct = new Product({
                 productName: products.productName,
                 description: products.description,
+                SKUNumber:products.SKUNumber,
                 category: categoryId._id,
                 regularPrice: products.regularPrice,
                 salePrice: products.salePrice,
@@ -171,7 +172,6 @@ const editProduct = async (req, res) => {
         const id = req.params.id;
         const data = req.body;
 
-        // Check if a product with the new name already exists
         const existingProduct = await Product.findOne({
             productName: data.productName,
             _id: { $ne: id }
@@ -237,6 +237,21 @@ const deleteSingleImage = async (req,res) => {
     }
 }
 
+const deleteProduct = async (req, res) => {
+    try {
+      const id = req.query.id;
+      const deletedProduct= await Product.findByIdAndDelete(id);
+  
+      if (deletedProduct) {
+        res.json({ status: true, message: 'Product successfully deleted' });
+      } else {
+        res.status(404).json({ status: false, message: 'Product not found' });
+      }
+    } catch (error) {
+      res.status(500).json({ status: false, message: 'Internal server error' });
+    }
+  }
+
 module.exports = {
     getProductAddPage,
     addProducts,
@@ -245,5 +260,7 @@ module.exports = {
     unblockProduct,
     getEditProduct,
     editProduct,
-    deleteSingleImage
+    deleteSingleImage,
+    deleteProduct
 }
+

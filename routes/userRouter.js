@@ -13,6 +13,7 @@ router.get("/",userController.loadHomepage);
 router.get("/home",preventCache,userController.loadHomepage);
 router.get("/about",userController.loadAboutpage);
 router.get("/shop",userController.loadShoppage);
+router.get('/product/:productId', userController.loadSingleProduct);
 router.get("/contact",userController.loadContactpage);
 router.get("/signup",userController.loadSignup);
 router.post("/signup",preventCache,userController.signup);

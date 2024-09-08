@@ -13,11 +13,11 @@ const {userAuth, adminAuth} = require("../middlewares/auth");
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, 'public/resized/product-images'); // Final destination folder
+      cb(null, 'public/storage/product-images'); 
     },
     filename: function (req, file, cb) {
       const timestamp = Date.now();
-      cb(null, `${timestamp}-${file.originalname}`); // Unique file name
+      cb(null, `${timestamp}-${file.originalname}`); 
     }
   });
   
@@ -74,6 +74,7 @@ router.post("/editProduct/:id", adminAuth, upload.fields([
 ]), productController.editProduct);
 
 router.post("/deleteImage",adminAuth,productController.deleteSingleImage);
+router.delete('/deleteProduct', adminAuth, productController.deleteProduct);
 
 
 
