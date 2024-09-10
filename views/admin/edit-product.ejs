@@ -19,9 +19,9 @@
             display: none;
         }
 
-        .row {
+        /* .row {
             display: block;
-        }
+        } */
 
         .image-cropper {
             display: none;
@@ -134,13 +134,14 @@
                                     <div class="col-md-12">
                                         <div class="mb-4">
                                             <div class="cropper-container">
-                                                <input type="hidden" value="<%= product.productImage[i] %>" id="imageDatas">
-                                                <img class="rounded" style="width: 50px; height: 60px;" src="/uploads/re-image/<%= product.productImage[i] %>" alt="">
-                                                <i onclick="deleteSingleImage('<%= product.productImage[i] %>', '<%= product._id %>')" class="fa-thin fa-x remove-icon"></i>
+                                                <img class="rounded" style="width: 50px; height: 60px;" src="/uploads/product-images/<%= product.productImage[i] %>" alt="">
+                                                <button type="button" onclick="deleteSingleImage('<%= product.productImage[i] %>', '<%= product._id %>')"><i class="fas fa-times"></i></button>
                                             </div>
+                                            
                                         </div>
                                     </div>
                                 <% } %>
+                                
                                 <div class="image-cropper" id="imageCropper1">
                                     <img src="" alt="" id="croppedImg1">
                                     <button type="button" id="saveButton1" class="btn-sm btn-primary">Save</button>

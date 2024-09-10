@@ -16,6 +16,7 @@ const errorHandler = require("./middlewares/errorHandler");
 const passport = require('./config/passport');
 const preventCache = require("./middlewares/preventCache");
 const nocache = require("nocache");
+const { adminAuth } = require("./middlewares/auth");
 db();
 
 app.use(cors({
@@ -44,6 +45,7 @@ app.use(nocache())
 app.use(passport.initialize());
 app.use(passport.session());
 
+
 app.set("view engine","ejs")
 app.set("views",[path.join(__dirname,'views/user'),path.join(__dirname,'views/admin')]);
 
@@ -53,6 +55,7 @@ app.use("/",userRouter);
 
 
 app.use("/admin",adminRouter);
+
 
 
 app.use(preventCache);

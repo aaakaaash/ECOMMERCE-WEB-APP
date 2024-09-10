@@ -6,7 +6,7 @@ const customerInfo = async (req, res) => {
     try {
         let search = req.query.search || "";
         let page = parseInt(req.query.page) || 1;
-        const limit = 3;
+        const limit = 10;
 
         const userData = await User.find({
             role: "user",

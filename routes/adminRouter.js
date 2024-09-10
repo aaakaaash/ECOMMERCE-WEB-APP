@@ -5,23 +5,26 @@ const multer = require("multer");
 const nocache =require("nocache");
 
 
+const {userAuth, adminAuth} = require("../middlewares/auth");
 const adminController = require("../controllers/admin/adminController");
 const customerController = require("../controllers/admin/customerController");
 const categoryController = require("../controllers/admin/categoryController");
 const productController = require("../controllers/admin/productController");
-const {userAuth, adminAuth} = require("../middlewares/auth");
 
+
+// Multer storage config
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, 'public/storage/product-images'); 
-    },
-    filename: function (req, file, cb) {
-      const timestamp = Date.now();
-      cb(null, `${timestamp}-${file.originalname}`); 
-    }
-  });
-  
-  const upload = multer({ storage: storage });
+  destination: function (req, file, cb) {
+      // You can define multiple destinations, in this case, it's "uploads/product-images"
+      cb(null, path.join(__dirname, '..', 'public', 'storage', 'product-images'));
+  },
+  filename: function (req, file, cb) {
+      // Generating a unique filename (with current timestamp + original name)
+      cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+
+const upload = multer({ storage: storage });
 
 
 
@@ -62,7 +65,11 @@ router.delete('/deleteCategory', adminAuth, categoryController.deleteCategory);
 //Product management
 
 router.get("/addProducts", adminAuth,productController.getProductAddPage);
-router.post("/addProducts",adminAuth, upload.array("images",3),productController.addProducts);
+router.post("/addProducts", adminAuth, upload.fields([
+  { name: 'images1', maxCount: 1 },
+  { name: 'images2', maxCount: 1 },
+  { name: 'images3', maxCount: 1 }
+]), productController.addProducts);
 router.get("/products",adminAuth,productController.getAllProducts);
 router.get("/blockProduct",adminAuth,productController.blockProduct);
 router.get("/unblockProduct",adminAuth,productController.unblockProduct);
