@@ -45,7 +45,7 @@ const loadDashboard = async (req, res,) =>{
             res.render("dashboard");
 
         } catch (error) {
-            console.log("unexpected error during logout",error);
+            console.log("unexpected error during loading dashboard",error);
             res.redirect("/admin/pageerror");
         }
     }

@@ -3,11 +3,9 @@ const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
 
-
 const env = require("dotenv").config();
 const User = require("../../models/userSchema");
 const Product = require("../../models/productSchema")
-
 
 let sessionActive = false;
 
@@ -19,12 +17,18 @@ const pageNotFound = async (req, res, next) => {
     }
 };
 
-
 const loadHomepage = async (req, res, next) => {
     
     try {
         const products = await Product.find().populate('category').exec();
-        const userId = req.user;
+
+        let userId;
+
+        if(req.user){
+             userId = req.user; 
+        } else if(req.session.user){
+            userId = req.session.user;
+        }
         if (userId) {
             sessionActive =true;
             const userData = await User.findById(userId);
@@ -45,10 +49,15 @@ const loadHomepage = async (req, res, next) => {
     }
 };
 
-
 const loadAboutpage = async (req, res, next) => {
     try {
-        const userId = req.session.user;
+        let userId;
+
+        if(req.user){
+             userId = req.user; 
+        } else if(req.session.user){
+            userId = req.session.user;
+        }
         if (userId) {
             const userData = await User.findById(userId);
             res.locals.user = userData; 
@@ -67,7 +76,14 @@ const loadShoppage = async (req, res, next) => {
    
     try {
         const products = await Product.find().exec();
-        const userId = req.user;
+        let userId;
+
+        if(req.user){
+             userId = req.user; 
+        } else if(req.session.user){
+            userId = req.session.user;
+        }
+
         if (userId) {
             const userData = await User.findById(userId);
             res.locals.user = userData; 
@@ -89,7 +105,13 @@ const loadShoppage = async (req, res, next) => {
 
 const loadContactpage = async (req, res, next) => {
     try {
-        const userId = req.user;
+          let userId;
+
+        if(req.user){
+             userId = req.user; 
+        } else if(req.session.user){
+            userId = req.session.user;
+        }
         if (userId) {
             const userData = await User.findById(userId);
             res.locals.user = userData; 
@@ -103,43 +125,6 @@ const loadContactpage = async (req, res, next) => {
         next(error); 
     }
 };
-
-const loadSingleProduct = async (req, res, next) => {
-    try {
-        let productId = req.params.productId.trim();
-
-        if (!mongoose.Types.ObjectId.isValid(productId)) {
-            return res.status(400).send('Invalid product ID');
-        }
-        
-        const product = await Product.findById(productId).exec();
-
-        if (!product) {
-            return res.status(404).send('Product not found');
-        }
-
-        const userId = req.user;
-        let userData = null;
-        
-        if (userId) {
-            userData = await User.findById(userId).exec();
-            res.render("single", { 
-                user: userData,
-                product: product
-            });
-        } else {
-            res.render("single", { 
-                product: product
-            });
-
-        }
-       
-    } catch (error) {
-        console.log("Error loading product:", error);
-        next(error);
-    }
-};
-
 
 const loadSignup = async (req, res, next) => {
     try {
@@ -193,8 +178,6 @@ const signup = async (req, res, next) => {
     
     try {
 
-        
-
         const {name,phone,email,password,cPassword} = req.body;
 
         if(password !== cPassword){
@@ -220,7 +203,6 @@ const signup = async (req, res, next) => {
         res.render("verify-otp");
 
         console.log("OTP Sent",otp);
-
 
     } catch (error) {
         
@@ -301,7 +283,7 @@ const resendOtp = async (req, res, next) =>{
 
 const loadLogin = async (req,res,next)=>{
     try {
-        if(!req.user){
+        if(!sessionActive){
             return res.render("login");
         }else{
             
@@ -314,9 +296,13 @@ const loadLogin = async (req,res,next)=>{
 
 const login = async (req, res, next) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, googleId } = req.body;
         
-        const findUser = await User.findOne({ role: "user", email: email });
+        const findUser = await User.findOne({ role: "user", email: email});
+
+        if (googleId) {
+            query.googleId = googleId;  // Add googleId to query only if it's present
+        }
 
         if (!findUser) {
             return res.render("login", { message: "User not found" });
@@ -326,13 +312,21 @@ const login = async (req, res, next) => {
             return res.render("login", { message: "User is blocked by admin" });
         }
         
+        if (googleId) {
+            // Set the session for Google OAuth users
+            req.user = findUser._id;
+            sessionActive = true;
+            return res.redirect("/");
+        }
+
         const passwordMatch = await bcrypt.compare(password, findUser.password);
 
         if (!passwordMatch) {
             return res.render("login", { message: "Incorrect password" });
         }
         
-        req.user = findUser._id;
+        // Set the session for normal login
+        req.session.user = findUser._id;
         sessionActive = true;
 
         res.redirect("/");
@@ -342,7 +336,6 @@ const login = async (req, res, next) => {
         next(error); 
     }
 };
-
 
 const logout = async (req,res,next)=>{
     try {
@@ -366,7 +359,6 @@ module.exports = {
     loadHomepage,
     loadAboutpage,
     loadShoppage,
-    loadSingleProduct,
     loadContactpage,
     pageNotFound,
     loadSignup,
