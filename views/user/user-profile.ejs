@@ -1,122 +1,82 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/css/profile.css">
-</head>
-<body>
-    <%-include("../../views/partials/user/header")%>
-    <div class="container mt-5">
-        <div class="row">
-            <div class="col-md-3">
-                <div class="list-group">
-                    <a href="#" class="list-group-item list-group-item-action active">
-                        <i class="fas fa-user"></i> Account Details
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <i class="fas fa-credit-card"></i> Address
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <i class="fas fa-heart"></i> Coupons
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <i class="fas fa-clock"></i> Order History
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <i class="fas fa-shopping-cart"></i> Shopping Cart
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <i class="fas fa-map-marker-alt"></i> Track Order
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <i class="fas fa-wallet"></i> Wallet
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <i class="fas fa-list"></i> Wish List
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <i class="fas fa-sign-out-alt"></i> Log-out
-                    </a>
+<div class="container-fluid">
+    <%- include("../../views/partials/user/header") %>
+    
+    <div class="dashboard-container">
+      <!-- Include the sidebar partial -->
+      <%- include("../../views/partials/user/sidebar") %>
+      
+
+      <div class="dashboard-content" id="dashboardContent">
+
+        <div class="dashboard-content">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="dashboard-card">
+                        <div class="card-title">Total Orders</div>
+                        <div class="card-body">
+                            <i class="fas fa-rocket"></i>
+                            <span class="card-text">154</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="dashboard-card">
+                        <div class="card-title">Pending Orders</div>
+                        <div class="card-body">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span class="card-text">05</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="dashboard-card">
+                        <div class="card-title">Completed Orders</div>
+                        <div class="card-body">
+                            <i class="fas fa-box"></i>
+                            <span class="card-text">149</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-9">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Hello, John Doe</h3>
-                        <p>From your account dashboard, you can easily check & view your Recent Orders, manage your Shipping and Billing Addresses and edit your Password and Account Details.</p>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card mb-3">
-                                    <div class="card-header">
-                                        <h4>Account Info</h4>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <label for="name">Name</label>
-                                            <input type="text" class="form-control" id="name" value="John Doe" readonly>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="location">Location</label>
-                                            <input type="text" class="form-control" id="location" value="Kerala" readonly>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="email">Email</label>
-                                            <input type="email" class="form-control" id="email" value="johndoe@gmail.com" readonly>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="phone">Phone</label>
-                                            <input type="text" class="form-control" id="phone" value="+9181119805" readonly>
-                                        </div>
-                                        <button class="btn btn-primary" id="editAccountBtn">Edit Account</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card mb-3">
-                                    <div class="card-header">
-                                        <h4>Billing Address</h4>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <label for="name">Name</label>
-                                            <input type="text" class="form-control" id="name" value="John Doe" readonly>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="address">Address</label>
-                                            <input type="text" class="form-control" id="address" value="Retro Fits, 4th Gate, TVM" readonly>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="pin">Pin</label>
-                                            <input type="text" class="form-control" id="pin" value="6730" readonly>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="phone">Phone Number</label>
-                                            <input type="text" class="form-control" id="phone" value="+9181119805" readonly>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="email">Email</label>
-                                            <input type="email" class="form-control" id="email" value="johndoe@gmail.com" readonly>
-                                        </div>
-                                        <button class="btn btn-primary" id="editAddressBtn">Edit Address</button>
-                                    </div>
-                                </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="dashboard-card account-info">
+                        <div class="card-title">Account Info</div>
+                        <div class="user-info">
+                            <i class="fas fa-user"></i>
+                            <div class="user-details">
+                                <span>John Doe</span>
+                                <span>Kerala</span>
+                                <span>Email: johndoe@gmail.com</span>
+                                <span>Phone: +9181119805</span>
                             </div>
                         </div>
+                        <button class="edit-button">Edit Account</button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="dashboard-card billing-address">
+                        <div class="card-title">Billing Address</div>
+                        <div class="user-info">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div class="user-details">
+                                <span>John Doe</span>
+                                <span>Retro Fits, 4th Gate, TVM</span>
+                                <span>Pin: 6730</span>
+                                <span>Phone Number: +9181119805</span>
+                                <span>Email: johndoe@gmail.com</span>
+                            </div>
+                        </div>
+                        <button class="edit-button">Edit Address</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <%-include("../../views/partials/user/footer")%>
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
-    <script src="/public/js/user/profile.js"></script>
-</body>
-</html>
+      </div>
+    </div>
+    
+    <%- include("../../views/partials/user/footer") %>
+  </div>
+  

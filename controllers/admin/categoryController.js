@@ -186,17 +186,26 @@ const editCategory = async (req, res) => {
 const deleteCategory = async (req, res) => {
     try {
       const id = req.query.id;
+  
+      // Find and delete all products under this category
+      const deletedProducts = await Product.deleteMany({ category: id });
+  
+      // Now delete the category
       const deletedCategory = await Category.findByIdAndDelete(id);
   
       if (deletedCategory) {
-        res.json({ status: true, message: 'Category successfully deleted' });
+        res.json({ 
+          status: true, 
+          message: `Category and ${deletedProducts.deletedCount} products successfully deleted` 
+        });
       } else {
         res.status(404).json({ status: false, message: 'Category not found' });
       }
     } catch (error) {
       res.status(500).json({ status: false, message: 'Internal server error' });
     }
-  }
+  };
+  
   
 
 

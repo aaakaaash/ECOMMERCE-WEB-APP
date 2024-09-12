@@ -15,7 +15,7 @@ const addressSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    stat: {
+    state: {
         type: String,
         required: true
     },
@@ -27,16 +27,12 @@ const addressSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    addressType: {
-        type:String,
-        required: true
-    },
     ContactNo:{
-        type: NUmber,
+        type: Number,
         required:true
     }
 })
 
-const Address = new mongoose("Address", addressSchema);
+const Address = mongoose.model("Address", addressSchema);
 
 module.exports = Address;

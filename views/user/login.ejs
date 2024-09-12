@@ -8,6 +8,12 @@
     <link rel="stylesheet" href="/css/login_overlay.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> <!-- Font Awesome for icons -->
 </head>
+
+<style>
+    .forget-password-link:hover{
+        text-decoration: underline;
+    }
+</style>
 <body class="d-flex align-items-center justify-content-center min-vh-100 bg-dark">
 
 <div class="login p-5 bg-dark mx-auto" style="max-width: 400px;">
@@ -29,7 +35,11 @@
                 <%=message%>
             </div>
             <%}%>
-
+            <div class="d-flex justify-content-between">
+                <div></div> 
+                <a href="/login/forget-password" class="text-danger forgot-password-link " style="white-space: nowrap;">Forgot Password?</a>
+            </div>
+            <br>
         <button type="submit"  class="btn btn-primary btn-block mb-4">Login</button>
         <div class="d-flex justify-content-center mb-3">
             <a href="/auth/google" class="btn btn-outline-dark me-2 rounded-circle p-2">

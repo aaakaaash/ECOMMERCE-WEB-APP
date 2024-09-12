@@ -1,23 +1,204 @@
 
+const nodemailer = require("nodemailer");
+const bcrypt = require("bcrypt");
+const mongoose = require("mongoose");
+const crypto = require("crypto")
+
+const env = require("dotenv").config();
+const User = require("../../models/userSchema");
+const Product = require("../../models/productSchema")
 
 
 
+function generateOtp() {
+    return crypto.randomInt(100000, 1000000).toString(); // 6-digit OTP
+}
 
-const userProfile = async (req,res,next) =>{
+const forgetPasswordPage = async (req, res, next) => {
 
     try {
-
-        res.render("user-Profile");
         
-    } catch (error) {
+        res.render("forget-password");
 
-        console.error("rendering userProfile", error);
-        next(error)
+    } catch (error) {
+        next(error);
     }
+
 
 }
 
 
+
+function generateOtp() {
+    return crypto.randomInt(100000, 1000000).toString(); // 6-digit OTP
+}
+
+const sendVerificationEmail = async (email, otp) => {
+    try {
+        const transporter = nodemailer.createTransport({
+            service: 'gmail', // Make sure this is correct for your email provider
+            port: 587, // For TLS
+            secure: false, // Set to true if using port 465 for SSL
+            requireTLS: true,
+            auth: {
+                user: process.env.NODEMAILER_EMAIL,
+                pass: process.env.NODEMAILER_PASSWORD
+            }
+        });
+
+        const mailOptions = {
+            from: process.env.NODEMAILER_EMAIL,
+            to: email,
+            subject: "Your OTP for password reset",
+            text: `Your OTP is ${otp}`,
+            html: `<b><h4>Your OTP: ${otp}</h4></b>`
+        };
+
+        const info = await transporter.sendMail(mailOptions); // Fixed variable name
+        console.log("Email sent:", info.messageId);
+        return true;
+
+    } catch (error) {
+        console.log("Error sending email", error);
+        return false;
+    }
+}
+
+const securePassword = async (passsword) => {
+    try {
+        const passwordHash = await bcrypt.hash(password,10)
+        return passwordHash;
+    } catch (error) {
+        
+    }
+}
+
+// Example usage in your forgetEmailValidation function
+const forgetEmailValidation = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+        const findUser = await User.findOne({ email: email });
+        if (findUser) {
+            const otp = generateOtp();
+            const emailSent = await sendVerificationEmail(email, otp);
+            if (emailSent) {
+                req.session.userOtp = otp;
+                req.session.email = email;
+                res.render("forgetPass-otp");
+                console.log("OTP:", otp);
+            } else {
+                res.json({ success: false, message: "Failed to send OTP. Please try again" });
+            }
+
+        } else {
+            res.render("forget-password", {
+                message: "User with this email does not exist"
+            });
+        }
+    } catch (error) {
+        next(error);
+    }
+}
+
+const verifyForgetPassOtp = async (req, res, next) => {
+
+    try {
+
+        const enterdOtp = req.body.otp;
+        if(enterdOtp === req.session.userOtp) {
+            res.json({success:true, redirectUrl:"/reset-password"});
+        } else {
+            res.json({success:false, message:"OTP not matching"});
+        }
+
+        
+    } catch (error) {
+        next(error);
+    }
+
+
+}
+
+const getResetPassPage = async (req, res, next) =>{
+
+    try {
+        res.render("reset-password")
+    } catch (error) {
+        next(error)
+    }
+}
+
+const resendOtp = async (req, res, next) =>{
+
+    try{
+
+    const otp = generateOtp();
+    req.session.userOtp = otp;
+    const email = req.session.email;
+    console.log("Resending OTP to email:", email);
+    const  emailSent = await sendVerificationEmail(email,otp);
+    if(emailSent){
+        console.log("Resend OTP:",otp);
+        res.status(200).json({
+            success:true,
+            message:"Resend OTP Successfull"
+        })
+    }
+
+    } catch (error) {
+        next(error)
+    }
+}
+
+const postNewPassword = async (req, res, next) =>{
+    try {
+        const {newPass1, newPass2} = req.body;
+        const email = req.session.email;
+        if(newPass1 === newPass2) {
+            const passwordHash = await securePassword(newPass1);
+            await User.updateOne(
+                { email:email },
+                {$set:{password:passwordHash}}
+            )
+            res.redirect("/login");
+        } else {
+            res.render("reset-password", {message:"Passwords do not match"});
+        }
+    } catch(error){
+        next(error)
+    }
+}
+
+
+const userProfile = async (req, res, next) => {
+    try {
+
+        if (res.locals.user) {
+            // Since user is already attached to res.locals by userAuth
+            return res.render("user-profile", { 
+                user: res.locals.user,  // Access user from res.locals
+            });
+        } else {
+            // In case of no user, render the login page
+            return res.render("login", {
+            });
+        }
+    } catch (error) {
+        console.log("Profile page not found:", error);
+        next(error);
+    }
+};
+
+
+
+
 module.exports = {
-    userProfile
+    userProfile,
+    forgetPasswordPage,
+    forgetEmailValidation,
+    verifyForgetPassOtp,
+    getResetPassPage,
+    resendOtp,
+    postNewPassword
+
 }

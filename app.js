@@ -16,7 +16,7 @@ const errorHandler = require("./middlewares/errorHandler");
 const passport = require('./config/passport');
 const preventCache = require("./middlewares/preventCache");
 const nocache = require("nocache");
-const { adminAuth } = require("./middlewares/auth");
+const { userAuth,adminAuth } = require("./middlewares/auth");
 db();
 
 app.use(cors({
@@ -25,7 +25,6 @@ app.use(cors({
     allowedHeaders: ['Content-Type']
 }));
 
-app.use(express.json()); 
 
 app.use(express.json());
 app.use(express.urlencoded({extended:true}))
@@ -52,6 +51,7 @@ app.set("views",[path.join(__dirname,'views/user'),path.join(__dirname,'views/ad
 app.use(express.static(path.join(__dirname,"public")));
 
 app.use("/",userRouter);
+
 
 
 app.use("/admin",adminRouter);

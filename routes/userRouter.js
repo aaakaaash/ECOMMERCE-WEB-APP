@@ -10,6 +10,7 @@ const preventCache = require("../middlewares/preventCache");
 const passport = require("../config/passport");
 const productViewController = require("../controllers/user/ProductViewController");
 const userProfileController = require("../controllers/user/userProfileController");
+const userAddressController = require('../controllers/user/userAddressController')
 const { userAuth } = require("../middlewares/auth");
 
 router.use(nocache());
@@ -27,7 +28,21 @@ router.post("/resend-otp",userController.resendOtp);
 
 // user profile management
 
+router.get("/login/forget-password",userProfileController.forgetPasswordPage);
+router.post("/login/forget-password/forget-email-valid",userProfileController.forgetEmailValidation);
+router.post("/verify-passForget-otp",userProfileController.verifyForgetPassOtp)
+router.get("/reset-password",userProfileController.getResetPassPage);
+router.post("/resend-forget-otp",userProfileController.resendOtp);
+router.post("/reset-password",userProfileController.postNewPassword);
 router.get("/userProfile",userAuth,userProfileController.userProfile);
+
+// user address management
+
+router.get("/user/address",userAuth,userAddressController.userAddress)
+router.get("/user/add-new-address",userAuth,userAddressController.addNewAddress);
+router.post("/user/add-new-address",userAuth,userAddressController.updateNewAddress);
+
+
 
 
 router.get('/auth/google',preventCache,passport.authenticate('google',{scope:['profile','email']}));

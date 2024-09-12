@@ -1,0 +1,69 @@
+
+<style>
+    .edit-btn {
+        background-color: #007bff;
+        color: #ffffff;
+        border: none;
+        padding: 5px 10px;
+        font-size: 12px;
+        cursor: pointer;
+    }
+    
+    .delete-btn {
+        background-color: #ff0000;
+        color: #ffffff;
+        border: none;
+        padding: 5px 10px;
+        font-size: 12px;
+        cursor: pointer;
+    }
+    
+    .add-btn {
+        background-color: #4CAF50;
+        color: #ffffff;
+        border: none;
+        padding: 5px 10px;
+        font-size: 12px;
+        cursor: pointer;
+    }
+</style>
+
+      
+  <div class="container-fluid">
+    <%- include("../../views/partials/user/header") %>
+    
+    <div class="dashboard-container">
+      <!-- Include the sidebar partial -->
+      <%- include("../../views/partials/user/sidebar") %>
+      
+
+      <div class="dashboard-content" id="dashboardContent">
+
+        <h1>Address List</h1>
+       <a href="/user/add-new-address"><button class="add-btn" style="float: left;">Add New Address</button></a> 
+        <br><br>
+        <div class="address-list" id="address-list">
+          <% if (address && address.length > 0) { %>
+            <% address.forEach(address => { %>
+              <div class="address">
+                <p>House: <span id="house"><%= address.house %></span></p>
+                <p>Place: <span id="place"><%= address.place %></span></p>
+                <p>City: <span id="city"><%= address.city %></span></p>
+                <p>State: <span id="state"><%= address.state %></span></p>
+                <p>Pin: <span id="pin"><%= address.pin %></span></p>
+                <p>Land Mark: <span id="landMark"><%= address.landMark %></span></p>
+                <p>Contact No: <span id="contactNo"><%= address.contactNo %></span></p>
+                <a href=""><button class="edit-btn">Edit</button></a>
+                <a href=""><button class="delete-btn">Delete</button></a>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <p>No addresses found.</p>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    
+    <%- include("../../views/partials/user/footer") %>
+  </div>
+  

@@ -1,4 +1,34 @@
+<!DOCTYPE html>
+<html lang="zxx">
 
+<head>
+	<title>Goggles Ecommerce Category Bootstrap responsive Web Template | Home :: w3layouts</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="utf-8">
+	<meta name="keywords" content="Goggles a Responsive web template, Bootstrap Web Templates, Flat Web Templates, Android Compatible web template, 
+Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, SonyEricsson, Motorola web design" />
+	<script>
+		addEventListener("load", function () {
+			setTimeout(hideURLbar, 0);
+		}, false);
+
+		function hideURLbar() {
+			window.scrollTo(0, 1);
+		}
+	</script>
+	<link href="/css/bootstrap.css" rel='stylesheet' type='text/css' />
+	<link rel="stylesheet" href="/css/loginIcon.css">
+	<link href="/css/style6.css" rel='stylesheet' type='text/css' />
+	<link rel="stylesheet" href="/css/shop.css" type="text/css" />
+	<link rel="stylesheet" href="/css/owl.carousel.css" type="text/css" media="all">
+	<link rel="stylesheet" href="/css/owl.theme.css" type="text/css" media="all">
+	<link href="/css/style.css" rel='stylesheet' type='text/css' />
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+	<link href="/css/fontawesome-all.css" rel="stylesheet">
+	<link href="//fonts.googleapis.com/css?family=Inconsolata:400,700" rel="stylesheet">
+	<link href="//fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800"
+	    rel="stylesheet">
+</head>
 <style>
     .header__nav__option .sign-in-link {
 font-size: 16px;
@@ -300,6 +330,81 @@ z-index: 500;
             </ul>
 
         </div>
+        
     </nav>
+
 </header>
 <!-- //header -->
+
+
+<!-- <div id="breadcrumb-container" class="services-breadcrumb">
+    <div class="inner_breadcrumb">
+        <ul class="short">
+            <li><a href="/home">Home</a> <i>|</i></li>
+            <li id="breadcrumb-current-page">Dashboard</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const breadcrumbContainer = document.getElementById("breadcrumb-container");
+        const breadcrumbCurrentPage = document.getElementById("breadcrumb-current-page");
+        const sidebarLinks = document.querySelectorAll(".sidebar-link");
+        const contentSections = document.querySelectorAll(".content");
+    
+        function updateBreadcrumb(pageName) {
+            breadcrumbCurrentPage.textContent = pageName;
+            breadcrumbContainer.style.display = "block"; // Show breadcrumb
+        }
+    
+        function resetActiveContent() {
+            contentSections.forEach(section => section.classList.remove("active"));
+        }
+    
+        function setActiveSidebarItem(route) {
+            sidebarLinks.forEach(link => {
+                const parentItem = link.parentElement;
+                parentItem.classList.remove("active");
+                if (link.getAttribute("data-route") === route) {
+                    parentItem.classList.add("active");
+                }
+            });
+        }
+    
+        sidebarLinks.forEach(link => {
+            link.addEventListener("click", function (event) {
+                event.preventDefault();
+                const route = this.getAttribute("data-route");
+    
+                // Update breadcrumb
+                updateBreadcrumb(this.textContent);
+    
+                // Set active class on the clicked sidebar item
+                setActiveSidebarItem(route);
+    
+                // Show the corresponding content
+                resetActiveContent();
+                const activeContent = document.getElementById(route.replace("/", "") + "-content");
+                if (activeContent) {
+                    activeContent.classList.add("active");
+                }
+    
+                // Handle URL update (optional)
+                window.history.pushState(null, "", route);
+            });
+        });
+    
+        // Remove breadcrumb and content on non-dashboard routes
+        window.addEventListener("popstate", function () {
+            const currentRoute = window.location.pathname;
+            if (!currentRoute.startsWith("/dashboard")) {
+                breadcrumbContainer.style.display = "none"; // Hide breadcrumb
+                resetActiveContent(); // Hide content
+                setActiveSidebarItem(""); // Remove active sidebar item
+            }
+        });
+    });
+    </script>
+    
+  -->
