@@ -21,13 +21,16 @@ const userAddress = async (req, res, next) => {
 
         if (!user || user.address.length === 0) {
             console.log('No addresses found');
-            return res.render('user-address', { address: [], currentPage: 1, totalPages: 1 });
+            return res.render('user-address', { 
+                address: [], 
+                currentPage: 1, 
+                totalPages: 1 
+            });
         }
 
         const page = parseInt(req.query.page) || 1;
-        const limit = 1;
+        const limit = 1; 
         const skip = (page - 1) * limit;
-
 
         const paginatedAddresses = await Address.find({ _id: { $in: user.address } })
             .sort({ createdAt: -1 })

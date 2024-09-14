@@ -11,6 +11,8 @@ const passport = require("../config/passport");
 const productViewController = require("../controllers/user/ProductViewController");
 const userProfileController = require("../controllers/user/userProfileController");
 const userAddressController = require('../controllers/user/userAddressController')
+const userAccountController = require("../controllers/user/userAccountController");
+const userCartController = require("../controllers/user/userCartController");
 const { userAuth } = require("../middlewares/auth");
 
 router.use(nocache());
@@ -26,6 +28,10 @@ router.post("/signup",preventCache,userController.signup);
 router.post("/verify-otp",userController.verifyOtp);
 router.post("/resend-otp",userController.resendOtp);
 
+// user cart management
+
+router.get("/cart",userAuth,userCartController.cart)
+
 // user profile management
 
 router.get("/login/forget-password",userProfileController.forgetPasswordPage);
@@ -35,6 +41,11 @@ router.get("/reset-password",userProfileController.getResetPassPage);
 router.post("/resend-forget-otp",userProfileController.resendOtp);
 router.post("/reset-password",userProfileController.postNewPassword);
 router.get("/userProfile",userAuth,userProfileController.userProfile);
+
+// user account management
+router.get("/user/account",userAuth,userAccountController.userAccount);
+router.post("/user/account/edit-user/:id", userAuth, userAccountController.editUser);
+
 
 // user address management
 

@@ -35,9 +35,19 @@ const userSchema = new Schema({
         type: String, 
         required: false
     },
+    gender:{
+        type:String,
+        required:false
+    },
     isBlocked: {
         type: Boolean,
         default: false
+    },
+    isActive:{
+        type: String,
+        enum: ["active","deactivated","deleted"],
+        default:"active",
+        required:false
     },
     isVerified: {
         type: Boolean,

@@ -72,38 +72,42 @@
        <a href="/user/add-new-address"><button class="add-btn" style="float: left;">Add New Address</button></a> 
         <br><br>
         <div class="address-list" id="address-list">
-          <% if (address && address.length > 0) { %>
-              <% let i = 1; %> 
-              <% address.forEach(address => { %>
-                  <div class="address">
-                      <h1>Address <%= i++ %></h1> 
-                      <p>House: <span id="house"><%= address.house %></span></p>
-                      <p>Place: <span id="place"><%= address.place %></span></p>
-                      <p>City: <span id="city"><%= address.city %></span></p>
-                      <p>State: <span id="state"><%= address.state %></span></p>
-                      <p>Pin: <span id="pin"><%= address.pin %></span></p>
-                      <p>Land Mark: <span id="landMark"><%= address.landMark %></span></p>
-                      <p>Contact No: <span id="contactNo"><%= address.contactNo %></span></p>
-                      <a href="/user/edit-address/<%= address._id %>"><button class="edit-btn">Edit</button></a>
-                      <button class="btn btn-danger" onclick="confirmDelete('<%= address._id %>')">Delete</button>
-                  </div>
-              <% }) %>
-          <% } else { %>
-              <p>No addresses found.</p>
-          <% } %>
-      </div>
-      <div class="pagination-container">
-        <% if (currentPage > 1) { %>
-        <a href="?page=<%= currentPage - 1 %>">&laquo; Previous</a>
-        <% } %> <% for (let i = 1; i <= totalPages; i++) { %> <% if (i ===
-        currentPage) { %>
-        <span class="current-page"><%= i %></span>
-        <% } else { %>
-        <a href="?page=<%= i %>"><%= i %></a>
-        <% } %> <% } %> <% if (currentPage < totalPages) { %>
-        <a href="?page=<%= currentPage + 1 %>">Next &raquo;</a>
-        <% } %>
-      </div>
+            <% if (address && address.length > 0) { %>
+                <% address.forEach((address, index) => { %>
+                    <div class="address">
+                        <h1>Address <%= (currentPage - 1) * 1 + index + 1 %></h1> 
+                        <p>House: <span id="house"><%= address.house %></span></p>
+                        <p>Place: <span id="place"><%= address.place %></span></p>
+                        <p>City: <span id="city"><%= address.city %></span></p>
+                        <p>State: <span id="state"><%= address.state %></span></p>
+                        <p>Pin: <span id="pin"><%= address.pin %></span></p>
+                        <p>Land Mark: <span id="landMark"><%= address.landMark %></span></p>
+                        <p>Contact No: <span id="contactNo"><%= address.contactNo %></span></p>
+                        <a href="/user/edit-address/<%= address._id %>"><button class="edit-btn">Edit</button></a>
+                        <button class="btn btn-danger" onclick="confirmDelete('<%= address._id %>')">Delete</button>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <p>No addresses found.</p>
+            <% } %>
+        </div>
+        
+        <div class="pagination-container">
+            <% if (currentPage > 1) { %>
+                <a href="?page=<%= currentPage - 1 %>">&laquo; Previous</a>
+            <% } %>
+            <% for (let i = 1; i <= totalPages; i++) { %>
+                <% if (i === currentPage) { %>
+                    <span class="current-page"><%= i %></span>
+                <% } else { %>
+                    <a href="?page=<%= i %>"><%= i %></a>
+                <% } %>
+            <% } %>
+            <% if (currentPage < totalPages) { %>
+                <a href="?page=<%= currentPage + 1 %>">Next &raquo;</a>
+            <% } %>
+        </div>
+        
       </div>
     </div>
     

@@ -30,6 +30,10 @@ const addressSchema = new mongoose.Schema({
     contactNo:{
         type: Number,
         required:true
+    },
+    isDeliveryAddress: {
+        type:Boolean,
+        required:false
     }
 })
 
