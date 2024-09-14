@@ -11,29 +11,43 @@ const Address = require("../../models/addressSchema");
 
 const userAddress = async (req, res, next) => {
     try {
-        const userId = req.session.user || req.user 
-        console.log('User ID:', userId);
+        const userId = req.session.user || req.user;
 
         if (!userId) {
             return res.status(401).send('User not authenticated');
         }
 
-        // Fetch addresses from the Address model using the userId
-        const address = await Address.find({ userId: userId }).exec();
-       
+        const user = await User.findById(userId).populate('address').exec();
 
-        // If no addresses are found, you can handle it accordingly
-        if (!address || address.length === 0) {
-            return res.render('user-address', { address: [] }); // Render template with an empty array
+        if (!user || user.address.length === 0) {
+            console.log('No addresses found');
+            return res.render('user-address', { address: [], currentPage: 1, totalPages: 1 });
         }
 
-        // Render the view with the fetched addresses
-        res.render('user-address', { address });
+        const page = parseInt(req.query.page) || 1;
+        const limit = 1;
+        const skip = (page - 1) * limit;
 
+
+        const paginatedAddresses = await Address.find({ _id: { $in: user.address } })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const totalAddress = user.address.length;  
+        const totalPages = Math.ceil(totalAddress / limit);
+
+        res.render('user-address', {
+            address: paginatedAddresses,
+            currentPage: page,
+            totalPages: totalPages,
+            totalAddress: totalAddress
+        });
     } catch (error) {
-        next(error);  // Pass the error to the error-handling middleware
+        next(error);
     }
 };
+
 
 
 
@@ -53,25 +67,36 @@ const addNewAddress = async (req,res,next) => {
 const updateNewAddress = async (req, res, next) => {
     const { house, place, city, state, pin, landMark, contactNo } = req.body;
 
-    const userId = req.session.user|| req.user
+    const userId = req.session.user || req.user;
 
     try {
+        
         const existingAddress = await Address.findOne({ house, pin });
         if (existingAddress) {
             return res.status(400).json({ error: "Address already exists" });
         }
+
+        
         const newAddress = new Address({
-            userId,
             house,
             place,
             city,
             state,
             pin,
             landMark,
-            ContactNo: contactNo
+            contactNo
         });
-        
+
         await newAddress.save();
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        user.address.push(newAddress._id);  
+        await user.save();  
+
         return res.json({ message: "Address added successfully" });
     } catch (error) {
         next(error);
@@ -79,8 +104,91 @@ const updateNewAddress = async (req, res, next) => {
 };
 
 
+const getEditAddress = async (req, res, next) => {
+    try {
+        const id = req.params.id; 
+
+        const address = await Address.findOne({ _id: id });
+
+        if (!address) {
+            return res.status(404).send("Address not found");
+        }
+        res.render("edit-address", { address: address });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+
+const editAddress = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const { house, place, city, state, pin, landMark, contactNo } = req.body;
+
+        // Find the address by its ID
+        const existingAddress = await Address.findById(id);
+
+
+        // If no address is found with the given ID, return an error
+        if (!existingAddress) {
+            return res.status(400).json({ error: "Address does not exist" });
+        }
+
+        // Update the address with new values
+        const updatedAddress = await Address.findByIdAndUpdate(id, {
+            house: house,
+            place: place,
+            city: city,
+            state: state,
+            pin: pin,
+            landMark: landMark,
+            contactNo: contactNo
+        }, { new: true });
+
+        console.log(updatedAddress);
+
+        // If the update is successful, redirect to the address list
+        if (updatedAddress) {
+            return res.status(200).json({ success: "Address updated successfully" });
+        } else {
+            return res.status(404).json({ error: "Address not found" });
+        }
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+
+const deleteAddress = async (req, res) => {
+    try {
+        const id = req.query.id;
+
+       
+        const deletedAddress = await Address.deleteOne({ _id: id });
+
+        if (deletedAddress.deletedCount > 0) {
+            res.json({ 
+                status: true, 
+                message: `Address successfully deleted` 
+            });
+        } else {
+            res.status(404).json({ status: false, message: 'Address not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ status: false, message: 'Internal server error' });
+    }
+};
+
+
+
 module.exports = {
     userAddress,
     addNewAddress,
-    updateNewAddress
+    updateNewAddress,
+    deleteAddress,
+    getEditAddress,
+    editAddress
+
 }

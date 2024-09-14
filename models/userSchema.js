@@ -49,6 +49,27 @@ const userSchema = new Schema({
         default:"user",
         required:false
     },
+    address: [
+        { type: Schema.Types.ObjectId, 
+        ref: 'Address' 
+    }],
+
+    wishlist: {
+        type:Schema.Types.ObjectId,
+        ref:'Wishlist'
+    },
+    cart: { 
+        type: Schema.Types.ObjectId, 
+        ref: 'Cart' 
+    }, 
+    orders: [{
+        type: Schema.Types.ObjectId,
+        ref:'order'
+    }],
+    wallet: {
+        type: Schema.Types.ObjectId,
+        ref:'Wallet'
+    },
     createdOn: {
         type: Date,
         default: Date.now

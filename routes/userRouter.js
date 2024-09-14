@@ -41,7 +41,10 @@ router.get("/userProfile",userAuth,userProfileController.userProfile);
 router.get("/user/address",userAuth,userAddressController.userAddress)
 router.get("/user/add-new-address",userAuth,userAddressController.addNewAddress);
 router.post("/user/add-new-address",userAuth,userAddressController.updateNewAddress);
-
+router.get("/user/edit-Address",userAuth,userAddressController.getEditAddress);
+router.get("/user/edit-Address/:id",userAuth,userAddressController.getEditAddress);
+router.post("/user/edit-Address/:id",userAuth,userAddressController.editAddress);
+router.delete('/user/deleteAddress', userAuth, userAddressController.deleteAddress);
 
 
 

@@ -2,14 +2,14 @@ const mongoose = require("mongoose")
 const {Schema} = mongoose;
 
 const addressSchema = new mongoose.Schema({
-    userId: {
-        type: Schema.Types.ObjectId,
-        ref:"User",
-        required : true,
-    },
+
     house:{
         type: String,
         required :true
+    },
+    place: {
+        type:String,
+        required : true
     },
     city: {
         type: String,
@@ -27,7 +27,7 @@ const addressSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    ContactNo:{
+    contactNo:{
         type: Number,
         required:true
     }
