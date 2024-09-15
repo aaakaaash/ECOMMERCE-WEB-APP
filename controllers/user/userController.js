@@ -20,7 +20,7 @@ const pageNotFound = async (req, res, next) => {
 const loadHomepage = async (req, res, next) => {
     
     try {
-        const products = await Product.find().populate('category').exec();
+        const products = await Product.find({ isBlocked: false }).populate('category').exec();
 
         let userId;
 
@@ -75,7 +75,7 @@ const loadAboutpage = async (req, res, next) => {
 const loadShoppage = async (req, res, next) => {
    
     try {
-        const products = await Product.find().exec();
+        const products = await Product.find({ isBlocked: false }).populate('category').exec();
         let userId;
 
         if(req.user){

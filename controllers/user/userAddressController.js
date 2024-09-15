@@ -129,16 +129,16 @@ const editAddress = async (req, res, next) => {
         const id = req.params.id;
         const { house, place, city, state, pin, landMark, contactNo } = req.body;
 
-        // Find the address by its ID
+        
         const existingAddress = await Address.findById(id);
 
 
-        // If no address is found with the given ID, return an error
+        
         if (!existingAddress) {
             return res.status(400).json({ error: "Address does not exist" });
         }
 
-        // Update the address with new values
+       
         const updatedAddress = await Address.findByIdAndUpdate(id, {
             house: house,
             place: place,
@@ -151,7 +151,7 @@ const editAddress = async (req, res, next) => {
 
         console.log(updatedAddress);
 
-        // If the update is successful, redirect to the address list
+       
         if (updatedAddress) {
             return res.status(200).json({ success: "Address updated successfully" });
         } else {

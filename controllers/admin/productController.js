@@ -27,43 +27,34 @@ const getProductAddPage = async (req,res) => {
 
 const addProducts = async (req, res) => {
     try {
-
-        console.log("hello")
         const products = req.body;
         const productExists = await Product.findOne({ productName: products.productName });
 
         if (productExists) {
             return res.status(400).json("Product already exists, please try with another name");
         } else {
-
             let images = [];  // Array to store image filenames
-            console.log("hi")
+    
             if (req.files) {
-                console.log()
                 // Looping through potential image fields ('images1', 'images2', 'images3')
                 for (let field of ['images1', 'images2', 'images3']) {
                     if (req.files[field] && req.files[field].length > 0) {
                         // Access the original image path
                         let originalImagePath = req.files[field][0].path;
-                        console.log(`originalImagePath: ${originalImagePath}`);
 
-
-                        
                         // Construct the new path where resized images will be saved
                         let resizedImagePath = path.join('public', 'uploads', 'product-images', req.files[field][0].filename);
 
                         // Check if directory exists, if not, create it
-const directory = path.dirname(resizedImagePath);
-if (!fs.existsSync(directory)) {
-    fs.mkdirSync(directory, { recursive: true });
-}
-                        
+                        const directory = path.dirname(resizedImagePath);
+                        if (!fs.existsSync(directory)) {
+                            fs.mkdirSync(directory, { recursive: true });
+                        }
+
                         // Resize the image and save it in the resizedImagePath
                         await sharp(originalImagePath)
                             .resize({ width: 440, height: 440 })
                             .toFile(resizedImagePath);
-
-                        console.log(req.files[field][0].filename);
 
                         // Push the resized image filename into the images array
                         images.push(req.files[field][0].filename);
@@ -85,6 +76,9 @@ if (!fs.existsSync(directory)) {
                 return res.status(400).json("Invalid category name");
             }
 
+            // Determine the product status based on quantity
+            let productStatus = products.quantity > 0 ? "Available" : "Out of stock";
+
             // Create the new product and save it to the database
             const newProduct = new Product({
                 productName: products.productName,
@@ -98,7 +92,7 @@ if (!fs.existsSync(directory)) {
                 size: products.size,
                 color: products.color,
                 productImage: images,  // <-- Use the images array here
-                status: "Available",
+                status: productStatus,  // <-- Set the status based on quantity
             });
 
             await newProduct.save();

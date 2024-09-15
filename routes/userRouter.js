@@ -31,6 +31,9 @@ router.post("/resend-otp",userController.resendOtp);
 // user cart management
 
 router.get("/cart",userAuth,userCartController.cart)
+router.post("/add-cart",userAuth,userCartController.addToCart)
+router.post("/cart/update-quantity",userAuth,userCartController.updateQuantity)
+router.delete("/cart/remove",userAuth,userCartController.removeFromCart)
 
 // user profile management
 

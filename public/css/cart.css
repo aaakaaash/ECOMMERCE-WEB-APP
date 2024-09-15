@@ -14,18 +14,10 @@
     padding: 20px;
     border-radius: 5px;
     margin-bottom: 20px;
-}
-.price-details h4 {
-    margin-bottom: 20px;
-}
-.price-details dl {
-    margin-bottom: 10px;
-}
-.price-details dt {
-    font-weight: bold;
-}
-.price-details dd {
-    margin-bottom: 0;
+    position: fixed; /* add this to keep the price details section in place */
+    top: 50%; /* adjust the top position as needed */
+    right: 0; /* adjust the right position as needed */
+    width: 40%; /* adjust the width as needed */
 }
 .product-details {
     display: flex;

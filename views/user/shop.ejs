@@ -277,7 +277,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 																		<a href="/product/<%= product._id %>"><%= product.productName %></a>
 																	</h4>
 																	<div class="grid-price mt-2">
-																		<span class="money ">$<%= product.salePrice.toFixed(2) %></span>
+																		<span class="money ">$<%= product.salePrice %></span>
 																	</div>
 																</div>
 																<ul class="stars">
@@ -309,15 +309,13 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 																</ul>
 															</div>
 															<div class="googles single-item hvr-outline-out">
-																<form action="#" method="post">
-																	<input type="hidden" name="cmd" value="_cart">
-																	<input type="hidden" name="add" value="1">
-																	<input type="hidden" name="googles_item" value="<%= product.productName %>">
-																	<input type="hidden" name="amount" value="<%= product.salePrice.toFixed(2) %>">
-																	<button type="submit" class="googles-cart pgoogles-cart">
-																		<i class="fas fa-cart-plus"></i>
+																<form id="addToCartForm-<%= product._id %>" onsubmit="return false;">
+																	<input type="hidden" name="productId" value="<%= product._id %>">
+																	<input type="hidden" name="quantity" value="1">
+																	<button type="button" class="googles-cart pgoogles-cart" onclick="addToCart('<%= product._id %>')">
+																	  <i class="fas fa-cart-plus"></i>
 																	</button>
-																</form>
+																  </form>
 															</div>
 														</div>
 														<div class="clearfix"></div>
@@ -564,6 +562,80 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 
 		<script src="js/bootstrap.js"></script>
 		<!-- js file -->
+
+		<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 
 </html>
+
+<script>
+	function addToCart(productId) {
+	  const form = document.getElementById(`addToCartForm-${productId}`);
+	  const formData = new FormData(form);
+	
+	  fetch("/add-cart", {
+		method: "POST",
+		headers: {
+		  'Content-Type': 'application/json',
+		},
+		body: JSON.stringify(Object.fromEntries(formData)),
+		credentials: 'include' 
+	  })
+	  .then(response => {
+		return response.json().then(data => {
+		  if (!response.ok) {
+			throw data;
+		  }
+		  return data;
+		});
+	  })
+	  .then(data => {
+		if (data.message === 'Item already in cart') {
+		  Swal.fire({
+			icon: 'info',
+			title: 'Already in Cart',
+			text: 'This item is already in your cart.'
+		  });
+		} else {
+		  Swal.fire({
+			icon: 'success',
+			title: 'Success',
+			text: data.message
+		  });
+		}
+		if (data.cartItemsCount) {
+		  updateCartItemCount(data.cartItemsCount);
+		}
+	  })
+	  .catch(error => {
+		console.error('Error:', error);
+		if (error.error === 'Please login to add items to cart') {
+		  Swal.fire({
+			icon: 'warning',
+			title: 'Authentication Required',
+			text: 'Please login to add items to cart',
+			showCancelButton: true,
+			confirmButtonText: 'Login',
+			cancelButtonText: 'Cancel'
+		  }).then((result) => {
+			if (result.isConfirmed) {
+			  window.location.href = '/login';
+			}
+		  });
+		} else {
+		  Swal.fire({
+			icon: 'error',
+			title: 'Error',
+			text: error.error || 'An error occurred, please login and try again'
+		  });
+		}
+	  });
+	}
+	
+	function updateCartItemCount(count) {
+	  const cartCountElement = document.getElementById('cartItemCount');
+	  if (cartCountElement) {
+		cartCountElement.textContent = count;
+	  }
+	}
+		</script>

@@ -13,88 +13,162 @@
 <body>
     <%-include("../../views/partials/user/header")%>
     <div class="container">
-        
+        <br>
         <div class="row">
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="product-info">
-                            <img src="https://dummyimage.com/100x100/000/fff" alt="Product Image" class="product-image">
-                            <div>
-                                <h5 class="card-title">Product Name</h5>
-                                <p class="card-text">Product Description</p>
-                                <p class="card-text">₹279 <span class="text-muted">72% Off</span></p>
-                                <p class="card-text">Or Pay ₹259 + ₹20</p>
+                <% if (cart && cart.items.length > 0) { %>
+                    <% cart.items.forEach((item, index) => { %>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="product-info">
+                                    <img src="/uploads/product-images/<%= item.product.productImage[0] %>" alt="Product Image" class="product-image">
+                                    <div>
+                                        <h5 class="card-title"><%= item.product.productName %></h5>
+                                        <p class="card-text"><%= item.product.description %></p>
+                                        <p class="card-text">₹<%= item.product.salePrice %></p>
+                                        <span class="text-muted"></span></p>
+                                        <!-- <p class="card-text">Or Pay ₹259 + ₹20</p> -->
+                                    </div>
+                                </div>
+                                <div class="product-details">
+                
+                                    <form id="removeItemForm-<%= item.product._id %>" onsubmit="return false;">
+                                        <input type="hidden" name="productId" value="<%= item.product._id %>">
+                                        <button type="button" class="btn btn-danger" onclick="removeFromCart('<%= item.product._id %>')">REMOVE</button>
+                                    </form>
+                                    
+                                    <br>
+                                
+                    
+                                    <form id="updateQuantityForm-<%= item.product._id %>" onsubmit="return false;">
+                                        <input type="hidden" name="productId" value="<%= item.product._id %>">
+                                        <div>
+                                            <button type="button" class="btn btn-primary" onclick="updateQuantity('<%= item.product._id %>', -1)">-</button>
+                                            <button type="button" class="btn btn-primary"><%= item.quantity %></button>
+                                            <button type="button" class="btn btn-primary" onclick="updateQuantity('<%= item.product._id %>', 1)">+</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                
                             </div>
                         </div>
-                        <div class="product-details">
-                            <div>
-                                <button type="button" class="btn btn-primary">SAVE FOR LATER</button>
-                                <button type="button" class="btn btn-danger">REMOVE</button>
-                            </div>
-                            <div>
-                                <button type="button" class="btn btn-primary">1</button>
-                                <button type="button" class="btn btn-primary">+ </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card mt-4">
-                    <div class="card-body">
-                        <div class="product-info">
-                            <img src="https://dummyimage.com/100x100/000/fff" alt="Product Image" class="product-image">
-                            <div>
-                                <h5 class="card-title">Product Name</h5>
-                                <p class="card-text">Product Description</p>
-                                <p class="card-text">₹198 <span class="text-muted">80% Off</span></p>
-                                <p class="card-text">Or Pay ₹178 + ₹20</p>
-                            </div>
-                        </div>
-                        <div class="product-details">
-                            <div>
-                                <button type="button" class="btn btn-primary">SAVE FOR LATER</button>
-                                <button type="button" class="btn btn-danger">REMOVE</button>
-                            </div>
-                            <div>
-                                <button type="button" class="btn btn-primary">1</button>
-                                <button type="button" class="btn btn-primary">+ </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    <% }) %>
+                <% } else { %>
+                    <p>No items found.</p>
+                <% } %>
             </div>
             <div class="col-md-6">
                 <div class="price-details">
                     <h4>PRICE DETAILS</h4>
                     <dl>
-                        <dt>Price (2 items)</dt>
-                        <dd>₹1,998</dd>
+                        <dt>Price (<%= totalItems %> items)</dt>
+                        <dd>₹<%= totalPrice.toFixed(2) %></dd>
                     </dl>
                     <dl>
                         <dt>Discount</dt>
-                        <dd>- ₹1,521</dd>
+                        <dd>- ₹<%= discount.toFixed(2) %></dd>
                     </dl>
                     <dl>
                         <dt>Platform Fee</dt>
-                        <dd>₹3</dd>
+                        <dd>₹<%= platformFee.toFixed(2) %></dd>
                     </dl>
                     <dl>
                         <dt>Delivery Charges</dt>
-                        <dd>₹40 Free</dd>
+                        <dd>₹<%= deliveryCharges.toFixed(2) %></dd>
                     </dl>
                     <hr>
                     <dl>
                         <dt>Total Amount</dt>
-                        <dd>₹480</dd>
+                        <dd>₹<%= totalAmount.toFixed(2) %></dd>
                     </dl>
-                    <p class="text-success">You will save ₹1,518 on this order</p>
-                    <p class="text-muted">Safe and Secure Payments. Easy returns.100% Authentic products.</p>
+                    <p class="text-success">You will save ₹<%= discount.toFixed(2) %> on this order</p>
+                    <button type="button" class="btn btn-success">PLACE ORDER</button>
                 </div>
-                <button type="button" class="btn btn-danger btn-lg btn-block">PLACE ORDER</button>
+                
             </div>
         </div>
-        
+        <br>
     </div>
     <%-include("../../views/partials/user/footer")%>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>
+
+
+<script>
+
+async function removeFromCart(productId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'Do you want to remove this item from the cart?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, remove it!'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch('/cart/remove', { 
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ productId }) 
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    Swal.fire(
+                        'Removed!',
+                        'The item has been removed from your cart.',
+                        'success'
+                    ).then(() => {
+                        location.reload(); 
+                    });
+                } else {
+                    Swal.fire('Failed', data.message || 'Failed to remove the item', 'error');
+                }
+            } catch (error) {
+                Swal.fire(
+                    'Error',
+                    'An error occurred while removing the item',
+                    'error'
+                );
+                console.error('Error removing item:', error);
+            }
+        }
+    });
+}
+
+</script>
+<script>
+
+function updateQuantity(productId, change) {
+    fetch('/cart/update-quantity', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ productId, change })
+    })
+    .then(response => response.json()).then(() => {
+                        location.reload(); 
+                    })
+    // .then(data => {
+    //     if (data.success) {
+    //         Swal.fire('Updated', 'Cart updated successfully', 'success');
+            
+    //     } else {
+    //         Swal.fire('Error', data.error || 'Failed to update quantity', 'error');
+    //     }
+    // })
+    .catch(error => {
+        Swal.fire('Error', error.message || 'An error occurred', 'error');
+    });
+}
+
+
+</script>
