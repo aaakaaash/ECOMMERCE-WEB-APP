@@ -82,7 +82,7 @@
                         <dd>₹<%= totalAmount.toFixed(2) %></dd>
                     </dl>
                     <p class="text-success">You will save ₹<%= discount.toFixed(2) %> on this order</p>
-                    <button type="button" class="btn btn-success">PLACE ORDER</button>
+                   <a href="/cart/place-order"> <button type="button" class="btn btn-success">PLACE ORDER</button></a>
                 </div>
                 
             </div>
@@ -154,17 +154,16 @@ function updateQuantity(productId, change) {
         },
         body: JSON.stringify({ productId, change })
     })
-    .then(response => response.json()).then(() => {
-                        location.reload(); 
-                    })
-    // .then(data => {
-    //     if (data.success) {
-    //         Swal.fire('Updated', 'Cart updated successfully', 'success');
-            
-    //     } else {
-    //         Swal.fire('Error', data.error || 'Failed to update quantity', 'error');
-    //     }
-    // })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire('Updated', 'Cart updated successfully', 'success').then(() => {
+                location.reload(); // Reload the page to reflect changes
+            });
+        } else {
+            Swal.fire('Error', data.error || 'Failed to update quantity', 'error');
+        }
+    })
     .catch(error => {
         Swal.fire('Error', error.message || 'An error occurred', 'error');
     });

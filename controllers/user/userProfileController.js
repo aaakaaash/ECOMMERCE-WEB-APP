@@ -36,9 +36,9 @@ function generateOtp() {
 const sendVerificationEmail = async (email, otp) => {
     try {
         const transporter = nodemailer.createTransport({
-            service: 'gmail', // Make sure this is correct for your email provider
-            port: 587, // For TLS
-            secure: false, // Set to true if using port 465 for SSL
+            service: 'gmail', 
+            port: 587, 
+            secure: false, 
             requireTLS: true,
             auth: {
                 user: process.env.NODEMAILER_EMAIL,
@@ -174,12 +174,12 @@ const userProfile = async (req, res, next) => {
     try {
 
         if (res.locals.user) {
-            // Since user is already attached to res.locals by userAuth
+           
             return res.render("user-profile", { 
-                user: res.locals.user,  // Access user from res.locals
+                user: res.locals.user,  
             });
         } else {
-            // In case of no user, render the login page
+            
             return res.render("login", {
             });
         }

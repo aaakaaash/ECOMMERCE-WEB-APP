@@ -93,12 +93,13 @@ const addToCart = async (req, res, next) => {
             });
         }
 
-        console.log("Cart before saving:", cart);
+       
         await cart.save();
 
         await User.findByIdAndUpdate(userId, { cart: cart._id });
 
         res.json({ message: 'Item added to cart successfully', cartItemsCount: cart.items.length });
+        
     } catch (error) {
         next(error);
     }

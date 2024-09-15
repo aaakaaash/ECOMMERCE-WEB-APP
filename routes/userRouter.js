@@ -13,6 +13,7 @@ const userProfileController = require("../controllers/user/userProfileController
 const userAddressController = require('../controllers/user/userAddressController')
 const userAccountController = require("../controllers/user/userAccountController");
 const userCartController = require("../controllers/user/userCartController");
+const userOrderController = require("../controllers/user/userOrderController");
 const { userAuth } = require("../middlewares/auth");
 
 router.use(nocache());
@@ -34,6 +35,11 @@ router.get("/cart",userAuth,userCartController.cart)
 router.post("/add-cart",userAuth,userCartController.addToCart)
 router.post("/cart/update-quantity",userAuth,userCartController.updateQuantity)
 router.delete("/cart/remove",userAuth,userCartController.removeFromCart)
+
+// order management
+
+router.get("/cart/place-order",userAuth,userOrderController.placeOrder);
+router.post("/cart/place-order/make-payment",userAuth,userOrderController.loadPayment);
 
 // user profile management
 
