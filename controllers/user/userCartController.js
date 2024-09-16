@@ -16,7 +16,6 @@ const cart = async (req, res, next) => {
             return res.status(401).json({ error: 'User not authenticated' });
         }
         
-        console.log("User ID:", userId);
         
         const cart = await Cart.findOne({ userId: userId }).populate('items.product').exec();
     
@@ -47,9 +46,7 @@ const cart = async (req, res, next) => {
 
 const addToCart = async (req, res, next) => {
     try {
-    
         const userId = req.session.user || req.user;
-        
 
         if (!userId) {
             return res.status(401).json({ error: 'Please login to add items to cart' });
@@ -66,8 +63,16 @@ const addToCart = async (req, res, next) => {
             return res.status(404).json({ error: 'Product not found' });
         }
 
+        if (product.quantity === 0) {
+            return res.status(400).json({ error: 'Product is out of stock' });
+        }
+
+        if (quantity > product.quantity) {
+            return res.status(400).json({ error: 'Requested quantity exceeds available stock' });
+        }
+
         let cart = await Cart.findOne({ userId: userId }).populate('items.product');
-       
+
         if (!cart) {
             cart = new Cart({ userId: userId, items: [] });
         }
@@ -82,43 +87,82 @@ const addToCart = async (req, res, next) => {
                 quantity: quantity,
                 price: product.salePrice
             });
+
+            
+            await Product.findByIdAndUpdate(productId, {
+                $inc: { quantity: -1 },
+                $set: { status: (product.quantity - quantity <= 0) ? "Out of stock" : product.status }
+            });
         }
 
-       
         await cart.save();
 
         await User.findByIdAndUpdate(userId, { cart: cart._id });
 
         res.json({ message: 'Item added to cart successfully', cartItemsCount: cart.items.length });
-        
+
     } catch (error) {
         next(error);
     }
 };
 
-const updateQuantity = async (req,res, next) => {
 
-    const {productId, change} = req.body;
+
+const MAX_QUANTITY_PER_PRODUCT = 5;
+
+const updateQuantity = async (req, res, next) => {
+    const { productId, change } = req.body;
     const userId = req.session.user || req.user;
 
     try {
-
-        let cart = await Cart.findOne({ userId });
-        const item = cart.items.find(item => item.product.toString() === productId);
-
-        if (item) {
-            item.quantity += change;
-            if (item.quantity < 1) item.quantity = 1; 
-            await cart.save();
+        
+        let cart = await Cart.findOne({ userId }).populate('items.product');
+        
+        if (!cart) {
+            return res.status(404).json({ error: 'Cart not found' });
         }
 
-        res.json({ success: true });
+      
+        const item = cart.items.find(item => item.product._id.toString() === productId);
+
+        if (item) {
+            
+            let newQuantity = item.quantity + change;
+
+           
+            if (newQuantity < 1) {
+                newQuantity = 1;
+                return res.status(400).json({ error: 'Minimum quantity is 1. If you want to remove the item, use the remove button.' });
+            }
+
+           
+            if (newQuantity > MAX_QUANTITY_PER_PRODUCT) {
+                return res.status(400).json({ error: `You can only have up to ${MAX_QUANTITY_PER_PRODUCT} units of this product` });
+            }
+
+            
+            item.quantity = newQuantity;
+
+            
+            const quantityDifference = change;
+
+           
+            await Product.findByIdAndUpdate(productId, {
+                $inc: { quantity: -quantityDifference }
+            });
+
+            
+            await cart.save();
+
+            res.json({ success: true, updatedQuantity: item.quantity });
+        } else {
+            res.status(404).json({ error: 'Item not found in cart' });
+        }
         
     } catch (error) {
-        next(error)
+        next(error);
     }
-
-}
+};
 
 
 
@@ -126,21 +170,34 @@ const removeFromCart = async (req, res) => {
     const { productId } = req.body; 
     const userId = req.session.user || req.user; 
 
-
     if (!userId) {
         return res.status(401).json({ success: false, message: 'Please login to remove items from cart' });
     }
 
     try {
-        let cart = await Cart.findOne({ userId });
+        let cart = await Cart.findOne({ userId }).populate('items.product');
 
         if (!cart) {
             return res.status(404).json({ success: false, message: 'Cart not found' });
         }
 
+        
+        const itemToRemove = cart.items.find(item => item.product._id.toString() === productId);
 
-        cart.items = cart.items.filter(item => item.product.toString() !== productId);
+        if (!itemToRemove) {
+            return res.status(404).json({ success: false, message: 'Item not found in cart' });
+        }
 
+        
+        cart.items = cart.items.filter(item => item.product._id.toString() !== productId);
+
+      
+        await Product.findByIdAndUpdate(productId, {
+            $inc: { quantity: itemToRemove.quantity },
+            $set: { status: (item.quantity + (await Product.findById(productId)).quantity > 0) ? "Available" : "Out of stock" }
+        });
+
+        
         await cart.save();
 
         res.json({ success: true, message: 'Item removed from cart successfully' });

@@ -5,8 +5,7 @@ const mongoose = require("mongoose");
 const env = require("dotenv").config();
 const User = require("../../models/userSchema");
 const Product = require("../../models/productSchema")
-
-
+const Category = require("../../models/categorySchema")
 
 const loadSingleProduct = async (req, res, next) => {
     try {
@@ -17,40 +16,46 @@ const loadSingleProduct = async (req, res, next) => {
         }
         
         const product = await Product.findById(productId).exec();
-
         if (!product) {
             return res.status(404).send('Product not found');
         }
 
-        let  userId = null;
-        if(req.user){
+        
+        const categories = await Category.find({}).exec();
+
+        let userId = null;
+        if (req.user) {
             userId = req.user;
-        }else if(req.session.user){
+        } else if (req.session.user) {
             userId = req.session.user;
         }
+
         let userData = null;
-        
         if (userId) {
             userData = await User.findById(userId).exec();
             res.render("single", { 
                 user: userData,
-                product: product
+                product: product,
+                categories: categories 
             });
         } else {
             res.render("single", { 
-                product: product
+                product: product,
+                categories: categories 
             });
-
         }
-       
     } catch (error) {
         console.log("Error loading product:", error);
         next(error);
     }
 };
 
+
+
+
+
 module.exports = {
-    loadSingleProduct
+    loadSingleProduct,
 }
 
 

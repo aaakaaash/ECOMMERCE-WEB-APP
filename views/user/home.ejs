@@ -39,9 +39,25 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 
 <body>
 	<div class="banner-top container-fluid" id="home">
+		
 		<%-include("../../views/partials/user/header")%>
 		<!-- banner -->
+		 
 		<div class="banner">
+			
+				<form action="/home" method="GET">
+					<select name="sortBy" onchange="this.form.submit()">
+						<option value="popularity" <%= sortBy === 'popularity' ? 'selected' : '' %>>Popularity</option>
+						<option value="priceLowToHigh" <%= sortBy === 'priceLowToHigh' ? 'selected' : '' %>>Price: Low to High</option>
+						<option value="priceHighToLow" <%= sortBy === 'priceHighToLow' ? 'selected' : '' %>>Price: High to Low</option>
+						<option value="averageRatings" <%= sortBy === 'averageRatings' ? 'selected' : '' %>>Average Ratings</option>
+						<option value="featured" <%= sortBy === 'featured' ? 'selected' : '' %>>Featured</option>
+						<option value="newArrivals" <%= sortBy === 'newArrivals' ? 'selected' : '' %>>New Arrivals</option>
+						<option value="aToZ" <%= sortBy === 'aToZ' ? 'selected' : '' %>>A - Z</option>
+						<option value="zToA" <%= sortBy === 'zToA' ? 'selected' : '' %>>Z - A</option>
+					</select>
+				</form>
+				
 			<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
 				<ol class="carousel-indicators">
 					<li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>

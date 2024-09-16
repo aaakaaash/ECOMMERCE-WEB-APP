@@ -18,36 +18,74 @@ const pageNotFound = async (req, res, next) => {
 };
 
 const loadHomepage = async (req, res, next) => {
-    
     try {
-        const products = await Product.find({ isBlocked: false }).populate('category').exec();
+        const { sortBy } = req.query;
+
+        // Define sorting criteria based on the selected option
+        let sortCriteria = {};
+        switch (sortBy) {
+            case 'popularity':
+                sortCriteria = { popularity: -1 };
+                break;
+            case 'priceLowToHigh':
+                sortCriteria = { price: 1 };
+                break;
+            case 'priceHighToLow':
+                sortCriteria = { price: -1 };
+                break;
+            case 'averageRatings':
+                sortCriteria = { averageRatings: -1 };
+                break;
+            case 'featured':
+                sortCriteria = { featured: -1 };
+                break;
+            case 'newArrivals':
+                sortCriteria = { createdAt: -1 };
+                break;
+            case 'aToZ':
+                sortCriteria = { name: 1 };
+                break;
+            case 'zToA':
+                sortCriteria = { name: -1 };
+                break;
+            default:
+                sortCriteria = {};
+        }
+
+        // Fetch products with sorting
+        const products = await Product.find({ isBlocked: false })
+            .populate('category')
+            .sort(sortCriteria)
+            .exec();
 
         let userId;
-
-        if(req.user){
-             userId = req.user; 
-        } else if(req.session.user){
+        if (req.user) {
+            userId = req.user;
+        } else if (req.session.user) {
             userId = req.session.user;
         }
+
         if (userId) {
-            sessionActive =true;
             const userData = await User.findById(userId);
-            res.locals.user = userData; 
-            return res.render("home", { user: userData ,
-                products:products
+            res.locals.user = userData;
+            return res.render('home', {
+                user: userData,
+                products: products,
+                sortBy: sortBy || '', // Pass sortBy to the template
             });
         } else {
-            res.locals.user = null; 
-           
-            return res.render("home",{
-                products:products
-         });
-    }
+            res.locals.user = null;
+            return res.render('home', {
+                products: products,
+                sortBy: sortBy || '', // Pass sortBy to the template
+            });
+        }
     } catch (error) {
-        console.log("Home page not found:", error);
-        next(error); 
+        console.log('Home page not found:', error);
+        next(error);
     }
 };
+
 
 const loadAboutpage = async (req, res, next) => {
     try {
@@ -185,7 +223,7 @@ const signup = async (req, res, next) => {
         }
         const findUser = await User.findOne({email});
         if(findUser){
-            console.log(findUser)
+            
             return res.render("signup", {message:"User with this email already exists"});
         }
 

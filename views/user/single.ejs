@@ -99,25 +99,18 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 									<li><a href="#"><i class="fa fa-star-o" aria-hidden="true"></i></a></li>
 								</ul>
 							</div>
-							<div class="description">
-								<h5>Check delivery, payment options and charges at your location</h5>
-								<form action="#" method="post">
-									<input class="form-control" type="text" name="Email" placeholder="Please enter..." required="">
-									<input type="submit" value="Check">
-								</form>
-							</div>
 							<div class="color-quality">
 								<div class="color-quality-right">
-									<h5>Quality :</h5>
-									<select id="country1" onchange="change_country(this.value)" class="frm-field required sect">
-										<option value="null">5 Qty</option>
-										<option value="null">6 Qty</option> 
-										<option value="null">7 Qty</option>					
-										<option value="null">10 Qty</option>								
+									<h5>Categories:</h5>
+									<select class="frm-field required sect">
+										<% categories.forEach(category => { %>
+											<option value="<%= category._id %>"><%= category.name %></option>
+										<% }) %>
 									</select>
 								</div>
 							</div>
-							<div class="occasional">
+							
+							<!-- <div class="occasional">
 								<h5>Types :</h5>
 								<div class="colr ert">
 									<label class="radio"><input type="radio" name="radio" checked=""><i></i> Irayz Butterfly (Black)</label>
@@ -129,7 +122,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 									<label class="radio"><input type="radio" name="radio"><i></i> Irayz Butterfly (White)</label>
 								</div>
 								<div class="clearfix"> </div>
-							</div>
+							</div> -->
 							<div class="occasion-cart">
 								<div class="googles single-item singlepage">
 									<form id="addToCartForm-<%= product._id %>" onsubmit="return false;">
@@ -183,9 +176,8 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 									<!--/tab_one-->
 									<div class="tab1">
 										<div class="single_page">
-											<h6>Lorem ipsum dolor sit amet</h6>
-											<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Pellentesque vehicula augue eget nisl ullamcorper, molestie blandit ipsum auctor. Mauris volutpat augue dolor. Consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco. labore et dolore magna aliqua.</p>
-											<p class="para">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Pellentesque vehicula augue eget nisl ullamcorper, molestie blandit ipsum auctor. Mauris volutpat augue dolor. Consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco. labore et dolore magna aliqua.</p>
+											<h6><%= product.description %></h6>
+											<p></p>
 										</div>
 									</div>
 									<!--//tab_one-->

@@ -33,33 +33,33 @@ const addProducts = async (req, res) => {
         if (productExists) {
             return res.status(400).json("Product already exists, please try with another name");
         } else {
-            let images = [];  // Array to store image filenames
+            let images = [];  
     
             if (req.files) {
-                // Looping through potential image fields ('images1', 'images2', 'images3')
+                
                 for (let field of ['images1', 'images2', 'images3']) {
                     if (req.files[field] && req.files[field].length > 0) {
-                        // Access the original image path
+                        
                         let originalImagePath = req.files[field][0].path;
 
-                        // Construct the new path where resized images will be saved
+        
                         let resizedImagePath = path.join('public', 'uploads', 'product-images', req.files[field][0].filename);
 
-                        // Check if directory exists, if not, create it
+                    
                         const directory = path.dirname(resizedImagePath);
                         if (!fs.existsSync(directory)) {
                             fs.mkdirSync(directory, { recursive: true });
                         }
 
-                        // Resize the image and save it in the resizedImagePath
+                
                         await sharp(originalImagePath)
                             .resize({ width: 440, height: 440 })
                             .toFile(resizedImagePath);
 
-                        // Push the resized image filename into the images array
+                    
                         images.push(req.files[field][0].filename);
 
-                        // Delete the original image file after resizing
+                
                         fs.unlink(originalImagePath, (err) => {
                             if (err) {
                                 console.error('Error deleting original file:', err);
@@ -69,17 +69,17 @@ const addProducts = async (req, res) => {
                 }
             }
 
-            // Find the category by name
+        
             const categoryId = await Category.findOne({ name: products.category });
 
             if (!categoryId) {
                 return res.status(400).json("Invalid category name");
             }
 
-            // Determine the product status based on quantity
+        
             let productStatus = products.quantity > 0 ? "Available" : "Out of stock";
 
-            // Create the new product and save it to the database
+
             const newProduct = new Product({
                 productName: products.productName,
                 description: products.description,
@@ -91,8 +91,8 @@ const addProducts = async (req, res) => {
                 quantity: products.quantity,
                 size: products.size,
                 color: products.color,
-                productImage: images,  // <-- Use the images array here
-                status: productStatus,  // <-- Set the status based on quantity
+                productImage: images,  
+                status: productStatus,  
             });
 
             await newProduct.save();
