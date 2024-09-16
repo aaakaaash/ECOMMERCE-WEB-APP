@@ -7,7 +7,9 @@ const crypto = require("crypto")
 const env = require("dotenv").config();
 const User = require("../../models/userSchema");
 const Product = require("../../models/productSchema")
-
+const address = require("../../models/addressSchema");
+const Address = require("../../models/addressSchema");
+const Order = require("../../models/orderSchema")
 
 
 function generateOtp() {
@@ -73,7 +75,7 @@ const securePassword = async (passsword) => {
     }
 }
 
-// Example usage in your forgetEmailValidation function
+
 const forgetEmailValidation = async (req, res, next) => {
     try {
         const { email } = req.body;
@@ -172,23 +174,43 @@ const postNewPassword = async (req, res, next) =>{
 
 const userProfile = async (req, res, next) => {
     try {
+        const userId = req.session.user || req.user;
 
+       
+        const userData = await User.findById(userId)
+            .populate('address')  
+            .exec();
+
+        
+        const firstAddress = userData.address.length > 0 ? userData.address[0] : null;
+
+        
+        const orders = await Order.find({ user: userId }).exec();
+
+       
+        const pendingOrders = orders.filter(order => order.status === 'Pending');
+        const completedOrders = orders.filter(order => order.status === 'Delivered');
+        const pendingCount = pendingOrders.length;
+        const completedCount = completedOrders.length;
+        const totalOrders = orders.length; 
+
+       
         if (res.locals.user) {
-           
-            return res.render("user-profile", { 
-                user: res.locals.user,  
+            return res.render("user-profile", {
+                user: res.locals.user,
+                firstAddress,
+                pendingCount,
+                completedCount,
+                totalOrders
             });
         } else {
-            
-            return res.render("login", {
-            });
+            return res.render("login");
         }
     } catch (error) {
         console.log("Profile page not found:", error);
         next(error);
     }
 };
-
 
 
 

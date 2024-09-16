@@ -19,22 +19,13 @@ const cart = async (req, res, next) => {
         console.log("User ID:", userId);
         
         const cart = await Cart.findOne({ userId: userId }).populate('items.product').exec();
-        
-        console.log("Cart:", JSON.stringify(cart, null, 2));
-        console.log("Cart items length:", cart ? cart.items.length : 'Cart not found');
-        
-        if (cart && cart.items.length > 0) {
-            console.log("First item in cart:", JSON.stringify(cart.items[0], null, 2));
-        }
-
-
-        console.log("Cart:", cart); 
+    
 
         let totalPrice = 0;
         let totalItems = 0;
-        const discount = 200; 
-        const platformFee = 50; 
-        const deliveryCharges = 40; 
+        const discount = 0; 
+        const platformFee = 0; 
+        const deliveryCharges = 0; 
 
         if (cart && cart.items.length > 0) {
             cart.items.forEach(item => {

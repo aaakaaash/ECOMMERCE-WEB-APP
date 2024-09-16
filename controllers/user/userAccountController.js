@@ -27,20 +27,19 @@ const editUser = async (req, res, next) => {
         const id = req.params.id;
         const { name, gender, email, mobile } = req.body;
 
-        // Check if the user exists
+       
         const existingUser = await User.findById(id);
         if (!existingUser) {
             return res.status(400).json({ error: "User not found" });
         }
-        console.log("hello")
-        // Check if the user has a googleId
+       
         if (existingUser.googleId) {
             console.log("habibi")
             return res.status(400).json({ message: "You can update contact details from Google or update them in the address field." });
             
         }
         console.log(mobile)
-        // Check if the mobile number already exists in the database
+       
         const mobileNumber = await User.findOne({ phone:mobile });
         console.log(mobileNumber)
 
@@ -50,7 +49,7 @@ const editUser = async (req, res, next) => {
         }
         
 
-        // Update the user
+       
         const updatedUser = await User.findByIdAndUpdate(id, {
             name,
             gender,

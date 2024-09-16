@@ -8,6 +8,7 @@ const Product = require("../../models/productSchema")
 const Cart = require("../../models/CartSchema");
 const { cart } = require("./userCartController");
 const Address = require("../../models/addressSchema");
+const Order = require("../../models/orderSchema")
 
 
 
@@ -15,13 +16,13 @@ const placeOrder = async (req, res, next) => {
     const userId = req.session.user || req.user;
 
     try {
-        // Fetch the cart for the user and populate product details
+        
         const cart = await Cart.findOne({ userId: userId }).populate('items.product').exec();
 
-        // Fetch user and populate the address field
+       
         const user = await User.findById(userId).populate('address').exec();
 
-        // If user has addresses, use them; otherwise, handle no addresses scenario
+        
         const addresses = user.address || [];
 
         if (cart && cart.items.length > 0) {
@@ -32,8 +33,12 @@ const placeOrder = async (req, res, next) => {
             cart.total = total;
         }
 
-        // Render the checkout page with cart and addresses
+        if (cart && cart.items.length > 0){
         res.render("checkout-page", { cart, addresses });
+        }else
+        {
+            res.status(400).json({ message: "Your cart is empty. Please add items to your cart before proceeding." });
+        }
 
     } catch (error) {
         next(error);
@@ -44,16 +49,17 @@ const loadPayment = async (req, res, next) => {
     try {
         const { userId, address } = req.body;
 
-        // Retrieve the user, address, and cart details
+    
         const user = await User.findById(userId);
         const selectedAddress = await Address.findById(address);
         const cart = await Cart.findOne({ userId: userId }).populate('items.product');
+
 
         if (!user || !selectedAddress || !cart) {
             return res.status(400).json({ message: 'Invalid user, address, or cart information.' });
         }
 
-        // Calculate total price
+       
         let totalPrice = 0;
         const items = cart.items.map(item => {
             totalPrice += item.product.salePrice * item.quantity;
@@ -64,35 +70,69 @@ const loadPayment = async (req, res, next) => {
             };
         });
 
-        // Create a new order
-        const newOrder = new Order({
-            user: user._id,
-            address: selectedAddress._id,
-            items: items,
-            actualPrice: totalPrice,
-            offerPrice: totalPrice,
-            status: 'Pending',
-            totalPrice: totalPrice,
+       
+        res.render('payment-page', {
+            user,
+            address: selectedAddress,
+            items,
+            totalPrice,
         });
 
-        // Save the order
-        await newOrder.save();
-
-
-        cart.items = [];
-        await cart.save();
-
-      
-        return res.render('payment-page');
-
     } catch (error) {
-        console.error('Error placing order:', error);
+        console.error('Error loading payment page:', error);
         return next(error);
     }
 };
 
 
+const confirmOrder = async (req, res, next) => {
+    try {
+        const { userId, address, items, totalPrice } = req.body;
+       
+        const parsedItems = items.map(item => JSON.parse(item));
+       
+        const order = new Order({
+            user: userId,
+            address: address,
+            items: parsedItems,
+            actualPrice: totalPrice,
+            offerPrice: totalPrice,
+            status: 'Processing',
+            totalPrice: totalPrice,
+        });
+
+        await order.save();
+
+        const cart = await Cart.findOne({ userId: userId });
+        cart.items = [];
+        await cart.save();
+
+        return res.redirect('/user/order-confirmation');
+
+    } catch (error) {
+        console.error('Error confirming order:', error);
+        return next(error);
+    }
+};
+
+const orderConfirmationPage = async (req,res,next) => {
+
+try {
+    
+res.render("order-confirmation")
+
+
+} catch (error) {
+    next(error)
+}
+
+}
+
+
+
 module.exports = {
     placeOrder,
-    loadPayment
+    loadPayment,
+    confirmOrder,
+    orderConfirmationPage
 }

@@ -40,7 +40,8 @@ router.delete("/cart/remove",userAuth,userCartController.removeFromCart)
 
 router.get("/cart/place-order",userAuth,userOrderController.placeOrder);
 router.post("/cart/place-order/make-payment",userAuth,userOrderController.loadPayment);
-
+router.post("/cart/place-order/make-payment/confirm-order",userAuth,userOrderController.confirmOrder);
+router.get("/user/order-confirmation", userAuth,userOrderController.orderConfirmationPage);
 // user profile management
 
 router.get("/login/forget-password",userProfileController.forgetPasswordPage);

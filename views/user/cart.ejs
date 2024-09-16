@@ -171,3 +171,29 @@ function updateQuantity(productId, change) {
 
 
 </script>
+
+<script>
+    document.querySelector('.btn-success').addEventListener('click', async function (event) {
+        event.preventDefault();
+
+        try {
+            const response = await fetch('/cart/place-order', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+               
+                window.location.href = '/cart/place-order';
+            } else {
+                const data = await response.json();
+                
+                Swal.fire('Error', data.message || 'Failed to place order', 'error');
+            }
+        } catch (error) {
+            Swal.fire('Error', 'An error occurred while placing the order', 'error');
+        }
+    });
+</script>

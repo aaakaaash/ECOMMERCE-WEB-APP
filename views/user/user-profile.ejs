@@ -15,7 +15,7 @@
                         <div class="card-title">Total Orders</div>
                         <div class="card-body">
                             <i class="fas fa-rocket"></i>
-                            <span class="card-text">154</span>
+                            <span class="card-text"><%= totalOrders %></span>
                         </div>
                     </div>
                 </div>
@@ -24,7 +24,7 @@
                         <div class="card-title">Pending Orders</div>
                         <div class="card-body">
                             <i class="fas fa-clipboard-list"></i>
-                            <span class="card-text">05</span>
+                            <span class="card-text"><%= pendingCount %></span>
                         </div>
                     </div>
                 </div>
@@ -33,7 +33,7 @@
                         <div class="card-title">Completed Orders</div>
                         <div class="card-body">
                             <i class="fas fa-box"></i>
-                            <span class="card-text">149</span>
+                            <span class="card-text"><%= completedCount %></span>
                         </div>
                     </div>
                 </div>
@@ -46,29 +46,28 @@
                         <div class="user-info">
                             <i class="fas fa-user"></i>
                             <div class="user-details">
-                                <p>name: <span id="name"><%= user.name%></span></p>
-                                <span>Kerala</span>
-                                <span>Email: johndoe@gmail.com</span>
-                                <span>Phone: +9181119805</span>
+                                <p><span id="name"><%= user.name%></span></p>
+                                <span><%= user.state%></span>
+                                <span><%=user.email%></span>
+                                <span><%=user.phone%></span>
                             </div>
                         </div>
-                        <button class="edit-button">Edit Account</button>
+                       <a href="/user/account"><button class="edit-button">Edit Account</button></a> 
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="dashboard-card billing-address">
-                        <div class="card-title">Billing Address</div>
+                        <div class="card-title"> Address</div>
                         <div class="user-info">
                             <i class="fas fa-map-marker-alt"></i>
                             <div class="user-details">
-                                <span>John Doe</span>
-                                <span>Retro Fits, 4th Gate, TVM</span>
-                                <span>Pin: 6730</span>
-                                <span>Phone Number: +9181119805</span>
-                                <span>Email: johndoe@gmail.com</span>
+                                <span><%= user.name %></span>
+                                <span><%= firstAddress ? firstAddress.place : 'N/A' %></span>
+                                <span><%= firstAddress ? firstAddress.pin : 'N/A' %></span>
+                                <span><%= firstAddress ? firstAddress.contactNo : 'N/A' %></span>
                             </div>
                         </div>
-                        <button class="edit-button">Edit Address</button>
+                       <a href="/user/address"> <button class="edit-button">Edit Address</button></a>
                     </div>
                 </div>
             </div>

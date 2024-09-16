@@ -72,10 +72,10 @@ const userSchema = new Schema({
         type: Schema.Types.ObjectId, 
         ref: 'Cart' 
     }, 
-    orders: [{
-        type: Schema.Types.ObjectId,
-        ref:'order'
-    }],
+    // order: [{
+    //     type: Schema.Types.ObjectId,
+    //     ref:'order'
+    // }],
     wallet: {
         type: Schema.Types.ObjectId,
         ref:'Wallet'
