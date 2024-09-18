@@ -9,8 +9,9 @@ html,
 body {
     margin: 0;
     font-size: 100%;
-    background: #fff;
+    background: #f1f3f6;
     font-family: 'Inconsolata', monospace;
+
 }
 
 body a {
@@ -74,7 +75,14 @@ label {
 
 header {
     padding: 2em 2em 0 2em;
+    background-color: #232F3E;
 }
+
+header .row {
+    background-color: whitesmoke;
+
+}
+
 
 .top-bar_sub .btn-primary {
     color: #000;

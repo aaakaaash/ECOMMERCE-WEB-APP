@@ -151,12 +151,13 @@ z-index: 500;
             <button type="button" class="overlay-close">
                 <i class="fa fa-times" aria-hidden="true"></i>
             </button>
-            <form action="#" method="post" class="d-flex">
-                <input class="form-control" type="search" placeholder="Search here..." required="">
+            <form id="searchForm" action="/home" method="get" class="d-flex">
+                <input id="searchInput" class="form-control" type="search" name="searchQuery" placeholder="Search here..." required="">
                 <button type="submit" class="btn btn-primary submit">
                     <i class="fas fa-search"></i>
                 </button>
             </form>
+            
 
         </div>
         <!-- open/close -->
@@ -410,3 +411,24 @@ z-index: 500;
     </script>
     
   -->
+
+
+ <script>
+
+function updateProductList(products) {
+    const productContainer = document.getElementById('productContainer'); 
+    productContainer.innerHTML = ''; 
+
+    products.forEach(product => {
+        const productElement = document.createElement('div');
+        productElement.classList.add('product');
+        productElement.innerHTML = `
+            <h3>${product.productName}</h3>
+            <p>${product.description}</p>
+            <p>Price: ₹${product.salePrice}</p>
+        `;
+        productContainer.appendChild(productElement);
+    });
+}
+
+</script>

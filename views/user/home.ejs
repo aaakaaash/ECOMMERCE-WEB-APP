@@ -45,19 +45,6 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 		 
 		<div class="banner">
 			
-			<form action="/home" method="GET">
-				<select name="sortBy" onchange="this.form.submit()">
-					<option value="">Sort By</option>
-					<option value="popularity" <%= sortBy === 'popularity' ? 'selected' : '' %>>Popularity</option>
-					<option value="priceLowToHigh" <%= sortBy === 'priceLowToHigh' ? 'selected' : '' %>>Price: Low to High</option>
-					<option value="priceHighToLow" <%= sortBy === 'priceHighToLow' ? 'selected' : '' %>>Price: High to Low</option>
-					<option value="averageRatings" <%= sortBy === 'averageRatings' ? 'selected' : '' %>>Average Ratings</option>
-					<option value="featured" <%= sortBy === 'featured' ? 'selected' : '' %>>Featured</option>
-					<option value="newArrivals" <%= sortBy === 'newArrivals' ? 'selected' : '' %>>New Arrivals</option>
-					<option value="aToZ" <%= sortBy === 'aToZ' ? 'selected' : '' %>>A - Z</option>
-					<option value="zToA" <%= sortBy === 'zToA' ? 'selected' : '' %>>Z - A</option>
-				</select>
-			</form>
 				
 			<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
 				<ol class="carousel-indicators">
@@ -116,6 +103,19 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 	</div>
 	<!--//banner-sec-->
 	<section class="banner-bottom-wthreelayouts py-lg-5 py-3">
+		<form action="/home" method="GET">
+			<select name="sortBy" onchange="this.form.submit()">
+				<option value="">Sort By</option>
+				<option value="popularity" <%= sortBy === 'popularity' ? 'selected' : '' %>>Popularity</option>
+				<option value="priceLowToHigh" <%= sortBy === 'priceLowToHigh' ? 'selected' : '' %>>Price: Low to High</option>
+				<option value="priceHighToLow" <%= sortBy === 'priceHighToLow' ? 'selected' : '' %>>Price: High to Low</option>
+				<option value="averageRatings" <%= sortBy === 'averageRatings' ? 'selected' : '' %>>Average Ratings</option>
+				<option value="featured" <%= sortBy === 'featured' ? 'selected' : '' %>>Featured</option>
+				<option value="newArrivals" <%= sortBy === 'newArrivals' ? 'selected' : '' %>>New Arrivals</option>
+				<option value="aToZ" <%= sortBy === 'aToZ' ? 'selected' : '' %>>A - Z</option>
+				<option value="zToA" <%= sortBy === 'zToA' ? 'selected' : '' %>>Z - A</option>
+			</select>
+		</form>
 		<div class="container-fluid">
 			<div class="inner-sec-shop px-lg-4 px-3">
 				<h3 class="tittle-w3layouts my-lg-4 my-4">New Arrivals for you </h3>
@@ -190,6 +190,23 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 							</div>
 						</div>
 					<% }) %>
+				</div>
+				<div class="pagination-container">
+					<% if (currentPage > 1) { %>
+						<a href="?page=<%= currentPage - 1 %>">&laquo; Previous</a>
+					<% } %>
+				
+					<% for (let i = 1; i <= totalPages; i++) { %>
+						<% if (i === currentPage) { %>
+							<span class="current-page"><%= i %></span>
+						<% } else { %>
+							<a href="?page=<%= i %>"><%= i %></a>
+						<% } %>
+					<% } %>
+				
+					<% if (currentPage < totalPages) { %>
+						<a href="?page=<%= currentPage + 1 %>">Next &raquo;</a>
+					<% } %>
 				</div>
 				
 				<!--//row-->

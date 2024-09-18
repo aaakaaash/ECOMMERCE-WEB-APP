@@ -12,11 +12,12 @@
 
         .container {
             margin-top: 20px;
+            background-color: white;
         }
 
         .order-summary {
-            border: 1px solid #ccc;
-            padding: 20px;
+            padding: 20px 20px 20px 0px;
+            background-color: rgb(88, 189, 192);
         }
 
         .product-image {
@@ -47,6 +48,10 @@
             font-size: 12px;
         }
 
+        .product-item {
+            padding: 10px;
+        }
+
         .product-details .delivery {
             font-size: 12px;
         }
@@ -68,7 +73,10 @@
         .price-details {
             border: 1px solid #ccc;
             padding: 20px;
-            margin-left: 20px;
+            margin-left: auto;
+            float: right;
+            width: 100%;
+            max-width: 300px;
         }
 
         .price-details .item {
@@ -136,146 +144,154 @@
     </style>
 </head>
 <body>
+    <%-include("../../views/partials/user/header")%>
+    
     <div class="container">
-        <%-include("../../views/partials/user/header")%>
         <div class="row">
             <div class="col-md-8">
-                <div class="login">
-                    <div class="row">
-                        <div class="col-md-1">
-                            <span class="badge badge-primary">1</span>
-                        </div>
-                        <div class="col-md-11">
-                            <div class="login-details">
-                                <h6>LOGIN</h6>
-                                <button class="btn btn-primary">CHANGE</button>
+                <div>
+                    <br>
+                    <div class="login">
+                        <div class="row">
+                            <div class="col-md-1">
+                                <span class="badge badge-primary">1</span>
                             </div>
-                            <p>Akash Ravikumar +919497707663</p>
+                            <div class="col-md-11">
+                                <div class="login-details">
+                                    <h6>LOGIN</h6>
+                                </div>
+                                <p><%= user.name %></p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="delivery-address">
-                    <div class="row">
-                        <div class="col-md-1">
-                            <span class="badge badge-primary">2</span>
+                    <div class="delivery-address">
+                        <div class="row">
+                            <div class="col-md-1">
+                                <span class="badge badge-primary">2</span>
+                            </div>
+                            <div class="col-md-11">
+                                <div class="delivery-address-details">
+                                    <form id="addressForm">
+                                        <div class="form-group">
+                                            <label for="existingAddress">Select Address:</label>
+                                            <select id="existingAddress" name="address" class="form-control">
+                                                <% if (addresses && addresses.length > 0) { %>
+                                                    <% addresses.forEach(address => { %>
+                                                        <option value="<%= address._id %>">
+                                                            <%= address.house %>, <%= address.place %>, <%= address.city %>, <%= address.state %>, <%= address.pin %>, <%= address.contactNo %>
+                                                        </option>
+                                                    <% }) %>
+                                                <% } else { %>
+                                                    <option value="">No addresses available</option>
+                                                <% } %>
+                                            </select>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-11">
-                            <div class="delivery-address-details">
-                                <form id="addressForm">
-                                    <div class="form-group">
-                                        <label for="existingAddress">Select Address:</label>
-                                        <select id="existingAddress" name="address" class="form-control">
-                                            <% if (addresses && addresses.length > 0) { %>
-                                                <% addresses.forEach(address => { %>
-                                                    <option value="<%= address._id %>">
-                                                        <%= address.house %>, <%= address.place %>, <%= address.city %>, <%= address.state %>, <%= address.pin %>, <%= address.contactNo %>
-                                                    </option>
-                                                <% }) %>
-                                            <% } else { %>
-                                                <option value="">No addresses available</option>
-                                            <% } %>
-                                        </select>
+                    </div>
+                    <div class="order-summary">
+                        <div class="row">
+                            <div class="col-md-1">
+                                <span class="badge badge-primary" style="margin-left: 15px;">3</span>
+                            </div>
+                            <div class="col-md-11">
+                                <h6>ORDER SUMMARY</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="row product-item" >
+                        <% if (cart && cart.items.length > 0) { %>
+                            <% cart.items.forEach((item, index) => { %>
+                                <div class="col-md-3">
+                                    <a href="#">
+                                        <img src="/uploads/product-images/<%= item.product.productImage[0] %>" alt=" " class="img-responsive" style="width: 100px; height: 100px; object-fit: cover;">
+                                    </a>
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="product-details">
+                                        <h6><%= item.product.productName %></h6>
+                                        <p>Quantity: <%= item.quantity %></p>
+                                        <p class="price">₹<%= item.product.salePrice.toFixed(2) %><span class="discount"></span> <span class="offer"></span></p>
                                     </div>
-                                </form>
-                        </div>
-                    </div>
-                </div>
-                <div class="order-summary">
-                    <div class="row">
-                        <div class="col-md-1">
-                            <span class="badge badge-primary">3</span>
-                        </div>
-                        <div class="col-md-11">
-                            <h6>ORDER SUMMARY</h6>
-                        </div>
-                    </div>
-                    <% if (cart && cart.items.length > 0) { %>
-                    <div class="row product-item">
-                        <% cart.items.forEach((item, index) => { %>
-                        <div class="col-md-3">
-                            <a href="#">
-                                <img src="/uploads/product-images/<%= item.product.productImage[0] %>" alt=" " class="img-responsive" style="width: 100px; height: 100px; object-fit: cover;">
-                            </a>
-                        </div>
-                        <div class="col-md-9">
-                            <div class="product-details">
-                               
-                                <h6> <%= item.product.productName %></h6>
-                                <p>Quantity: <%= item.quantity %></p>
-                                <p>Seller: STIPVTLTD <span class="badge badge-success">Assured</span></p>
-                                <p class="price">$<%= item.product.salePrice.toFixed(2) %><span class="discount">₹402 86% Off</span> <span class="offer">1 coupon & 1 offer applied</span></p>
-                                <p>Or Pay ₹357 + ₹45</p>
-                                <!-- <div class="delivery">Delivery by Sat Sep 21 | ₹120 Free</div> -->
-                            </div>
+                                </div>
+                                <div class="w-100"></div> 
+                            <% }) %>
+                        <% } %>
 
-                        </div>
+                            <div class="pagination-container">
+                        <% if (currentPage > 1) { %>
+                            <a href="?page=<%= currentPage - 1 %>">&laquo; Previous</a>
+                        <% } %>
+                        <% for (let i = 1; i <= totalPages; i++) { %>
+                            <% if (i === currentPage) { %>
+                                <span class="current-page"><%= i %></span>
+                            <% } else { %>
+                                <a href="?page=<%= i %>"><%= i %></a>
+                            <% } %>
+                        <% } %>
+                        <% if (currentPage < totalPages) { %>
+                            <a href="?page=<%= currentPage + 1 %>">Next &raquo;</a>
+                        <% } %>
                     </div>
-                    <% }) %>
-                    <% } %>
-                   
-                </div>
-                <div class="col-md-6">
-                    <form action="/cart/place-order/make-payment" method="POST" id="paymentForm">
-                        <!-- Hidden Fields to Store Selected Address and User ID -->
-                        <input type="hidden" name="address" id="selectedAddress">
-                        <input type="hidden" name="userId" value="<%= user._id %>">
-            
-                        <!-- Payment Button -->
-                        <button class="btn btn-success" type="submit">Make a Payment</button>
-                    </form>
+
+                    </div>
+                    <br>
                 </div>
             </div>
+            
             <div class="col-md-4">
+                <br>
                 <div class="price-details">
-                    <h6>PRICE DETAILS</h6>
-                    <div class="item">
-                        <p>Price (2 items)</p>
-                        <p class="price">₹637</p>
-                    </div>
-                    <div class="item">
-                        <p>Delivery Charges</p>
-                        <p class="price">₹160 <span class="free">FREE</span></p>
-                    </div>
-                    <div class="item">
-                        <p>Platform Fee</p>
-                        <p class="price">₹3</p>
-                    </div>
-                    <div class="total-payable">
-                        <p>Total Payable</p>
-                        <p class="price">₹640</p>
-                    </div>
-                    <div class="total-savings">
-                        <p>Your Total Savings on this order ₹3,356</p>
-                    </div>
-                    <div class="secure-payment">
-                        <div class="icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16">
-                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                                <path d="M10.97 4.97a.23.23 0 0 0-.02.022l-7.879 7.879a.23.23 0 1 0 .34.34l7.879-7.879a.23.23 0 0 0-.022-.022z"/>
-                            </svg>
-                        </div>
-                        <div class="text">
-                            <p>Safe and Secure Payments. Easy returns. 100% Authentic products.</p>
-                        </div>
+                    <h4>PRICE DETAILS</h4>
+                    <dl>
+                        <dt>Price (<%= distinctProductCount %> items)</dt>
+                        <dd>₹<%= cart.total.toFixed(2) %></dd>
+                    </dl>
+                    <dl>
+                        <dt>Discount</dt>
+                        <dd>- ₹<%= cart.discount.toFixed(2) %></dd>
+                    </dl>
+                    <dl>
+                        <dt>Platform Fee</dt>
+                        <dd>₹<%= cart.platformFee.toFixed(2) %></dd>
+                    </dl>
+                    <dl>
+                        <dt>Delivery Charges</dt>
+                        <dd>₹<%= cart.deliveryCharges.toFixed(2) %></dd>
+                    </dl>
+                    <hr>
+                    <dl>
+                        <dt>Total Amount</dt>
+                        <dd>₹<%= (cart.total - cart.discount + cart.platformFee + cart.deliveryCharges).toFixed(2) %></dd>
+                    </dl>
+                    <p class="text-success">You will save ₹<%= cart.discount.toFixed(2) %> on this order</p>
+                    <div class="col-md-12">
+                        <form action="/cart/place-order/make-payment" method="POST" id="paymentForm">
+                            <input type="hidden" name="address" id="selectedAddress">
+                            <input type="hidden" name="userId" value="<%= user._id %>">
+                            <button class="btn btn-success btn-block" type="submit">Make a Payment</button>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <br>
     <%-include("../../views/partials/user/footer")%>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // JavaScript to update the hidden address field in the payment form
+        document.getElementById('existingAddress').addEventListener('change', function () {
+            document.getElementById('selectedAddress').value = this.value;
+        });
+
+        // Initialize the hidden field with the default selected address
+        document.getElementById('selectedAddress').value = document.getElementById('existingAddress').value;
+    </script>
 </body>
 </html>
-
-
-<script>
-    // JavaScript to update the hidden address field in the payment form
-    document.getElementById('existingAddress').addEventListener('change', function () {
-        document.getElementById('selectedAddress').value = this.value;
-    });
-
-    // Initialize the hidden field with the default selected address
-    document.getElementById('selectedAddress').value = document.getElementById('existingAddress').value;
-</script>

@@ -26,7 +26,9 @@ border-radius: 5px;
 display: flex;
 flex-direction: column;
 }
-
+.container {
+    background-color: white;
+}
 /* Text styling */
 .product-name {
 font-size: 1.2em; /* Larger font size for the product name */

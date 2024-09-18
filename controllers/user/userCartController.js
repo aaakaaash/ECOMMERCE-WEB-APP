@@ -16,34 +16,45 @@ const cart = async (req, res, next) => {
             return res.status(401).json({ error: 'User not authenticated' });
         }
         
-        // Pagination setup
+    
         const page = parseInt(req.query.page) || 1;
         const limit = 2; 
         const skip = (page - 1) * limit;
         
         const cart = await Cart.findOne({ userId: userId }).populate('items.product').exec();
 
+        if (cart.items.isBlocked) {
+            return res.status(400).json({ error: 'Product is blocked' });
+        }
+
         let totalPrice = 0;
         let totalItems = 0;
         const discount = 0; 
         const platformFee = 0; 
         const deliveryCharges = 0; 
+        let distinctProductCount = 0; 
 
         if (cart && cart.items.length > 0) {
+            const distinctProducts = new Set(); 
             cart.items.forEach(item => {
                 totalPrice += item.price * item.quantity;
                 totalItems += item.quantity;
+
+                distinctProducts.add(item.product._id.toString()); 
+               
+
             });
+              distinctProductCount = distinctProducts.size;
         }
 
-        // Pagination logic for cart items
+    
         const totalCartItems = cart ? cart.items.length : 0;
         const paginatedItems = cart ? cart.items.slice(skip, skip + limit) : [];
         const totalPages = Math.ceil(totalCartItems / limit);
 
         const totalAmount = totalPrice - discount + platformFee + deliveryCharges;
 
-        // Render the view with paginated items
+        
         res.render("cart", { 
             cart: { ...cart, items: paginatedItems }, 
             totalItems, 
@@ -52,6 +63,7 @@ const cart = async (req, res, next) => {
             platformFee, 
             deliveryCharges, 
             totalAmount,
+            distinctProductCount,
             currentPage: page,
             totalPages: totalPages,
             totalCartItems: totalCartItems 
@@ -86,6 +98,10 @@ const addToCart = async (req, res, next) => {
 
         if (product.quantity === 0) {
             return res.status(400).json({ error: 'Product is out of stock' });
+        }
+
+        if (product.isBlocked) {
+            return res.status(400).json({ error: 'Product is blocked' });
         }
 
         if (quantity > product.quantity) {
@@ -143,8 +159,14 @@ const updateQuantity = async (req, res, next) => {
             return res.status(404).json({ error: 'Cart not found' });
         }
 
+
       
         const item = cart.items.find(item => item.product._id.toString() === productId);
+
+        
+        if (item.isBlocked) {
+            return res.status(400).json({ error: 'Product is blocked' });
+        }
 
         if (item) {
             

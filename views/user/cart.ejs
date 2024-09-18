@@ -15,10 +15,13 @@
 </head>
 <body>
     <%-include("../../views/partials/user/header")%>
+    <br>
     <div class="container">
-        <br>
+        
         <div class="row">
+           
             <div class="col-md-6">
+                <br>
                 <% if (cart && cart.items.length > 0) { %>
                     <% cart.items.forEach((item, index) => { %>
                         <div class="card">
@@ -33,6 +36,7 @@
                                         <p class="product-price">₹<%= item.product.salePrice %></p>
                                     </div>
                                 </div>
+                                <br>
                                 <div class="product-details">
                                     <div class="button-container">
                                         <form id="updateQuantityForm-<%= item.product._id %>" onsubmit="return false;">
@@ -76,10 +80,11 @@
               
             </div>
             <div class="col-md-6">
+                <br>
                 <div class="price-details">
                     <h4>PRICE DETAILS</h4>
                     <dl>
-                        <dt>Price (<%= totalItems %> items)</dt>
+                        <dt>Price (<%= distinctProductCount %> items)</dt>
                         <dd>₹<%= totalPrice.toFixed(2) %></dd>
                     </dl>
                     <dl>
@@ -105,8 +110,9 @@
                 
             </div>
         </div>
-        <br>
+       
     </div>
+    <br>
     <%-include("../../views/partials/user/footer")%>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

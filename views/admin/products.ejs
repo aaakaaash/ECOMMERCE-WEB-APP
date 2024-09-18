@@ -17,7 +17,7 @@
                 <thead>
                     <tr>
                         <th scope="col"><b>Product Name</b></th>
-                        <th scope="col"><b>SKU Number</b></th> <!-- Added SKU Number column -->
+                        <th scope="col"><b>SKU Number</b></th> 
                         <th scope="col"><b>Brand</b></th>
                         <th scope="col"><b>Category</b></th>
                         <th scope="col"><b>Sale Price</b></th>
@@ -31,7 +31,7 @@
                     <% for(let i = data.length - 1; i >= 0; i--) { %>
                       <tr>
                         <td><%= data[i].productName %></td>
-                        <td><%= data[i].skuNumber %></td> <!-- Display SKU Number -->
+                        <td><%= data[i].skuNumber %></td> 
                         <td></td>
                         <td><%= data[i].category.name %></td>
                         <td><%= data[i].salePrice %></td>

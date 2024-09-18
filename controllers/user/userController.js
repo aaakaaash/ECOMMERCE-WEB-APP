@@ -19,72 +19,61 @@ const pageNotFound = async (req, res, next) => {
 
 const loadHomepage = async (req, res, next) => {
     try {
+        const searchQuery = req.query.searchQuery || '';
         const { sortBy } = req.query;
 
-        
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const skip = (page - 1) * limit;
+
+        let searchCondition = { isBlocked: false };
+        if (searchQuery) {
+            const regex = new RegExp(searchQuery, 'i');
+            searchCondition.$or = [{ productName: regex }];
+        }
+
         let sortCriteria = {};
         switch (sortBy) {
-            case 'popularity':
-                sortCriteria = { popularity: -1 };
-                break;
-            case 'priceLowToHigh':
-                sortCriteria = { salePrice: 1 };
-                break;
-            case 'priceHighToLow':
-                sortCriteria = { salePrice: -1 };
-                break;
-            case 'averageRatings':
-                sortCriteria = { averageRating: -1 };
-                break;
-            case 'featured':
-                sortCriteria = { isFeatured: -1 };
-                break;
-            case 'newArrivals':
-                sortCriteria = { createdAt: -1 };
-                break;
-            case 'aToZ':
-                sortCriteria = { productName: 1 };
-                break;
-            case 'zToA':
-                sortCriteria = { productName: -1 };
-                break;
-            default:
-                sortCriteria = {};
+            case 'popularity': sortCriteria = { popularity: -1 }; break;
+            case 'priceLowToHigh': sortCriteria = { salePrice: 1 }; break;
+            case 'priceHighToLow': sortCriteria = { salePrice: -1 }; break;
+            case 'averageRatings': sortCriteria = { averageRating: -1 }; break;
+            case 'featured': sortCriteria = { isFeatured: -1 }; break;
+            case 'newArrivals': sortCriteria = { createdAt: -1 }; break;
+            case 'aToZ': sortCriteria = { productName: 1 }; break;
+            case 'zToA': sortCriteria = { productName: -1 }; break;
+            default: sortCriteria = {};
         }
 
-       
-        const products = await Product.find({ isBlocked: false })
+        const products = await Product.find(searchCondition)
             .populate('category')
             .sort(sortCriteria)
+            .skip(skip)
+            .limit(limit)
             .exec();
 
-        let userId;
-        if (req.user) {
-            userId = req.user;
-        } else if (req.session.user) {
-            userId = req.session.user;
-        }
+        const totalProducts = await Product.countDocuments(searchCondition);
+        const totalPages = Math.ceil(totalProducts / limit);
 
-        if (userId) {
-            const userData = await User.findById(userId);
-            res.locals.user = userData;
-            return res.render('home', {
-                user: userData,
-                products: products,
-                sortBy: sortBy || '',
-            });
-        } else {
-            res.locals.user = null;
-            return res.render('home', {
-                products: products,
-                sortBy: sortBy || '',
-            });
-        }
+        let userId = req.user || req.session.user;
+        let userData = userId ? await User.findById(userId) : null;
+        res.locals.user = userData;
+
+        return res.render('home', {
+            user: userData,
+            products: products,
+            sortBy: sortBy || '',
+            currentPage: page,
+            totalPages: totalPages,
+            totalProducts: totalProducts
+        });
     } catch (error) {
         console.log('Home page not found:', error);
         next(error);
     }
 };
+
+
 
 
 const loadAboutpage = async (req, res, next) => {
@@ -111,77 +100,63 @@ const loadAboutpage = async (req, res, next) => {
 };
 
 const loadShoppage = async (req, res, next) => {
-   
     try {
-
+        const searchQuery = req.query.searchQuery || '';
         const { sortBy } = req.query;
 
-        
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const skip = (page - 1) * limit;
+
+        let searchCondition = { isBlocked: false };
+        if (searchQuery) {
+            const regex = new RegExp(searchQuery, 'i');
+            searchCondition.$or = [{ productName: regex }];
+        }
+
         let sortCriteria = {};
         switch (sortBy) {
-            case 'popularity':
-                sortCriteria = { popularity: -1 };
-                break;
-            case 'priceLowToHigh':
-                sortCriteria = { salePrice: 1 };
-                break;
-            case 'priceHighToLow':
-                sortCriteria = { salePrice: -1 };
-                break;
-            case 'averageRatings':
-                sortCriteria = { averageRating: -1 };
-                break;
-            case 'featured':
-                sortCriteria = { isFeatured: -1 };
-                break;
-            case 'newArrivals':
-                sortCriteria = { createdAt: -1 };
-                break;
-            case 'aToZ':
-                sortCriteria = { productName: 1 };
-                break;
-            case 'zToA':
-                sortCriteria = { productName: -1 };
-                break;
-            default:
-                sortCriteria = {};
+            case 'popularity': sortCriteria = { popularity: -1 }; break;
+            case 'priceLowToHigh': sortCriteria = { salePrice: 1 }; break;
+            case 'priceHighToLow': sortCriteria = { salePrice: -1 }; break;
+            case 'averageRatings': sortCriteria = { averageRating: -1 }; break;
+            case 'featured': sortCriteria = { isFeatured: -1 }; break;
+            case 'newArrivals': sortCriteria = { createdAt: -1 }; break;
+            case 'aToZ': sortCriteria = { productName: 1 }; break;
+            case 'zToA': sortCriteria = { productName: -1 }; break;
+            default: sortCriteria = {};
         }
 
+        // Fetch products with search, sort, and pagination
+        const products = await Product.find(searchCondition)
+            .populate('category')
+            .sort(sortCriteria)
+            .skip(skip)
+            .limit(limit)
+            .exec();
 
+        
+        const totalProducts = await Product.countDocuments(searchCondition);
+        const totalPages = Math.ceil(totalProducts / limit);
 
-        const products = await Product.find({ isBlocked: false })
-        .populate('category')
-        .sort(sortCriteria)
-        .exec();
+        let userId = req.user || req.session.user;
+        let userData = userId ? await User.findById(userId) : null;
+        res.locals.user = userData;
 
-        let userId;
-
-        if(req.user){
-             userId = req.user; 
-        } else if(req.session.user){
-            userId = req.session.user;
-        }
-
-        if (userId) {
-            const userData = await User.findById(userId);
-            res.locals.user = userData; 
-            return res.render("shop", { user: userData,
-                products:products,
-                sortBy: sortBy || '',
-
-             });
-        } else {
-            res.locals.user = null; 
-            return res.render("shop", {
-                products:products,
-                sortBy: sortBy || '',
-            });
-        }
+        return res.render("shop", { 
+            user: userData,
+            products: products,
+            sortBy: sortBy || '',
+            currentPage: page,
+            totalPages: totalPages,
+            totalProducts: totalProducts
+        });
     } catch (error) {
         console.log("shop page not found:", error);
-        next(error); 
+        next(error);
     }
 };
+
 
 const loadContactpage = async (req, res, next) => {
     try {
@@ -195,7 +170,7 @@ const loadContactpage = async (req, res, next) => {
         if (userId) {
             const userData = await User.findById(userId);
             res.locals.user = userData; 
-            return res.render("contact", { user: userData });
+            return res.render("contact", { user: userData, });
         } else {
             res.locals.user = null; 
             return res.render("contact");
