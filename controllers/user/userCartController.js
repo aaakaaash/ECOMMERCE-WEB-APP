@@ -16,9 +16,12 @@ const cart = async (req, res, next) => {
             return res.status(401).json({ error: 'User not authenticated' });
         }
         
+        // Pagination setup
+        const page = parseInt(req.query.page) || 1;
+        const limit = 2; 
+        const skip = (page - 1) * limit;
         
         const cart = await Cart.findOne({ userId: userId }).populate('items.product').exec();
-    
 
         let totalPrice = 0;
         let totalItems = 0;
@@ -33,14 +36,32 @@ const cart = async (req, res, next) => {
             });
         }
 
+        // Pagination logic for cart items
+        const totalCartItems = cart ? cart.items.length : 0;
+        const paginatedItems = cart ? cart.items.slice(skip, skip + limit) : [];
+        const totalPages = Math.ceil(totalCartItems / limit);
+
         const totalAmount = totalPrice - discount + platformFee + deliveryCharges;
 
-        res.render("cart", { cart, totalItems, totalPrice, discount, platformFee, deliveryCharges, totalAmount });
+        // Render the view with paginated items
+        res.render("cart", { 
+            cart: { ...cart, items: paginatedItems }, 
+            totalItems, 
+            totalPrice, 
+            discount, 
+            platformFee, 
+            deliveryCharges, 
+            totalAmount,
+            currentPage: page,
+            totalPages: totalPages,
+            totalCartItems: totalCartItems 
+        });
     } catch (error) {
         console.error("Error in fetching cart:", error);
         next(error);
     }
 };
+
 
 
 
@@ -194,7 +215,7 @@ const removeFromCart = async (req, res) => {
       
         await Product.findByIdAndUpdate(productId, {
             $inc: { quantity: itemToRemove.quantity },
-            $set: { status: (item.quantity + (await Product.findById(productId)).quantity > 0) ? "Available" : "Out of stock" }
+            $set: { status: "Available" }
         });
 
         

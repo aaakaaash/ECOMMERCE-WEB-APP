@@ -34,7 +34,7 @@ const placeOrder = async (req, res, next) => {
         }
 
         if (cart && cart.items.length > 0){
-        res.render("checkout-page", { cart, addresses });
+        res.render("checkout-Page", { cart, addresses });
         }else
         {
             res.status(400).json({ message: "Your cart is empty. Please add items to your cart before proceeding." });

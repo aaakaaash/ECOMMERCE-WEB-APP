@@ -69,18 +69,19 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 							<div class="grid images_3_of_2">
 								<div class="flexslider1">
 									<ul class="slides">
-										<div class="product-images">
-											<% if (product.productImage && product.productImage.length > 0) { %>
-												<% product.productImage.forEach(image => { %>
+										<% if (product.productImage && product.productImage.length > 0) { %>
+											<% product.productImage.forEach(image => { %>
+												<li>
 													<img src="/uploads/product-images/<%= image %>" data-imagezoom="true" class="img-fluid" alt=" ">
-												<% }) %>
-											<% } else { %>
+												</li>
+											<% }) %>
+										<% } else { %>
+											<li>
 												<p>No images available</p>
-											<% } %>
-										</div>
-										
+											</li>
+										<% } %>
 									</ul>
-									<div class="clearfix"></div>
+									<!-- <div class="clearfix"></div> -->
 								</div>
 							</div>
 						</div>
@@ -99,6 +100,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 									<li><a href="#"><i class="fa fa-star-o" aria-hidden="true"></i></a></li>
 								</ul>
 							</div>
+							<br><br><br>
 							<div class="color-quality">
 								<div class="color-quality-right">
 									<h5>Categories:</h5>
@@ -123,6 +125,8 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 								</div>
 								<div class="clearfix"> </div>
 							</div> -->
+
+							<br><br><br>
 							<div class="occasion-cart">
 								<div class="googles single-item singlepage">
 									<form id="addToCartForm-<%= product._id %>" onsubmit="return false;">
@@ -132,8 +136,12 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 											Add to Cart
 										</button>
 									</form>
+									<br>
 								</div>
+								<br>
 							</div>
+							<br><br><br><br>
+							<br>
 							<ul class="footer-social text-left mt-lg-4 mt-3">
 								<li>Share On : </li>
 								<li class="mx-2">
@@ -350,14 +358,35 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 		<!-- FlexSlider -->
 		<script src="/js/jquery.flexslider.js"></script>
 		<script>
-			// Can also be used with $(document).ready()
-			$(window).load(function () {
+			$(window).on('load', function() {
 				$('.flexslider1').flexslider({
 					animation: "slide",
-					controlNav: "thumbnails"
+					// controlNav: "thumbnails",
+					start: function(slider) {
+						slider.resize();
+					}
 				});
 			});
 		</script>
+	<!-- <script>
+		$(window).on('load', function() {
+			$('.flexslider1').imagesLoaded(function() {
+				$('.flexslider1').flexslider({
+					animation: "slide",
+					controlNav: "thumbnails",
+					controlNav: true, // Show navigation controls (dots)
+					directionNav: true, // Show prev/next arrows
+					slideshow: true, // Enable automatic sliding
+					slideshowSpeed: 5000, // Time interval between slides in milliseconds
+					animationSpeed: 600, // Animation speed for sliding transition
+					start: function(slider) {
+						slider.resize();
+					}
+				});
+			});
+		});
+	</script> -->
+
 		<!-- //FlexSlider-->
 
 		<!-- dropdown nav -->

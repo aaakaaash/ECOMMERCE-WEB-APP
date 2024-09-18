@@ -79,16 +79,19 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 									</form>
 							</div>
 							<!-- price range -->
-							<div class="range">
-								<h3 class="agileits-sear-head">Price range</h3>
-								<ul class="dropdown-menu6">
-									<li>
-
-										<div id="slider-range"></div>
-										<input type="text" id="amount" style="border: 0; color: #ffffff; font-weight: normal;" />
-									</li>
-								</ul>
-							</div>
+							<form action="/shop" method="GET">
+								<select name="sortBy" onchange="this.form.submit()">
+									<option value="">Sort By</option>
+									<option value="popularity" <%= sortBy === 'popularity' ? 'selected' : '' %>>Popularity</option>
+									<option value="priceLowToHigh" <%= sortBy === 'priceLowToHigh' ? 'selected' : '' %>>Price: Low to High</option>
+									<option value="priceHighToLow" <%= sortBy === 'priceHighToLow' ? 'selected' : '' %>>Price: High to Low</option>
+									<option value="averageRatings" <%= sortBy === 'averageRatings' ? 'selected' : '' %>>Average Ratings</option>
+									<option value="featured" <%= sortBy === 'featured' ? 'selected' : '' %>>Featured</option>
+									<option value="newArrivals" <%= sortBy === 'newArrivals' ? 'selected' : '' %>>New Arrivals</option>
+									<option value="aToZ" <%= sortBy === 'aToZ' ? 'selected' : '' %>>A - Z</option>
+									<option value="zToA" <%= sortBy === 'zToA' ? 'selected' : '' %>>Z - A</option>
+								</select>
+							</form>
 							<!-- //price range -->
 							<!--preference -->
 							<div class="left-side">

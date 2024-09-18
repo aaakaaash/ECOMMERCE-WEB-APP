@@ -12,14 +12,13 @@ const categoryController = require("../controllers/admin/categoryController");
 const productController = require("../controllers/admin/productController");
 
 
-// Multer storage config
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-      // You can define multiple destinations, in this case, it's "uploads/product-images"
+      
       cb(null, path.join(__dirname, '..', 'public', 'storage', 'product-images'));
   },
   filename: function (req, file, cb) {
-      // Generating a unique filename (with current timestamp + original name)
+     
       cb(null, Date.now() + '-' + file.originalname);
   }
 });

@@ -21,38 +21,38 @@ const loadHomepage = async (req, res, next) => {
     try {
         const { sortBy } = req.query;
 
-        // Define sorting criteria based on the selected option
+        
         let sortCriteria = {};
         switch (sortBy) {
             case 'popularity':
                 sortCriteria = { popularity: -1 };
                 break;
             case 'priceLowToHigh':
-                sortCriteria = { price: 1 };
+                sortCriteria = { salePrice: 1 };
                 break;
             case 'priceHighToLow':
-                sortCriteria = { price: -1 };
+                sortCriteria = { salePrice: -1 };
                 break;
             case 'averageRatings':
-                sortCriteria = { averageRatings: -1 };
+                sortCriteria = { averageRating: -1 };
                 break;
             case 'featured':
-                sortCriteria = { featured: -1 };
+                sortCriteria = { isFeatured: -1 };
                 break;
             case 'newArrivals':
                 sortCriteria = { createdAt: -1 };
                 break;
             case 'aToZ':
-                sortCriteria = { name: 1 };
+                sortCriteria = { productName: 1 };
                 break;
             case 'zToA':
-                sortCriteria = { name: -1 };
+                sortCriteria = { productName: -1 };
                 break;
             default:
                 sortCriteria = {};
         }
 
-        // Fetch products with sorting
+       
         const products = await Product.find({ isBlocked: false })
             .populate('category')
             .sort(sortCriteria)
@@ -71,13 +71,13 @@ const loadHomepage = async (req, res, next) => {
             return res.render('home', {
                 user: userData,
                 products: products,
-                sortBy: sortBy || '', // Pass sortBy to the template
+                sortBy: sortBy || '',
             });
         } else {
             res.locals.user = null;
             return res.render('home', {
                 products: products,
-                sortBy: sortBy || '', // Pass sortBy to the template
+                sortBy: sortBy || '',
             });
         }
     } catch (error) {
@@ -113,7 +113,47 @@ const loadAboutpage = async (req, res, next) => {
 const loadShoppage = async (req, res, next) => {
    
     try {
-        const products = await Product.find({ isBlocked: false }).populate('category').exec();
+
+        const { sortBy } = req.query;
+
+        
+        let sortCriteria = {};
+        switch (sortBy) {
+            case 'popularity':
+                sortCriteria = { popularity: -1 };
+                break;
+            case 'priceLowToHigh':
+                sortCriteria = { salePrice: 1 };
+                break;
+            case 'priceHighToLow':
+                sortCriteria = { salePrice: -1 };
+                break;
+            case 'averageRatings':
+                sortCriteria = { averageRating: -1 };
+                break;
+            case 'featured':
+                sortCriteria = { isFeatured: -1 };
+                break;
+            case 'newArrivals':
+                sortCriteria = { createdAt: -1 };
+                break;
+            case 'aToZ':
+                sortCriteria = { productName: 1 };
+                break;
+            case 'zToA':
+                sortCriteria = { productName: -1 };
+                break;
+            default:
+                sortCriteria = {};
+        }
+
+
+
+        const products = await Product.find({ isBlocked: false })
+        .populate('category')
+        .sort(sortCriteria)
+        .exec();
+
         let userId;
 
         if(req.user){
@@ -126,13 +166,15 @@ const loadShoppage = async (req, res, next) => {
             const userData = await User.findById(userId);
             res.locals.user = userData; 
             return res.render("shop", { user: userData,
-                products:products
+                products:products,
+                sortBy: sortBy || '',
 
              });
         } else {
             res.locals.user = null; 
             return res.render("shop", {
-                products:products
+                products:products,
+                sortBy: sortBy || '',
             });
         }
     } catch (error) {
@@ -339,7 +381,7 @@ const login = async (req, res, next) => {
         const findUser = await User.findOne({ role: "user", email: email});
 
         if (googleId) {
-            query.googleId = googleId;  // Add googleId to query only if it's present
+            query.googleId = googleId;  
         }
 
         if (!findUser) {
@@ -351,7 +393,7 @@ const login = async (req, res, next) => {
         }
         
         if (googleId) {
-            // Set the session for Google OAuth users
+            
             req.user = findUser._id;
             sessionActive = true;
             return res.redirect("/");
@@ -363,7 +405,7 @@ const login = async (req, res, next) => {
             return res.render("login", { message: "Incorrect password" });
         }
         
-        // Set the session for normal login
+    
         req.session.user = findUser._id;
         sessionActive = true;
 

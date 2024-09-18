@@ -179,10 +179,10 @@
       }
   
       if (!isValid) {
-          return; // Prevent form submission if validation fails
+          return; 
       }
   
-      // Convert form data to JSON and send it to the server
+      
       const formData = new FormData(event.target);
       const data = {};
       formData.forEach((value, key) => {
@@ -204,8 +204,8 @@
               text: data.message
           });
   
-          document.getElementById('addressForm').reset(); // Reset the form
-          updateAddressList(); // Update the address list after adding a new address
+          document.getElementById('addressForm').reset(); 
+          updateAddressList(); 
       })
       .catch(error => {
           Swal.fire({
