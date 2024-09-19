@@ -15,6 +15,7 @@ const userAccountController = require("../controllers/user/userAccountController
 const userCartController = require("../controllers/user/userCartController");
 const userOrderController = require("../controllers/user/userOrderController");
 const { userAuth } = require("../middlewares/auth");
+const setBreadcrumbs = require('../middlewares/breadCrumb')
 
 router.use(nocache());
 router.get("/",userController.loadHomepage);
@@ -29,6 +30,33 @@ router.post("/signup",preventCache,userController.signup);
 router.post("/verify-otp",userController.verifyOtp);
 router.post("/resend-otp",userController.resendOtp);
 
+
+// user profile management
+
+router.get("/login/forget-password",userProfileController.forgetPasswordPage);
+router.post("/login/forget-password/forget-email-valid",userProfileController.forgetEmailValidation);
+router.post("/verify-passForget-otp",userProfileController.verifyForgetPassOtp)
+router.get("/reset-password",userProfileController.getResetPassPage);
+router.post("/resend-forget-otp",userProfileController.resendOtp);
+router.post("/reset-password",userProfileController.postNewPassword);
+router.get("/userProfile",userAuth,setBreadcrumbs,userProfileController.userProfile);
+
+
+// user account management
+router.get("/user/account",userAuth,setBreadcrumbs,userAccountController.userAccount);
+router.post("/user/account/edit-user/:id", userAuth, userAccountController.editUser);
+
+
+// user address management
+
+router.get("/user/address",userAuth,setBreadcrumbs,userAddressController.userAddress)
+router.get("/user/add-new-address",userAuth,userAddressController.addNewAddress);
+router.post("/user/add-new-address",userAuth,userAddressController.updateNewAddress);
+router.get("/user/edit-Address",userAuth,userAddressController.getEditAddress);
+router.get("/user/edit-Address/:id",userAuth,userAddressController.getEditAddress);
+router.post("/user/edit-Address/:id",userAuth,userAddressController.editAddress);
+router.delete('/user/deleteAddress', userAuth, userAddressController.deleteAddress);
+
 // user cart management
 
 router.get("/cart",userAuth,userCartController.cart)
@@ -42,38 +70,20 @@ router.get("/cart/place-order",userAuth,userOrderController.placeOrder);
 router.post("/cart/place-order/make-payment",userAuth,userOrderController.loadPayment);
 router.post("/cart/place-order/make-payment/confirm-order",userAuth,userOrderController.confirmOrder);
 router.get("/user/order-confirmation", userAuth,userOrderController.orderConfirmationPage);
-// user profile management
 
-router.get("/login/forget-password",userProfileController.forgetPasswordPage);
-router.post("/login/forget-password/forget-email-valid",userProfileController.forgetEmailValidation);
-router.post("/verify-passForget-otp",userProfileController.verifyForgetPassOtp)
-router.get("/reset-password",userProfileController.getResetPassPage);
-router.post("/resend-forget-otp",userProfileController.resendOtp);
-router.post("/reset-password",userProfileController.postNewPassword);
-router.get("/userProfile",userAuth,userProfileController.userProfile);
-
-// user account management
-router.get("/user/account",userAuth,userAccountController.userAccount);
-router.post("/user/account/edit-user/:id", userAuth, userAccountController.editUser);
+router.get("/user/my-order",userAuth,setBreadcrumbs,userOrderController.myOrder);
+router.post("/user/my-order/cancel/:orderId", userAuth, userOrderController.cancelOrder);
 
 
-// user address management
-
-router.get("/user/address",userAuth,userAddressController.userAddress)
-router.get("/user/add-new-address",userAuth,userAddressController.addNewAddress);
-router.post("/user/add-new-address",userAuth,userAddressController.updateNewAddress);
-router.get("/user/edit-Address",userAuth,userAddressController.getEditAddress);
-router.get("/user/edit-Address/:id",userAuth,userAddressController.getEditAddress);
-router.post("/user/edit-Address/:id",userAuth,userAddressController.editAddress);
-router.delete('/user/deleteAddress', userAuth, userAddressController.deleteAddress);
-
-
+// user google authentication managaement
 
 router.get('/auth/google',preventCache,passport.authenticate('google',{scope:['profile','email']}));
 
 router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/signup'}),(req,res)=>{
     res.redirect('/');
 });
+
+//user login 
 
 router.get("/login",userController.loadLogin);
 router.post("/login",preventCache,userController.login);

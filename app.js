@@ -17,6 +17,7 @@ const passport = require('./config/passport');
 const preventCache = require("./middlewares/preventCache");
 const nocache = require("nocache");
 const { userAuth,adminAuth } = require("./middlewares/auth");
+const setBreadcrumbs = require('./middlewares/breadCrumb');
 db();
 
 app.use(cors({
@@ -59,6 +60,7 @@ app.use("/admin",adminRouter);
 
 
 app.use(preventCache);
+
 
 app.use(errorHandler);
 

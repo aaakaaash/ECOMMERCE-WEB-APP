@@ -213,7 +213,6 @@ const userProfile = async (req, res, next) => {
 };
 
 
-
 module.exports = {
     userProfile,
     forgetPasswordPage,
@@ -221,6 +220,6 @@ module.exports = {
     verifyForgetPassOtp,
     getResetPassPage,
     resendOtp,
-    postNewPassword
+    postNewPassword,
 
 }

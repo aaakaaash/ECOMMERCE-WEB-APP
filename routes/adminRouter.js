@@ -10,6 +10,7 @@ const adminController = require("../controllers/admin/adminController");
 const customerController = require("../controllers/admin/customerController");
 const categoryController = require("../controllers/admin/categoryController");
 const productController = require("../controllers/admin/productController");
+const orderController  = require("../controllers/admin/orderController");
 
 
 const storage = multer.diskStorage({
@@ -82,6 +83,9 @@ router.post("/editProduct/:id", adminAuth, upload.fields([
 router.post("/deleteImage",adminAuth,productController.deleteSingleImage);
 router.delete('/deleteProduct', adminAuth, productController.deleteProduct);
 
+// order management
 
+router.get("/orders",adminAuth,orderController.orders);
+router.post('/updateOrderStatus/:id', adminAuth, orderController.updateOrderStatus);
 
 module.exports = router;

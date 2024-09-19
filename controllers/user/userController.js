@@ -20,6 +20,7 @@ const pageNotFound = async (req, res, next) => {
 const loadHomepage = async (req, res, next) => {
     try {
         const searchQuery = req.query.searchQuery || '';
+        
         const { sortBy } = req.query;
 
         const page = parseInt(req.query.page) || 1;

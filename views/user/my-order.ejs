@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Page</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    .order-item {
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+    }
+    .order-image img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+    .status-icon {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+    .delivered { background-color: green; }
+    .pending { background-color: orange; }
+    .cancelled { background-color: red; }
+  </style>
+</head>
+<body>
+
+<%- include("../../views/partials/user/header") %>
+
+<div class="container-fluid">
+  <%- include("../../views/partials/user/breadcrumb") %>
+
+  <div class="row">
+    <%- include("../../views/partials/user/sidebar") %>
+
+    <main class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Your Orders</h1>
+      </div>
+
+ <div class="row mb-3">
+        <div class="col">
+          <form action="/user/my-order" method="GET">
+            <div class="input-group">
+              <input 
+                type="text" 
+                name="searchQuery"
+                class="form-control" 
+                placeholder="Search your orders here"
+                value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>" >
+              <div class="input-group-append">
+                <button class="btn btn-success" type="submit">Search Orders</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+
+      <% if (orders && orders.length > 0) { %>
+        <% orders.forEach((order) => { %>
+          <% if (order.items && order.items.length > 0) { %>
+            <% order.items.forEach((item) => { %>
+              <div class="order-item p-3">
+                <div class="row align-items-center">
+                  <div class="col-md-2">
+                    <div class="order-image">
+                      <img src="/uploads/product-images/<%= item.product.productImage[0] %>" alt="Order Image" class="img-fluid">
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <h5><%= item.product.productName %></h5>
+                    <p class="mb-0"><%= item.product.description %></p>
+                    <p class="mb-0">Color: <%= item.product.color %></p>
+                  </div>
+                  <div class="col-md-2">
+                    <p class="font-weight-bold mb-0">Price: <%= item.product.salePrice %></p>
+                  </div>
+                  <div class="col-md-2">
+                    <div class="order-status">
+                      <% if (order.status === 'Delivered') { %>
+                        <div class="status-icon delivered"></div>
+                      <% } else if (order.status === 'Pending') { %>
+                        <div class="status-icon pending"></div>
+                      <% } else { %>
+                        <div class="status-icon cancelled"></div>
+                      <% } %>
+                      <span><%= order.status %></span>
+                    </div>
+                  </div>
+                  <div class="col-md-2 text-right">
+                    <p class="mb-2"><%= order.date.toDateString() %></p>
+                    <% if (order.status === 'Pending' || order.status === 'Processing') { %>
+                        <button class="btn btn-sm btn-danger cancel-order-btn" data-order-id="<%= order._id %>">Cancel Order</button>
+                    <% } else if (order.status === 'Delivered') { %>
+                        <% 
+                            const deliveryDate = new Date(order.date);
+                            const currentDate = new Date();
+                            const daysSinceDelivery = Math.floor((currentDate - deliveryDate) / (1000 * 60 * 60 * 24));
+                        %>
+                        <% if (daysSinceDelivery <= 7) { %>
+                            <button class="btn btn-sm btn-warning">Return</button>
+                        <% } else { %>
+                            <small class="text-muted">Return period expired</small>
+                        <% } %>
+                    <% } %>
+                </div>
+                
+                </div>
+              </div>
+            <% }) %>
+          <% } %>
+        <% }) %>
+      <% } else { %>
+        <p>No orders found.</p>
+      <% } %>
+
+      <div class="pagination-container">
+        <% if (currentPage > 1) { %>
+            <a href="?page=<%= currentPage - 1 %>">&laquo; Previous</a>
+        <% } %>
+        <% for (let i = 1; i <= totalPages; i++) { %>
+            <% if (i === currentPage) { %>
+                <span class="current-page"><%= i %></span>
+            <% } else { %>
+                <a href="?page=<%= i %>"><%= i %></a>
+            <% } %>
+        <% } %>
+        <% if (currentPage < totalPages) { %>
+            <a href="?page=<%= currentPage + 1 %>">Next &raquo;</a>
+        <% } %>
+    </div>
+    <br>
+    </main>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<%- include("../../views/partials/user/footer") %>
+
+</body>
+</html>
+
+
+
+<script>
+    document.querySelectorAll('.cancel-order-btn').forEach(button => {
+        button.addEventListener('click', function (event) {
+            event.preventDefault();
+            const orderId = this.getAttribute('data-order-id');
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "Your order will be cancelled. Do you want to proceed?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, cancel it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    
+                    fetch(`/user/my-order/cancel/${orderId}`, {
+                        method: 'POST'
+                    }).then(() => {
+                        Swal.fire(
+                            'Cancelled!',
+                            'Your order has been cancelled.',
+                            'success'
+                        ).then(() => {
+                            window.location.reload();
+                        });
+                    }).catch(error => {
+                        Swal.fire(
+                            'Error!',
+                            'There was an issue cancelling your order.',
+                            'error'
+                        );
+                    });
+                }
+            });
+        });
+    });
+</script>

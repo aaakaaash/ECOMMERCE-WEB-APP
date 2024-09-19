@@ -145,11 +145,83 @@ res.render("order-confirmation")
 
 }
 
+const myOrder = async (req, res, next) => {
+    try {
+      const userId = req.session.user || req.user;
+      const searchQuery = req.query.searchQuery || '';
+      
+      let searchCondition = { user: userId };
+  
+      if (searchQuery) {
+        const regex = new RegExp(searchQuery, 'i'); 
+        searchCondition = {
+          user: userId,
+          $or: [
+            { orderNumber: regex },
+            { status: regex }, 
+            { 'items.product.productName': regex },
+            { 'items.product.description': regex },
+            { 'items.product.color': regex } 
+          ]
+        };
+      }
+  
+      const page = parseInt(req.query.page) || 1;
+      const limit = 3;
+      const skip = (page - 1) * limit;
+  
+      const orders = await Order.find(searchCondition)
+        .populate('items.product')
+        .sort({ date: -1 }) 
+        .skip(skip)
+        .limit(limit)
+        .lean();
+        
+      
+
+      const totalOrders = await Order.countDocuments(searchCondition);
+      const totalPages = Math.ceil(totalOrders / limit);
+      console.log(searchCondition)
+      res.render("my-order", { 
+        orders, 
+        currentPage: page, 
+        totalPages, 
+        searchCondition,
+        noResults: orders.length === 0 && searchQuery !== '' 
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  const cancelOrder = async (req, res, next) => {
+    try {
+        const { orderId } = req.params;
+
+       
+        const order = await Order.findOneAndUpdate(
+            { _id: orderId },
+            { status: "Cancelled" },
+            { new: true }
+        );
+
+        if (!order) {
+            return res.status(404).send('Order not found');
+        }
+
+        res.redirect('/user/my-order');
+    } catch (error) {
+        next(error);
+    }
+};
+
 
 
 module.exports = {
     placeOrder,
     loadPayment,
     confirmOrder,
-    orderConfirmationPage
+    orderConfirmationPage,
+    myOrder,
+    cancelOrder
 }
