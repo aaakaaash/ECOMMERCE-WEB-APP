@@ -63,6 +63,7 @@ router.get("/cart",userAuth,userCartController.cart)
 router.post("/add-cart",userAuth,userCartController.addToCart)
 router.post("/cart/update-quantity",userAuth,userCartController.updateQuantity)
 router.delete("/cart/remove",userAuth,userCartController.removeFromCart)
+router.delete('/cart/remove-deleted-item',userAuth,userCartController.removeDeletedItem);
 
 // order management
 

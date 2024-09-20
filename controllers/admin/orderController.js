@@ -47,36 +47,54 @@ const orders = async (req, res) => {
             searchQuery
         });
     } catch (error) {
-        console.error('Error fetching orders:', error);
+       
         res.status(500).render('error', { message: 'An error occurred while fetching orders' });
     }
 };
 
 const updateOrderStatus = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { status } = req.body;
+        const { id } = req.params; 
+        const { status } = req.body; 
 
-        console.log('Received update request:', req.params, req.body);
-        
+      
         if (!id || !status) {
             return res.status(400).json({ success: false, message: 'Order ID and status are required' });
         }
 
+        
         const updatedOrder = await Order.findByIdAndUpdate(
             id,
-            { status: status },
-            { new: true, runValidators: true }
+            { status: status }, 
+            { new: true, runValidators: true } 
         );
 
+       
         if (!updatedOrder) {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
 
+        
+        if (status === 'Cancelled') {
+           
+            for (const item of updatedOrder.items) {
+                const product = item.product;
+                if (product) {
+                    
+                    await Product.findByIdAndUpdate(
+                        product._id, 
+                        { $inc: { quantity: item.quantity } }, 
+                        { new: true } 
+                    );
+                }
+            }
+        }
+
+        
         res.json({ success: true, message: 'Order status updated successfully', order: updatedOrder });
 
     } catch (error) {
-        console.error('Error updating order status:', error);
+      
         res.status(500).json({ success: false, message: 'An error occurred while updating the order status' });
     }
 };

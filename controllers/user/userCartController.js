@@ -15,17 +15,40 @@ const cart = async (req, res, next) => {
         if (!userId) {
             return res.status(401).json({ error: 'User not authenticated' });
         }
-        
-    
+
         const page = parseInt(req.query.page) || 1;
         const limit = 2; 
         const skip = (page - 1) * limit;
-        
-        const cart = await Cart.findOne({ userId: userId }).populate('items.product').exec();
 
-        if (cart.items.isBlocked) {
-            return res.status(400).json({ error: 'Product is blocked' });
+    
+        let cart = await Cart.findOne({ userId: userId }).populate('items.product').exec();
+
+       
+        if (!cart) {
+            cart = new Cart({
+                userId: userId,
+                items: []
+            });
+            await cart.save();
         }
+
+        
+        if (cart.items.length > 0 && cart.items.some(item => item.product && item.product.isBlocked)) {
+    
+         
+            const blockedItems = cart.items.filter(item => item.product.isBlocked);
+            cart.items = cart.items.filter(item => !item.product.isBlocked);
+        
+           
+            for (const item of blockedItems) {
+                await Product.findByIdAndUpdate(item.product._id, {
+                    $inc: { quantity: item.quantity }, 
+                });
+            }
+            
+            await cart.save();
+        }
+        
 
         let totalPrice = 0;
         let totalItems = 0;
@@ -34,27 +57,23 @@ const cart = async (req, res, next) => {
         const deliveryCharges = 0; 
         let distinctProductCount = 0; 
 
-        if (cart && cart.items.length > 0) {
+        if (cart.items.length > 0) {
             const distinctProducts = new Set(); 
             cart.items.forEach(item => {
-                totalPrice += item.price * item.quantity;
-                totalItems += item.quantity;
-
-                distinctProducts.add(item.product._id.toString()); 
-               
-
+                if (item.product) {
+                    totalPrice += item.price * item.quantity;
+                    totalItems += item.quantity;
+                    distinctProducts.add(item.product._id.toString());
+                }
             });
-              distinctProductCount = distinctProducts.size;
+            distinctProductCount = distinctProducts.size;
         }
 
-    
-        const totalCartItems = cart ? cart.items.length : 0;
-        const paginatedItems = cart ? cart.items.slice(skip, skip + limit) : [];
+        const totalCartItems = cart.items.length;
+        const paginatedItems = cart.items.slice(skip, skip + limit);
         const totalPages = Math.ceil(totalCartItems / limit);
-
         const totalAmount = totalPrice - discount + platformFee + deliveryCharges;
 
-        
         res.render("cart", { 
             cart: { ...cart, items: paginatedItems }, 
             totalItems, 
@@ -73,8 +92,6 @@ const cart = async (req, res, next) => {
         next(error);
     }
 };
-
-
 
 
 const addToCart = async (req, res, next) => {
@@ -214,7 +231,7 @@ const removeFromCart = async (req, res) => {
     const userId = req.session.user || req.user; 
 
     if (!userId) {
-        return res.status(401).json({ success: false, message: 'Please login to remove items from cart' });
+        return res.status(401).json({ success: false, message: 'Please login' });
     }
 
     try {
@@ -249,6 +266,23 @@ const removeFromCart = async (req, res) => {
     }
 };
 
+const removeDeletedItem = async (req, res) => {
+    try {
+        const { itemId } = req.body;
+        console.log(itemId)
+
+        await Cart.updateMany(
+            { "items._id": itemId },
+            { $pull: { items: { _id: itemId } } }
+        );
+
+        res.json({ success: true, message: 'Deleted item removed from cart' });
+        
+    } catch (error) {
+        console.error("Error in removing deleted item from cart:", error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+};
 
 
 
@@ -256,7 +290,8 @@ module.exports = {
     cart,
     addToCart,
     updateQuantity,
-    removeFromCart
+    removeFromCart,
+    removeDeletedItem
     
     
 }

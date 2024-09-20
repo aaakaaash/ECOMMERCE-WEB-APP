@@ -149,56 +149,87 @@ const myOrder = async (req, res, next) => {
     try {
       const userId = req.session.user || req.user;
       const searchQuery = req.query.searchQuery || '';
-      
-      let searchCondition = { user: userId };
-  
-      if (searchQuery) {
-        const regex = new RegExp(searchQuery, 'i'); 
-        searchCondition = {
-          user: userId,
-          $or: [
-            { orderNumber: regex },
-            { status: regex }, 
-            { 'items.product.productName': regex },
-            { 'items.product.description': regex },
-            { 'items.product.color': regex } 
-          ]
-        };
-      }
-  
       const page = parseInt(req.query.page) || 1;
       const limit = 3;
       const skip = (page - 1) * limit;
   
-      const orders = await Order.find(searchCondition)
-        .populate('items.product')
-        .sort({ date: -1 }) 
+      let searchCondition = { user: userId };
+  
+
+     /* if (searchQuery) {
+        const regex = new RegExp(searchQuery, 'i');
+        searchCondition.$or = [
+          { orderNumber: regex },
+          { status: regex }
+        ];
+      }  */
+
+  
+      const totalOrders = await Order.countDocuments(searchCondition);
+      const totalPages = Math.ceil(totalOrders / limit);
+  
+      
+      let orders = await Order.find(searchCondition)
+        .populate({
+          path: 'items.product',
+          select: 'productName description color salePrice skuNumber productImage'
+        })
+        .sort({ date: -1 })
         .skip(skip)
         .limit(limit)
         .lean();
-        
+  
       
-
-      const totalOrders = await Order.countDocuments(searchCondition);
-      const totalPages = Math.ceil(totalOrders / limit);
-      console.log(searchCondition)
-      res.render("my-order", { 
-        orders, 
-        currentPage: page, 
-        totalPages, 
-        searchCondition,
-        noResults: orders.length === 0 && searchQuery !== '' 
+      if (searchQuery) {
+        const regex = new RegExp(searchQuery, 'i');
+        orders = orders.filter(order =>
+          order.items.some(item =>
+            item.product &&
+            (
+              regex.test(item.product.productName) 
+            )
+          )
+        );
+      }
+  
+      
+      orders = orders.map(order => {
+        order.items = order.items.map(item => {
+          if (!item.product) {
+            item.product = {
+              productName: 'Product Deleted',
+              productImage: ['placeholder.jpeg'],
+              salePrice: item.price,
+              sku: 'N/A',
+              description: 'This product has been removed from our catalog.',
+              color: 'N/A'
+            };
+          }
+          return item;
+        });
+        return order;
+      });
+  
+      
+      res.render("my-order", {
+        orders,
+        currentPage: page,
+        totalPages,
+        totalOrders,
+        searchQuery,
+        noResults: orders.length === 0
       });
     } catch (error) {
+      
       next(error);
     }
   };
+  
 
   const cancelOrder = async (req, res, next) => {
     try {
         const { orderId } = req.params;
 
-       
         const order = await Order.findOneAndUpdate(
             { _id: orderId },
             { status: "Cancelled" },
@@ -209,7 +240,23 @@ const myOrder = async (req, res, next) => {
             return res.status(404).send('Order not found');
         }
 
+        const products = order.items.map(item => ({
+            productId: item.product._id.toString(),
+            quantity: item.quantity
+
+        }));
+       
+        for (const product of products) {
+            await Product.findOneAndUpdate(
+                { _id: product.productId },  
+                { $inc: { quantity: product.quantity } },  
+                { new: true }  
+            );
+        }
+
+     
         res.redirect('/user/my-order');
+
     } catch (error) {
         next(error);
     }

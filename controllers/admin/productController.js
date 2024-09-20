@@ -2,6 +2,7 @@ const Product = require("../../models/productSchema");
 const Category = require("../../models/categorySchema");
 
 const User = require("../../models/userSchema")
+const Order = require("../../models/userSchema")
 
 const fs = require("fs");
 const path = require("path");
@@ -60,11 +61,11 @@ const addProducts = async (req, res) => {
                         images.push(req.files[field][0].filename);
 
                 
-                        fs.unlink(originalImagePath, (err) => {
-                            if (err) {
-                                console.error('Error deleting original file:', err);
-                            }
-                        });
+                        // fs.unlink(originalImagePath, (err) => {
+                        //     if (err) {
+                        //         console.error('Error deleting original file:', err);
+                        //     }
+                        // });
                     }
                 }
             }
@@ -209,7 +210,6 @@ const editProduct = async (req, res) => {
             }
         });
 
-    
         const category = await Category.findOne({ name: data.category });
         if (!category) {
             return res.status(400).json({ error: "Invalid category name" });
@@ -238,23 +238,29 @@ const editProduct = async (req, res) => {
     }
 };
 
-const deleteSingleImage = async (req,res) => {
+
+const deleteSingleImage = async (req, res) => {
     try {
-        const {imageNameToServer,productIdToServer} = req.body;
-        const product = await Product.findByIdAndUpdate(productIdToServer, {$pull:{productImage:imageNameToServer}});
-        const imagePath = path.join("public","uploads","re-image",imageNameToServer);
-        if(fs.existsSync(imagePath)){
+        const { imageNameToServer, productIdToServer } = req.body;
+        const product = await Product.findByIdAndUpdate(productIdToServer, { $pull: { productImage: imageNameToServer } });
+
+        
+        const imagePath = path.join("public", "uploads", "product-images", imageNameToServer);
+        if (fs.existsSync(imagePath)) {
             await fs.unlinkSync(imagePath);
             console.log(`Image ${imageNameToServer} deleted successfully`);
         } else {
             console.log(`Image ${imageNameToServer} not found`);
         }
-        res.send({status:true});
+
+        
+        res.send({ status: true });
 
     } catch (error) {
-        res.redirect("/admin/pageerror")
+        console.error(error);
+        res.redirect("/admin/pageerror");
     }
-}
+};
 
 const deleteProduct = async (req, res) => {
     try {

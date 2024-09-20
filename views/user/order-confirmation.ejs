@@ -1,39 +1,30 @@
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 
-<style>
+<%- include("../../views/partials/user/header") %>
 
-.container {
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="card text-center" style="width: 900px; height: 600px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);">
+        <div class="card-body d-flex flex-column justify-content-center">
+            <h1 class="card-title" style="font-size: 50px; font-weight: bold;">Order Confirmation</h1>
+            <p style="font-size: 30px; font-weight: bold;" class="card-text">Thank you for your order! Your order has been successfully placed.</p>
 
-    margin-left: 50px;
-}
+            <!-- <p>Your order details are as follows:</p>
+            <ul class="list-unstyled">
+                <li>Order ID: #1234</li>
+                <li>Order Date: Monday, September 16, 2024</li>
+                <li>Total: $100.00</li>
+                <li>Payment Method: Credit Card</li>
+            </ul> -->
 
-</style>
-
-<!-- Order Confirmation Page -->
-<%-include("../../views/partials/user/header")%>
-
-<div class="container" >
-<h1>Order Confirmation</h1>
-
-<p>Thank you for your order! Your order has been successfully placed.</p>
-
-<!-- <p>Your order details are as follows:</p>
-
-<ul>
-  <li>Order ID: #1234</li>
-  <li>Order Date: Monday, September 16, 2024</li>
-  <li>Total: $100.00</li>
-  <li>Payment Method: Credit Card</li>
-</ul> -->
-
-<p>To view more details about your order, please click <a href="#">here</a>.</p>
-
-<p>If you have any questions or concerns about your order, please don't hesitate to contact us at <a href="mailto:support@example.com">support@example.com</a>.</p>
-
-<p>Thank you for shopping with us!</p>
-
-<br>
-<br>
-
+            <p style="font-size: 20px; font-weight: bold;">To view more details about your order, please click <a href="/user/my-order" style="font-weight: normal; text-decoration: underline;">here</a>.</p>
+            <p style="font-size: 20px; font-weight: bold;">If you have any questions or concerns about your order, please don't hesitate to contact us at <a href="mailto:support@example.com" style="font-weight: normal; text-decoration: underline;">support@example.com</a>.</p>
+            <p style="font-size: 20px; font-weight: bold;">Thank you for shopping with us!</p>
+        </div>
+    </div>
 </div>
 
-<%-include("../../views/partials/user/footer")%>
+<%- include("../../views/partials/user/footer") %>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

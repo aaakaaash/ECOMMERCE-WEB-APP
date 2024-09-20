@@ -61,7 +61,8 @@ const addCategory = async (req, res) => {
 const getCategories = async (req, res) => {
     try {
         const categories = await Category.find({}).sort({ createdAt: -1 });
-        res.json({ categories });
+        const categoryNames = categories.map(category => category.name);
+        res.json({ categories, categoryNames });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Internal Server Error" });
@@ -127,7 +128,7 @@ const removeCategoryOffer = async (req,res)=> {
 const getListCategory = async (req, res) => {
     try {
         let id = req.query.id;
-        // Correct: Listing the category (set isListed to true)
+       
         await Category.updateOne({ _id: id }, { $set: { isListed: true } });
         res.redirect("/admin/category");
     } catch (error) {
@@ -138,7 +139,7 @@ const getListCategory = async (req, res) => {
 const getUnListCategory = async (req, res) => {
     try {
         let id = req.query.id;
-        // Correct: Unlisting the category (set isListed to false)
+       
         await Category.updateOne({ _id: id }, { $set: { isListed: false } });
         res.redirect("/admin/category");
     } catch (error) {
@@ -187,10 +188,10 @@ const deleteCategory = async (req, res) => {
     try {
       const id = req.query.id;
   
-      // Find and delete all products under this category
+  
       const deletedProducts = await Product.deleteMany({ category: id });
   
-      // Now delete the category
+     
       const deletedCategory = await Category.findByIdAndDelete(id);
   
       if (deletedCategory) {
