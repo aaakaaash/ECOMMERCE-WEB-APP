@@ -12,53 +12,37 @@ const Order = require("../../models/orderSchema")
 
 
 const placeOrder = async (req, res, next) => {
-    const userId = req.session.user || req.user;
+  const userId = req.session.user || req.user;
 
-    try {
-        const cart = await Cart.findOne({ userId: userId }).populate('items.product').exec();
-        const user = await User.findById(userId).populate('address').exec();
-        const addresses = user.address || [];
+  try {
+      const cart = await Cart.findOne({ userId: userId }).populate('items.product').exec();
+      const user = await User.findById(userId).populate('address').exec();
+      const addresses = user.address || [];
 
-        const page = parseInt(req.query.page) || 1;
-        const limit = 2; 
-        const skip = (page - 1) * limit;
+      if (cart && cart.items.length > 0) {
+          const distinctProducts = new Set(cart.items.map(item => item.product._id.toString()));
+          const distinctProductCount = distinctProducts.size;
 
-        if (cart && cart.items.length > 0) {
+          cart.discount = cart.discount || 0;
+          cart.platformFee = cart.platformFee || 0;
+          cart.deliveryCharges = cart.deliveryCharges || 0;
 
-            const distinctProducts = new Set(cart.items.map(item => item.product._id.toString()));
-            const distinctProductCount = distinctProducts.size;
-            
-            cart.discount = cart.discount || 0;
-            cart.platformFee = cart.platformFee || 0;
-            cart.deliveryCharges = cart.deliveryCharges || 0;
+         
+          cart.total = cart.items.reduce((acc, item) => {
+              return acc + (item.product.salePrice || 0) * item.quantity;
+          }, 0);
 
-            const totalCartItems = cart.items.length; 
-            const paginatedItems = cart.items.slice(skip, skip + limit); 
-            
-          
-            if (skip >= totalCartItems) {
-                return res.status(400).json({ message: "Page number exceeds total number of pages." });
-            }
-
-            const totalPages = Math.ceil(totalCartItems / limit);
-
-            cart.total = cart.items.reduce((acc, item) => {
-                return acc + (item.product.salePrice || 0) * item.quantity;
-            }, 0);
-
-            res.render("checkout-Page", { 
-                cart: { ...cart, items: paginatedItems },
-                addresses,
-                distinctProductCount,
-                currentPage: page,
-                totalPages
-            });
-        } else {
-            res.status(400).json({ message: "Your cart is empty. Please add items to your cart before proceeding." });
-        }
-    } catch (error) {
-        next(error);
-    }
+          res.render("checkout-Page", { 
+              cart, 
+              addresses,
+              distinctProductCount
+          });
+      } else {
+          res.status(400).json({ message: "Your cart is empty. Please add items to your cart before proceeding." });
+      }
+  } catch (error) {
+      next(error);
+  }
 };
 
 

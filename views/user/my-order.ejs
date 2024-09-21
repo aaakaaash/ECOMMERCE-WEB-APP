@@ -78,6 +78,8 @@
                         <img src="/uploads/product-images/placeholder.jpeg" alt="Product Deleted" class="img-fluid">
                       <% } %>
                     </div>
+                    <br>
+                    <br>
                     <p class="mb-0 mt-2">Order ID: <%= order._id %></p>
                   </div>
                   <div class="col-md-3">
@@ -104,7 +106,7 @@
                     </div>
                   </div>
                   <div class="col-md-3 text-right">
-                    <p class="mb-2"><%= order.date.toDateString() %></p>
+                    <p class="mb-2"><%= order.date.toLocaleString() %></p>
                     <% if (order.status === 'Pending' || order.status === 'Processing') { %>
                       <button class="btn btn-sm btn-danger cancel-order-btn" data-order-id="<%= order._id %>">Cancel Order</button>
                     <% } else if (order.status === 'Delivered') { %>

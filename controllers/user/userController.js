@@ -24,7 +24,7 @@ const loadHomepage = async (req, res, next) => {
         const { sortBy } = req.query;
 
         const page = parseInt(req.query.page) || 1;
-        const limit = 10;
+        const limit = 8;
         const skip = (page - 1) * limit;
 
         let searchCondition = { isBlocked: false };
@@ -106,7 +106,7 @@ const loadShoppage = async (req, res, next) => {
         const { sortBy } = req.query;
 
         const page = parseInt(req.query.page) || 1;
-        const limit = 10;
+        const limit = 5;
         const skip = (page - 1) * limit;
 
         let searchCondition = { isBlocked: false };
@@ -128,7 +128,6 @@ const loadShoppage = async (req, res, next) => {
             default: sortCriteria = {};
         }
 
-        // Fetch products with search, sort, and pagination
         const products = await Product.find(searchCondition)
             .populate('category')
             .sort(sortCriteria)
@@ -136,7 +135,6 @@ const loadShoppage = async (req, res, next) => {
             .limit(limit)
             .exec();
 
-        
         const totalProducts = await Product.countDocuments(searchCondition);
         const totalPages = Math.ceil(totalProducts / limit);
 
@@ -157,6 +155,7 @@ const loadShoppage = async (req, res, next) => {
         next(error);
     }
 };
+
 
 
 const loadContactpage = async (req, res, next) => {

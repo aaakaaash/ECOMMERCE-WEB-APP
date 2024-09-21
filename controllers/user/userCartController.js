@@ -16,11 +16,6 @@ const cart = async (req, res, next) => {
             return res.status(401).json({ error: 'User not authenticated' });
         }
 
-        const page = parseInt(req.query.page) || 1;
-        const limit = 2; 
-        const skip = (page - 1) * limit;
-
-    
         let cart = await Cart.findOne({ userId: userId }).populate('items.product').exec();
 
        
@@ -32,30 +27,27 @@ const cart = async (req, res, next) => {
             await cart.save();
         }
 
-        
+       
         if (cart.items.length > 0 && cart.items.some(item => item.product && item.product.isBlocked)) {
-    
-         
             const blockedItems = cart.items.filter(item => item.product.isBlocked);
             cart.items = cart.items.filter(item => !item.product.isBlocked);
-        
-           
+
+            
             for (const item of blockedItems) {
                 await Product.findByIdAndUpdate(item.product._id, {
-                    $inc: { quantity: item.quantity }, 
+                    $inc: { quantity: item.quantity },
                 });
             }
-            
             await cart.save();
         }
-        
 
+     
         let totalPrice = 0;
         let totalItems = 0;
         const discount = 0; 
         const platformFee = 0; 
         const deliveryCharges = 0; 
-        let distinctProductCount = 0; 
+        let distinctProductCount = 0;
 
         if (cart.items.length > 0) {
             const distinctProducts = new Set(); 
@@ -69,13 +61,11 @@ const cart = async (req, res, next) => {
             distinctProductCount = distinctProducts.size;
         }
 
-        const totalCartItems = cart.items.length;
-        const paginatedItems = cart.items.slice(skip, skip + limit);
-        const totalPages = Math.ceil(totalCartItems / limit);
         const totalAmount = totalPrice - discount + platformFee + deliveryCharges;
 
+       
         res.render("cart", { 
-            cart: { ...cart, items: paginatedItems }, 
+            cart, 
             totalItems, 
             totalPrice, 
             discount, 
@@ -83,15 +73,13 @@ const cart = async (req, res, next) => {
             deliveryCharges, 
             totalAmount,
             distinctProductCount,
-            currentPage: page,
-            totalPages: totalPages,
-            totalCartItems: totalCartItems 
         });
     } catch (error) {
         console.error("Error in fetching cart:", error);
         next(error);
     }
 };
+
 
 
 const addToCart = async (req, res, next) => {
@@ -145,7 +133,7 @@ const addToCart = async (req, res, next) => {
             
             await Product.findByIdAndUpdate(productId, {
                 $inc: { quantity: -1 },
-                $set: { status: (product.quantity - quantity <= 0) ? "Out of stock" : product.status }
+                $set: { status: (product.quantity - quantity <= 0) ? "out of stock" : product.status }
             });
         }
 
@@ -185,6 +173,11 @@ const updateQuantity = async (req, res, next) => {
             return res.status(400).json({ error: 'Product is blocked' });
         }
 
+        if (item.product.quantity === 0) {
+
+            return res.status(400).json({ error: 'Product is out of stock' });
+        }
+
         if (item) {
             
             let newQuantity = item.quantity + change;
@@ -211,6 +204,15 @@ const updateQuantity = async (req, res, next) => {
                 $inc: { quantity: -quantityDifference }
             });
 
+            const updatedProduct = await Product.findById(productId);
+
+            if (updatedProduct.quantity == 0) {
+              updatedProduct.status = "out of stock";
+            } else {
+              updatedProduct.status = "Available";
+            }
+
+            await updatedProduct.save();
             
             await cart.save();
 

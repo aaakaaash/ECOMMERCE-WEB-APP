@@ -193,24 +193,22 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 				</div>
 				<div class="pagination-container">
 					<% if (currentPage > 1) { %>
-						<a href="?page=<%= currentPage - 1 %>">&laquo; Previous</a>
-					<% } %>
-				
-					<% for (let i = 1; i <= totalPages; i++) { %>
-						<% if (i === currentPage) { %>
-							<span class="current-page"><%= i %></span>
-						<% } else { %>
-							<a href="?page=<%= i %>"><%= i %></a>
-						<% } %>
-					<% } %>
-				
+					  <a href="?page=<%= currentPage - 1 %>&sortBy=<%= sortBy %>">&laquo; Previous</a>
+					<% } %> 
+					
+					<% for (let i = 1; i <= totalPages; i++) { %> 
+					  <% if (i === currentPage) { %>
+						<span class="current-page"><%= i %></span>
+					  <% } else { %>
+						<a href="?page=<%= i %>&sortBy=<%= sortBy %>"><%= i %></a>
+					  <% } %>
+					<% } %> 
+					
 					<% if (currentPage < totalPages) { %>
-						<a href="?page=<%= currentPage + 1 %>">Next &raquo;</a>
+					  <a href="?page=<%= currentPage + 1 %>&sortBy=<%= sortBy %>">Next &raquo;</a>
 					<% } %>
-				</div>
-				
-				<!--//row-->
-				<!--/meddle-->
+				  </div>
+				  
 				<div class="row">
 					<div class="col-md-12 middle-slider my-4">
 						<div class="middle-text-info ">

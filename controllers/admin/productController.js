@@ -30,57 +30,47 @@ const addProducts = async (req, res) => {
     try {
         const products = req.body;
         const productExists = await Product.findOne({ productName: products.productName });
-
+        
         if (productExists) {
             return res.status(400).json("Product already exists, please try with another name");
         } else {
-            let images = [];  
-    
+            let images = [];
+            
             if (req.files) {
-                
                 for (let field of ['images1', 'images2', 'images3']) {
                     if (req.files[field] && req.files[field].length > 0) {
-                        
                         let originalImagePath = req.files[field][0].path;
-
-        
                         let resizedImagePath = path.join('public', 'uploads', 'product-images', req.files[field][0].filename);
-
-                    
+                        
                         const directory = path.dirname(resizedImagePath);
                         if (!fs.existsSync(directory)) {
                             fs.mkdirSync(directory, { recursive: true });
                         }
-
-                
+                        
                         await sharp(originalImagePath)
                             .resize({ width: 440, height: 440 })
                             .toFile(resizedImagePath);
-
-                    
+                        
                         images.push(req.files[field][0].filename);
-
-                
-                        // fs.unlink(originalImagePath, (err) => {
-                        //     if (err) {
-                        //         console.error('Error deleting original file:', err);
-                        //     }
-                        // });
+                        
+                      
+                        try {
+                            fs.unlinkSync(originalImagePath);
+                        } catch (unlinkError) {
+                            console.error('Error deleting original file:', unlinkError);
+                        }
                     }
                 }
             }
-
-        
+            
             const categoryId = await Category.findOne({ name: products.category });
-
+            
             if (!categoryId) {
                 return res.status(400).json("Invalid category name");
             }
-
-        
+            
             let productStatus = products.quantity > 0 ? "Available" : "Out of stock";
-
-
+            
             const newProduct = new Product({
                 productName: products.productName,
                 description: products.description,
@@ -92,12 +82,11 @@ const addProducts = async (req, res) => {
                 quantity: products.quantity,
                 size: products.size,
                 color: products.color,
-                productImage: images,  
-                status: productStatus,  
+                productImage: images,
+                status: productStatus,
             });
-
+            
             await newProduct.save();
-
             return res.redirect("/admin/addProducts");
         }
     } catch (error) {
@@ -201,15 +190,6 @@ const editProduct = async (req, res) => {
             return res.status(400).json({ error: "Product with this name already exists. Please try another name." });
         }
 
-        const images = [];
-        const imageFields = ['images1', 'images2', 'images3'];
-        
-        imageFields.forEach(field => {
-            if (req.files && req.files[field] && req.files[field].length > 0) {
-                images.push(req.files[field][0].filename);
-            }
-        });
-
         const category = await Category.findOne({ name: data.category });
         if (!category) {
             return res.status(400).json({ error: "Invalid category name" });
@@ -222,16 +202,82 @@ const editProduct = async (req, res) => {
             regularPrice: data.regularPrice,
             salePrice: data.salePrice,
             quantity: data.quantity,
-            size: data.size,
             color: data.color
         };
 
-        if (images.length > 0) {
-            updateFields.$push = { productImage: { $each: images } };
+       
+        const currentProduct = await Product.findById(id);
+        let updatedImages = [...currentProduct.productImage];
+
+        for (let i = 0; i < 3; i++) {
+            if (req.files[`images${i+1}`] && req.files[`images${i+1}`].length > 0) {
+              
+                let originalImagePath = req.files[`images${i+1}`][0].path;
+                let filename = `product_${id}_${i+1}_${Date.now()}.jpg`;
+                let resizedImagePath = path.join('public', 'uploads', 'product-images', filename);
+
+                await sharp(originalImagePath)
+                    .resize({ width: 440, height: 440 })
+                    .toFile(resizedImagePath);
+
+            
+                try {
+                    if (fs.existsSync(originalImagePath)) {
+                        fs.unlinkSync(originalImagePath);
+                        console.log(`Original file ${originalImagePath} deleted successfully`);
+                    }
+                } catch (err) {
+                    console.error('Error deleting original file:', err);
+                }
+
+               
+                if (i < updatedImages.length) {
+                  
+                    if (updatedImages[i]) {
+                        let oldImagePath = path.join('public', 'uploads', 'product-images', updatedImages[i]);
+                        try {
+                            if (fs.existsSync(oldImagePath)) {
+                                fs.unlinkSync(oldImagePath);
+                                console.log(`Old image file ${oldImagePath} deleted successfully`);
+                            }
+                        } catch (err) {
+                            console.error('Error deleting old image file:', err);
+                        }
+                    }
+                    updatedImages[i] = filename;
+                } else {
+                    updatedImages.push(filename);
+                }
+            }
         }
 
-        await Product.findByIdAndUpdate(id, updateFields, { new: true });
+       
+        while (updatedImages.length > 3) {
+            let removedImage = updatedImages.pop();
+            let removedImagePath = path.join('public', 'uploads', 'product-images', removedImage);
+            try {
+                if (fs.existsSync(removedImagePath)) {
+                    fs.unlinkSync(removedImagePath);
+                    console.log(`Excess image file ${removedImagePath} deleted successfully`);
+                }
+            } catch (err) {
+                console.error('Error deleting excess image file:', err);
+            }
+        }
+
+        updateFields.productImage = updatedImages;
+
+        const updatedProduct = await Product.findByIdAndUpdate(id, updateFields, { new: true });
+
+        if (updatedProduct.quantity == 0) {
+            updatedProduct.status = "out of stock";
+        } else {
+            updatedProduct.status = "Available";
+        }
+
+        await updatedProduct.save();
         res.redirect("/admin/products");
+
     } catch (error) {
         console.error(error);
         res.redirect("/admin/pageerror");
