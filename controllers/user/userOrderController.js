@@ -87,34 +87,41 @@ const loadPayment = async (req, res, next) => {
 
 
 const confirmOrder = async (req, res, next) => {
-    try {
-        const { userId, address, items, totalPrice } = req.body;
-       
-        const parsedItems = items.map(item => JSON.parse(item));
-       
-        const order = new Order({
-            user: userId,
-            address: address,
-            items: parsedItems,
-            actualPrice: totalPrice,
-            offerPrice: totalPrice,
-            status: 'Processing',
-            totalPrice: totalPrice,
-        });
+  try {
+      const { userId, address, items, totalPrice, paymentMethod } = req.body;
 
-        await order.save();
+      const parsedItems = items.map(item => JSON.parse(item));
 
-        const cart = await Cart.findOne({ userId: userId });
-        cart.items = [];
-        await cart.save();
+      const order = new Order({
+          user: userId,
+          address: address,
+          items: parsedItems,
+          actualPrice: totalPrice,
+          offerPrice: totalPrice,
+          status: 'Processing',
+          totalPrice: totalPrice,
+          payment: [{
+              method: paymentMethod || "Cash On Delivery", 
+              status: "not done"
+          }]
+      });
 
-        return res.redirect('/user/order-confirmation');
+      await order.save();
 
-    } catch (error) {
-        console.error('Error confirming order:', error);
-        return next(error);
-    }
+      const cart = await Cart.findOne({ userId: userId });
+      cart.items = [];
+      await cart.save();
+
+      return res.redirect('/user/order-confirmation');
+
+  } catch (error) {
+      console.error('Error confirming order:', error);
+      return next(error);
+  }
 };
+
+
+
 
 const orderConfirmationPage = async (req,res,next) => {
 
@@ -246,6 +253,35 @@ const myOrder = async (req, res, next) => {
     }
 };
 
+const orderDetails = async (req, res, next) => {
+  try {
+    const { orderId, productId } = req.params;
+
+    const order = await Order.findOne({ orderId })
+      .populate('user')
+      .populate('address')
+      .populate('items.product')
+      .exec();
+
+    if (!order) {
+      return res.status(404).send('Order not found');
+    }
+
+    const selectedItem = order.items.find(item => item.product._id.toString() === productId);
+
+    if (!selectedItem) {
+      return res.status(404).send('Product not found in order');
+    }
+
+    console.log('Selected Item:', JSON.stringify(selectedItem, null, 2));
+
+    return res.render('order-details-page', { order, selectedItem });
+  } catch (error) {
+    console.error('Error fetching order details:', error);
+    return next(error);
+  }
+};
+
 
 
 module.exports = {
@@ -254,5 +290,6 @@ module.exports = {
     confirmOrder,
     orderConfirmationPage,
     myOrder,
-    cancelOrder
+    cancelOrder,
+    orderDetails
 }

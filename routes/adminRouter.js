@@ -87,5 +87,7 @@ router.delete('/deleteProduct', adminAuth, productController.deleteProduct);
 
 router.get("/orders",adminAuth,orderController.orders);
 router.post('/updateOrderStatus/:id', adminAuth, orderController.updateOrderStatus);
+router.get("/orders/order-details/:orderId", adminAuth,orderController.orderDetails);
+
 
 module.exports = router;

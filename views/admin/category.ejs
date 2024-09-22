@@ -158,22 +158,23 @@
           </div>
         </div>
       </div>
-    </div>
-    <div class="pagination-container">
-      <% if (currentPage > 1) { %>
-      <a href="?page=<%= currentPage - 1 %>">&laquo; Previous</a>
-      <% } %>
-      <% for (let i = 1; i <= totalPages; i++) { %>
-        <% if (i === currentPage) { %>
-          <span class="current-page"><%= i %></span>
-        <% } else { %>
-          <a href="?page=<%= i %>"><%= i %></a>
+      <div class="pagination-container">
+        <% if (currentPage > 1) { %>
+        <a href="?page=<%= currentPage - 1 %>">&laquo; Previous</a>
         <% } %>
-      <% } %>
-      <% if (currentPage < totalPages) { %>
-      <a href="?page=<%= currentPage + 1 %>">Next &raquo;</a>
-      <% } %>
+        <% for (let i = 1; i <= totalPages; i++) { %>
+          <% if (i === currentPage) { %>
+            <span class="current-page"><%= i %></span>
+          <% } else { %>
+            <a href="?page=<%= i %>"><%= i %></a>
+          <% } %>
+        <% } %>
+        <% if (currentPage < totalPages) { %>
+        <a href="?page=<%= currentPage + 1 %>">Next &raquo;</a>
+        <% } %>
+      </div>
     </div>
+   
   </section>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
@@ -195,10 +196,7 @@
       fetchExistingCategoryNames();
     });
 
-    function handleSearchFormSubmit(event) {
-      // The default form submission is fine for the search form
-      // We don't need to prevent default or do any custom handling
-    }
+    
 
     function handleCategoryFormSubmit(event) {
       event.preventDefault();
@@ -386,9 +384,7 @@
       }
     }
 
-    function addOffer(categoryId) {
-      // Implementation for adding offer (if needed)
-    }
+    
 
     function removeOffer(categoryId) {
       async function removeOffer(categoryId) {

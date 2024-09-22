@@ -75,6 +75,9 @@ router.get("/user/order-confirmation", userAuth,userOrderController.orderConfirm
 router.get("/user/my-order",userAuth,setBreadcrumbs,userOrderController.myOrder);
 router.post("/user/my-order/cancel/:orderId", userAuth, userOrderController.cancelOrder);
 
+router.get("/user/my-order/order-details/:orderId/:productId", userAuth, setBreadcrumbs, userOrderController.orderDetails);
+
+
 
 // user google authentication managaement
 

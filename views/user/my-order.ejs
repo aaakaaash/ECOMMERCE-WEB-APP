@@ -80,7 +80,11 @@
                     </div>
                     <br>
                     <br>
-                    <p class="mb-0 mt-2">Order ID: <%= order._id %></p>
+                    <a href="/user/my-order/order-details/<%= order.orderId %>/<%= item.product._id %>">
+                      <button class="btn btn-warning">View Order</button>
+                  </a>
+                  
+                    <p class="mb-0 mt-2">Order ID: <%= order.orderId %></p>
                   </div>
                   <div class="col-md-3">
                     <h5><%= item.product.productName %></h5>
@@ -104,9 +108,13 @@
                       <% } %>
                       <span><%= order.status %></span>
                     </div>
+                  
                   </div>
+                 
                   <div class="col-md-3 text-right">
+                    
                     <p class="mb-2"><%= order.date.toLocaleString() %></p>
+                    <br>
                     <% if (order.status === 'Pending' || order.status === 'Processing') { %>
                       <button class="btn btn-sm btn-danger cancel-order-btn" data-order-id="<%= order._id %>">Cancel Order</button>
                     <% } else if (order.status === 'Delivered') { %>
