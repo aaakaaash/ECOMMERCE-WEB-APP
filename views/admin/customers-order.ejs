@@ -16,7 +16,9 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
+                    
                         <th scope="col"><b>Order ID</b></th>
+                        <th scope="col"><b>View</b></th>
                         <th scope="col"><b>Customer</b></th>
                         <th scope="col"><b>Products</b></th>
                         <th scope="col"><b>Total Price</b></th>
@@ -31,6 +33,10 @@
                     <% for(let i = 0; i < orders.length; i++) { %>
                       <tr>
                         <td><%= orders[i].orderId %></td>
+                        <td>  <a href="/admin/orders/order-details/<%= orders[i].orderId %>">
+                          <button class="btn btn-warning">View Order</button>
+                        </a>
+                        </td>
                         <td>
                           <% if (orders[i].user) { %>
                             <%= orders[i].user.username || orders[i].user.email || 'N/A' %>

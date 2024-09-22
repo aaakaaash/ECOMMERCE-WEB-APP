@@ -99,9 +99,32 @@ const updateOrderStatus = async (req, res) => {
     }
 };
 
+const orderDetails = async (req, res, next) => {
+    try {
+      const { orderId } = req.params;
+  
+      const order = await Order.findOne({ orderId })
+        .populate('user')
+        .populate('address')
+        .populate('items.product')
+        .exec();
+  
+      if (!order) {
+        return res.status(404).send('Order not found');
+      }
+  
+      return res.render('customer-order-details', { order });
+    } catch (error) {
+      console.error('Error fetching order details:', error);
+      return next(error);
+    }
+  };
+
+
 module.exports = {
 
 orders,
-updateOrderStatus
+updateOrderStatus,
+orderDetails
 
 }

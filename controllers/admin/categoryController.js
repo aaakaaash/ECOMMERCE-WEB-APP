@@ -6,35 +6,37 @@ const Product = require("../../models/productSchema")
 
 
 const categoryInfo = async (req, res) => {
-
     try {
-        
         const page = parseInt(req.query.page) || 1;
         const limit = 4;
-        const skip = (page-1)*limit;
+        const skip = (page - 1) * limit;
 
-        const categoryData = await Category.find({})
-        .sort({createdAt:-1})
-        .skip(skip)
-        .limit(limit);
+        const search = req.query.search ? req.query.search.trim() : '';
 
-        const totalCategories = await Category.countDocuments();
+       
+        const query = search ? { name: { $regex: search, $options: 'i' } } : {};
+
+        const categoryData = await Category.find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const totalCategories = await Category.countDocuments(query);
         const totalPages = Math.ceil(totalCategories / limit);
+
         res.render("Category", {
-            cat:categoryData,
-            currentPage:page,
+            cat: categoryData,
+            currentPage: page,
             totalPages: totalPages,
             totalCategories: totalCategories
         });
 
     } catch (error) {
-
         console.error(error);
         res.redirect("/admin/pageerror");
-        
     }
+};
 
-}
 
 const addCategory = async (req, res) => {
     const {name,description} = req.body;
