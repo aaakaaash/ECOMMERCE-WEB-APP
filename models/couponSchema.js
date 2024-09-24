@@ -2,10 +2,12 @@ const mongoose = require("mongoose");
 const {Schema}  = mongoose;
 
 const couponSchema = new mongoose.Schema({
-    code:{
-        type:String,
-        required:true,
-        unique:true
+   code: {
+      type: String,
+      required: true,
+      unique: true,
+      uppercase: true,
+      trim: true
     },
     image:{
         type:[String],
@@ -40,6 +42,10 @@ const couponSchema = new mongoose.Schema({
         required:true,
         enum:["Expired","Active","Used","Not available"]
     },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
 })
 
 const Coupon = mongoose.model("Coupon",couponSchema);

@@ -1,0 +1,65 @@
+<%- include("../../views/partials/admin/header") %>
+
+<div class="content-wrapper">
+    <div class="content-header">
+      <h1>Coupon</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/admin/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Coupon List</li>
+        </ol>
+      </nav>
+    </div>
+    <div class="content">
+      <div class="actions">
+        <a href="/admin/coupons/create" class="btn btn-primary">+ Create Coupon</a>
+      </div>
+      <div class="filter-bar">
+        <ul class="nav nav-tabs">
+          <li class="nav-item"><a class="nav-link active" href="#all">All</a></li>
+          <li class="nav-item"><a class="nav-link" href="#active">Active</a></li>
+          <li class="nav-item"><a class="nav-link" href="#expired">Expired</a></li>
+        </ul>
+        <div class="filter-actions">
+          <button class="btn btn-outline-secondary">Select Date</button>
+          <button class="btn btn-outline-secondary">Filters</button>
+        </div>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Coupon Code</th>
+            <th>Discount</th>
+            <th>Max</th>
+            <th>Min</th>
+            <th>Start</th>
+            <th>Expiry</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% coupons.forEach(coupon => { %>
+            <tr>
+              <td><%= coupon.code %></td>
+              <td><%= coupon.discountValue %>%</td>
+              <td><%= coupon.maxPurchaseAmount %></td>
+              <td><%= coupon.minPurchaseAmount %></td>
+              <td><%= coupon.startDate.toLocaleDateString() %></td>
+              <td><%= coupon.endDate.toLocaleDateString() %></td>
+              <td><span class="status <%= coupon.status %>"><%= coupon.status %></span></td>
+              <td><%= coupon.createdAt.toLocaleDateString() %></td>
+              <td>
+                <a href="/admin/coupons/edit/<%= coupon._id %>" class="btn btn-sm btn-outline-primary">Edit</a>
+                <a href="/admin/coupons/delete/<%= coupon._id %>" class="btn btn-sm btn-outline-danger">Delete</a>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+<%- include("../../views/partials/admin/footer") %>
