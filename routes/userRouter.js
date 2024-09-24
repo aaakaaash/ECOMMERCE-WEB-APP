@@ -16,6 +16,7 @@ const userCartController = require("../controllers/user/userCartController");
 const userOrderController = require("../controllers/user/userOrderController");
 const { userAuth } = require("../middlewares/auth");
 const setBreadcrumbs = require('../middlewares/breadCrumb')
+const userWishlistController = require("../controllers/user/userWishlistController")
 
 router.use(nocache());
 router.get("/",userController.loadHomepage);
@@ -77,6 +78,13 @@ router.post("/user/my-order/cancel/:orderId", userAuth, userOrderController.canc
 
 router.get("/user/my-order/order-details/:orderId/:productId", userAuth, setBreadcrumbs, userOrderController.orderDetails);
 
+
+// wishlist management
+
+router.get("/wishlist",userAuth,setBreadcrumbs,userWishlistController.loadWishlist);
+router.post("/add-wishlist",userAuth,userWishlistController.addToWishlist);
+router.post("/wishlist/remove-from-wishlist",userAuth,userWishlistController.removeFromWishlist);
+router.delete('/wishlist/remove-deleted-item',userAuth,userWishlistController.removeDeletedItem);
 
 
 // user google authentication managaement

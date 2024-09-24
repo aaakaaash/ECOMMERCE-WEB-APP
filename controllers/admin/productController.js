@@ -40,6 +40,12 @@ const addProducts = async (req, res) => {
                 for (let field of ['images1', 'images2', 'images3']) {
                     if (req.files[field] && req.files[field].length > 0) {
                         let originalImagePath = req.files[field][0].path;
+
+                        const originalDir = path.dirname(originalImagePath);
+                        if (!fs.existsSync(originalDir)) {
+                            fs.mkdirSync(originalDir, { recursive: true });
+                        }
+
                         let resizedImagePath = path.join('public', 'uploads', 'product-images', req.files[field][0].filename);
                         
                         const directory = path.dirname(resizedImagePath);

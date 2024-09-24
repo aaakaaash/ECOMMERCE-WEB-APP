@@ -266,10 +266,13 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 													<div class="men-thumb-item">
 														<img src="/uploads/product-images/<%= product.productImage[0] %>" class="img-fluid" alt="<%= product.productName %>">
 														<div class="men-cart-pro">
+															
 															<div class="inner-men-cart-pro">
 																<a href="/product/<%= product._id %>" class="link-product-add-cart">Quick View</a>
 															</div>
+															
 														</div>
+														
 														<span class="product-new-top">New</span>
 													</div>
 													<div class="item-info-product">
@@ -312,6 +315,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 																</ul>
 															</div>
 															<div class="googles single-item hvr-outline-out">
+															
 																<form id="addToCartForm-<%= product._id %>" onsubmit="return false;">
 																	<input type="hidden" name="productId" value="<%= product._id %>">
 																	<input type="hidden" name="quantity" value="1">
@@ -319,6 +323,13 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 																	  <i class="fas fa-cart-plus"></i>
 																	</button>
 																  </form>
+																  <form id="addToWishlistForm-<%= product._id %>" onsubmit="return false;">
+																	<input type="hidden" name="productId" value="<%= product._id %>">
+																	<button type="button" class="googles-cart pgoogles-cart" onclick="addToWishlist('<%= product._id %>')">
+																		<i class="fas fa-heart"></i>
+																	</button>
+																</form>
+																
 															</div>
 														</div>
 														<div class="clearfix"></div>
@@ -664,6 +675,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 	}
 		</script>
 
+
 <script>
 
 	function updateProductList(products) {
@@ -683,3 +695,76 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 	}
 	
 	</script>
+
+
+<script>
+    function addToWishlist(productId) {
+        const form = document.getElementById(`addToWishlistForm-${productId}`);
+        const formData = new FormData(form);
+    
+        fetch("/add-wishlist", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(Object.fromEntries(formData)),
+            credentials: 'include'
+        })
+        .then(response => {
+            return response.json().then(data => {
+                if (!response.ok) {
+                    throw data;
+                }
+                return data;
+            });
+        })
+        .then(data => {
+            if (data.message === 'Item already in wishlist') {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Already in Wishlist',
+                    text: 'This item is already in your Wishlist.'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: data.message
+                });
+            }
+            if (data.wishlistItemsCount) {
+                updateWishlistItemCount(data.wishlistItemsCount);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (error.error === 'Please login to add items to Wishlist') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Authentication Required',
+                    text: 'Please login to add items to Wishlist',
+                    showCancelButton: true,
+                    confirmButtonText: 'Login',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '/login';
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.error || 'An error occurred, please login and try again'
+                });
+            }
+        });
+    }
+
+    function updateWishlistItemCount(count) {
+        const wishlistCountElement = document.getElementById('wishlistItemCount');
+        if (wishlistCountElement) {
+            wishlistCountElement.textContent = count;
+        }
+    }
+</script>
