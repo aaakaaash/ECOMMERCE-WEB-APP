@@ -11,4 +11,24 @@ const multer = require("multer");
 const sharp = require("sharp")
 
 
-const coupons = 
+const coupon =  async (req,res,next) => {
+
+const coupons = await Coupon.find().exec()
+
+return res.render("coupons",{coupons})
+
+}
+
+const createCoupon = async (req,res,next) => {
+
+    return res.render("create-coupon")
+
+
+}
+
+module.exports = {
+
+    coupon,
+    createCoupon
+
+}

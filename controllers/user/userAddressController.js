@@ -149,7 +149,6 @@ const editAddress = async (req, res, next) => {
             contactNo: contactNo
         }, { new: true });
 
-        console.log(updatedAddress);
 
        
         if (updatedAddress) {

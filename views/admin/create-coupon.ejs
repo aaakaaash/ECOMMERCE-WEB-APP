@@ -1,59 +1,88 @@
 
+<style>
+
+.main{
+  margin-left: 120px;
+ 
+}
+
+@media screen and (max-width: 920px) {
+  .main {
+    margin:0
+  }
+}
+
+
+</style>
+
 <%- include("../../views/partials/admin/header") %>
+
 <div class="content-wrapper">
-    <div class="content-header">
-      <h1>Create New Coupon</h1>
-    </div>
-    <div class="content">
-      <form action="/admin/coupons/create" method="POST" enctype="multipart/form-data">
-        <div class="form-group">
-          <label for="image">Coupon Image</label>
-          <div class="image-upload-area">
-            <input type="file" id="image" name="image" accept="image/*">
-            <p>Drag and drop image here, or click add image</p>
+  <div class="container-fluid ">
+    <div class="row justify-content-center">
+      <div class="col-md-12 main" >
+        <div class="card mt-5">
+          <div class="card-header text-center">
+            <br><br><br>
+            <h2 class="mb-0">Create New Coupon</h2>
+          </div>
+          <div class="card-body">
+            <form action="/admin/coupons/create" method="POST">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="code" class="form-label">Code</label>
+                  <input type="text" class="form-control" id="code" name="code" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="discountType" class="form-label">Discount Type</label>
+                  <select class="form-select" id="discountType" name="discountType" required>
+                    <option value="percentage">Percentage</option>
+                    <option value="fixed">Fixed Amount</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="startDate" class="form-label">Start Date</label>
+                  <input type="date" class="form-control" id="startDate" name="startDate" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="endDate" class="form-label">End Date</label>
+                  <input type="date" class="form-control" id="endDate" name="endDate" required>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="discountValue" class="form-label">Discount Value</label>
+                  <input type="number" class="form-control" id="discountValue" name="discountValue" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="status" class="form-label">Status</label>
+                  <select class="form-select" id="status" name="status" required>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="minPurchaseAmount" class="form-label">Min Purchase Amount</label>
+                  <input type="number" class="form-control" id="minPurchaseAmount" name="minPurchaseAmount">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="maxPurchaseAmount" class="form-label">Max Purchase Amount</label>
+                  <input type="number" class="form-control" id="maxPurchaseAmount" name="maxPurchaseAmount">
+                </div>
+              </div>
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">Create Coupon</button>
+              </div>
+            </form>
           </div>
         </div>
-        <div class="form-group">
-          <label for="code">Code</label>
-          <input type="text" id="code" name="code" required>
-        </div>
-        <div class="form-group">
-          <label for="startDate">Start date</label>
-          <input type="date" id="startDate" name="startDate" required>
-        </div>
-        <div class="form-group">
-          <label for="endDate">End date</label>
-          <input type="date" id="endDate" name="endDate" required>
-        </div>
-        <div class="form-group">
-          <label for="discountType">Discount type</label>
-          <select id="discountType" name="discountType" required>
-            <option value="percentage">Percentage</option>
-            <option value="fixed">Fixed Amount</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="discountValue">Discount value</label>
-          <input type="number" id="discountValue" name="discountValue" required>
-        </div>
-        <div class="form-group">
-          <label for="minPurchaseAmount">Min purchase Amount</label>
-          <input type="number" id="minPurchaseAmount" name="minPurchaseAmount">
-        </div>
-        <div class="form-group">
-          <label for="maxPurchaseAmount">Max purchase Amount</label>
-          <input type="number" id="maxPurchaseAmount" name="maxPurchaseAmount">
-        </div>
-        <div class="form-group">
-          <label for="status">Status</label>
-          <select id="status" name="status" required>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
-        <button type="submit" class="btn btn-primary">Create Coupon</button>
-      </form>
+      </div>
     </div>
   </div>
+</div>
 
-  <%- include("../../views/partials/admin/footer") %>
+<%- include("../../views/partials/admin/footer") %>

@@ -118,9 +118,9 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.getElementById('addressForm').addEventListener('submit', function(event) {
-        event.preventDefault(); // Prevent form submission
+        event.preventDefault(); 
         
-        // Original values for comparison
+       
         const originalValues = {
             house: "<%= address.house %>",
             place: "<%= address.place %>",
@@ -131,7 +131,7 @@
             contactNo: "<%= address.contactNo %>"
         };
     
-        // Get current values from form fields
+        
         const house = document.getElementById('house').value.trim();
         const place = document.getElementById('place').value.trim();
         const city = document.getElementById('city').value.trim();
@@ -143,12 +143,12 @@
         let isValid = true;
         let isChanged = false;
     
-        // Regex patterns
+       
         const alphabetRegex = /^[A-Za-z\s]+$/;
         const pinRegex = /^[0-9]{6}$/;
         const contactRegex = /^[0-9]{10}$/;
     
-        // Validation and checking if fields are changed
+       
         if (house === '') {
             document.getElementById('houseError').style.display = 'block';
             document.getElementById('houseError').innerText = 'House cannot be empty';
@@ -212,7 +212,7 @@
             if (contactNo !== originalValues.contactNo) isChanged = true;
         }
     
-        // If no changes are made, show message and return
+       
         if (!isChanged) {
             Swal.fire({
                 icon: 'info',
@@ -222,7 +222,6 @@
             return;
         }
     
-        // Proceed if form is valid and changes were made
         if (isValid) {
             const formData = {
                 house,
