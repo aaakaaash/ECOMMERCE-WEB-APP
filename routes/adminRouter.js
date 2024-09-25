@@ -94,6 +94,8 @@ router.get("/orders/order-details/:orderId", adminAuth,orderController.orderDeta
 
 router.get("/coupons",adminAuth,couponController.coupon)
 router.get("/create-coupon",adminAuth,couponController.createCoupon)
+router.post("/create-coupon/add-coupon",adminAuth,couponController.addCoupon)
+router.delete("/coupons/delete-coupon/:couponId",adminAuth,couponController.deleteCoupon)
 
 
 module.exports = router;

@@ -9,7 +9,7 @@ const Cart = require("../../models/CartSchema");
 const { cart } = require("./userCartController");
 const Address = require("../../models/addressSchema");
 const Order = require("../../models/orderSchema")
-
+const Coupon = require("../../models/couponSchema")
 
 const placeOrder = async (req, res, next) => {
   const userId = req.session.user || req.user;
@@ -17,6 +17,7 @@ const placeOrder = async (req, res, next) => {
   try {
       const cart = await Cart.findOne({ userId: userId }).populate('items.product').exec();
       const user = await User.findById(userId).populate('address').exec();
+      const coupon = await Coupon.find().exec;
       const addresses = user.address || [];
 
       if (cart && cart.items.length > 0) {

@@ -110,9 +110,9 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     document.getElementById('addressForm').addEventListener('submit', function(event) {
-      event.preventDefault(); // Prevent form submission
+      event.preventDefault(); 
   
-      // Validate each field
+      
       const house = document.getElementById('house').value;
       const place = document.getElementById('place').value;
       const city = document.getElementById('city').value;
@@ -123,10 +123,10 @@
   
       let isValid = true;
   
-      // Regex patterns
-      const alphabetRegex = /^[A-Za-z\s]+$/; // Only letters and spaces
-      const pinRegex = /^[0-9]{6}$/;         // 6-digit pin
-      const contactRegex = /^[0-9]{10}$/;    // 10-digit contact number
+      
+      const alphabetRegex = /^[A-Za-z\s]+$/; 
+      const pinRegex = /^[0-9]{6}$/;         
+      const contactRegex = /^[0-9]{10}$/;    
   
       // Validate fields
       if (house === '') {
@@ -223,7 +223,7 @@
               const tbody = document.querySelector("#address-list");
               tbody.innerHTML = ""; 
               data.address.forEach(address => {
-                  const row = document.createElement('tr'); // Use <tr> for rows in a table
+                  const row = document.createElement('tr'); 
                   row.innerHTML = `
                       <td>House: <span>${address.house}</span></td>
                       <td>Place: <span>${address.place}</span></td>

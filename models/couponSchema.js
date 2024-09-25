@@ -9,10 +9,6 @@ const couponSchema = new mongoose.Schema({
       uppercase: true,
       trim: true
     },
-    image:{
-        type:[String],
-        required: true
-    },
      minPurchaseAmount: {
         type:Number,
         required:true
@@ -36,6 +32,18 @@ const couponSchema = new mongoose.Schema({
      discountValue:{
         type:Number,
         required:true
+     },
+     description:{
+      type:String,
+      required:true
+     },
+     usageLimit:{
+      type:Number,
+      required:true
+     },
+     usedCount: {
+      type:Number,
+      required:false
      },
      status:{
         type:String,
