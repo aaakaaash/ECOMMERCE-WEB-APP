@@ -18,6 +18,11 @@ const orderSchema = new mongoose.Schema({
     ref: "Address",
     required: true
   },
+  coupon: {
+    type: Schema.Types.ObjectId,
+    ref:'Coupon',
+    required:false
+  },
   items: [{
     product: {
       type: Schema.Types.ObjectId,
@@ -36,11 +41,6 @@ const orderSchema = new mongoose.Schema({
   actualPrice: {
     type: Number,
     required: true
-  },
-  coupon: {
-    type: Schema.Types.ObjectId,
-    ref: "Coupon",
-    required: false
   },
   offerPrice: {
     type: Number,

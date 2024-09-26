@@ -72,6 +72,7 @@ router.delete('/cart/remove-deleted-item',userAuth,userCartController.removeDele
 // order management
 
 router.get("/cart/place-order",userAuth,userOrderController.placeOrder);
+router.post("/cart/apply-coupon",userAuth,userOrderController.addCoupon);
 router.post("/cart/place-order/make-payment",userAuth,userOrderController.loadPayment);
 router.post("/cart/place-order/make-payment/confirm-order",userAuth,userOrderController.confirmOrder);
 router.get("/user/order-confirmation", userAuth,userOrderController.orderConfirmationPage);

@@ -154,15 +154,35 @@ const blockProduct = async (req,res) => {
     }
 }
 
-const unblockProduct = async (req,res)=>{
+const unblockProduct = async (req, res) => {
     try {
         let id = req.query.id;
-        await Product.updateOne({_id:id},{$set:{isBlocked:false}})
-        res.redirect("/admin/products")
+        
+       
+        const product = await Product.findById(id);
+        
+        if (!product) {
+            return res.status(404).send("Product not found");
+        }
+        
+       
+        product.isBlocked = false;
+        
+       
+        if (product.quantity > 0) {
+            product.status = "Available";
+        } else {
+            product.status = "out of stock";
+        }
+        
+        await product.save();
+        
+        res.redirect("/admin/products");
     } catch (error) {
+        console.error("Error in unblockProduct:", error);
         res.redirect("/pageerror");
     }
-}
+};
 
 const getEditProduct = async (req, res)=>{
     try {

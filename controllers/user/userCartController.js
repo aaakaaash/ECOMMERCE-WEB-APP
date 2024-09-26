@@ -157,76 +157,74 @@ const updateQuantity = async (req, res, next) => {
     const userId = req.session.user || req.user;
 
     try {
-        
         let cart = await Cart.findOne({ userId }).populate('items.product');
         
         if (!cart) {
             return res.status(404).json({ error: 'Cart not found' });
         }
 
-
-      
         const item = cart.items.find(item => item.product._id.toString() === productId);
 
-        
+        if (!item) {
+            return res.status(404).json({ error: 'Item not found in cart' });
+        }
+
         if (item.isBlocked) {
             return res.status(400).json({ error: 'Product is blocked' });
         }
 
-        if (item.product.quantity === 0) {
+        let newQuantity = item.quantity + change;
 
-            return res.status(400).json({ error: 'Product is out of stock' });
+       
+        if (newQuantity < 1) {
+            newQuantity = 1;
+            return res.status(400).json({ error: 'Minimum quantity is 1. If you want to remove the item, use the remove button.' });
         }
 
-        if (item) {
-            
-            let newQuantity = item.quantity + change;
+        if (newQuantity > MAX_QUANTITY_PER_PRODUCT) {
+            return res.status(400).json({ error: `You can only have up to ${MAX_QUANTITY_PER_PRODUCT} units of this product` });
+        }
 
-           
-            if (newQuantity < 1) {
-                newQuantity = 1;
-                return res.status(400).json({ error: 'Minimum quantity is 1. If you want to remove the item, use the remove button.' });
-            }
+      
+        if (change > 0 && item.product.quantity < change) {
+            return res.status(400).json({ error: 'Not enough stock available' });
+        }
 
-           
-            if (newQuantity > MAX_QUANTITY_PER_PRODUCT) {
-                return res.status(400).json({ error: `You can only have up to ${MAX_QUANTITY_PER_PRODUCT} units of this product` });
-            }
+        const quantityDifference = change;
 
-            
-            item.quantity = newQuantity;
-
-            
-            const quantityDifference = change;
-
-           
-            await Product.findByIdAndUpdate(productId, {
+      
+        const updatedProduct = await Product.findByIdAndUpdate(
+            productId,
+            {
                 $inc: { quantity: -quantityDifference }
-            });
+            },
+            { new: true }
+        );
 
-            const updatedProduct = await Product.findById(productId);
-
-            if (updatedProduct.quantity == 0) {
-              updatedProduct.status = "out of stock";
-            } else {
-              updatedProduct.status = "Available";
-            }
-
-            await updatedProduct.save();
-            
-            await cart.save();
-
-            res.json({ success: true, updatedQuantity: item.quantity });
+       
+        if (updatedProduct.quantity === 0) {
+            updatedProduct.status = "out of stock";
         } else {
-            res.status(404).json({ error: 'Item not found in cart' });
+            updatedProduct.status = "Available";
         }
+
+        await updatedProduct.save();
+
+       
+        item.quantity = newQuantity;
+        await cart.save();
+
+        res.json({ 
+            success: true, 
+            updatedQuantity: item.quantity,
+            productStatus: updatedProduct.status,
+            productQuantity: updatedProduct.quantity
+        });
         
     } catch (error) {
         next(error);
     }
 };
-
-
 
 const removeFromCart = async (req, res) => {
     const { productId } = req.body; 

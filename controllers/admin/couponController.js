@@ -15,8 +15,17 @@ const sharp = require("sharp")
 const coupon = async (req, res, next) => {
   try {
     const coupons = await Coupon.find().exec();
+
+    for (const coupon of coupons) {
+      if (coupon.usedCount >= coupon.usageLimit && coupon.status !== "Not available") {
+        coupon.status = "Not available";
+        await coupon.save();
+      }
+    }
+
     return res.render("coupons", { coupons });
   } catch (error) {
+    console.error('Error fetching or updating coupons:', error);
     next(error);
   }
 };

@@ -81,6 +81,9 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 									<input type="hidden" name="userId" value="<%= user._id %>">
 									<input type="hidden" name="address" value="<%= address._id %>">
 									<input type="hidden" name="totalPrice" value="<%= totalPrice %>">
+									<input type="hidden" name="appliedCouponId" id="appliedCouponId" value="<%= appliedCoupon ? appliedCoupon._id : '' %>">
+
+									<input type="hidden" name="discountAmount" id="discountAmount" value="<%= discountAmount %>">
 									<% items.forEach(item => { %>
 										<input type="hidden" name="items[]" value='{"product": "<%= item.product %>", "quantity": <%= item.quantity %>, "price": <%= item.price %>}' />
 									<% }) %>
