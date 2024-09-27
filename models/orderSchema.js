@@ -69,7 +69,11 @@ const orderSchema = new mongoose.Schema({
     status: {
       type: String,
       required: true,
-      enum: ["not done", "completed"]
+      enum: ["pending", "completed"]
+    },
+    razorpayOrderId: {
+      type: String,
+      required: false  
     }
   }],
   totalPrice: {

@@ -75,6 +75,11 @@ router.get("/cart/place-order",userAuth,userOrderController.placeOrder);
 router.post("/cart/apply-coupon",userAuth,userOrderController.addCoupon);
 router.post("/cart/place-order/make-payment",userAuth,userOrderController.loadPayment);
 router.post("/cart/place-order/make-payment/confirm-order",userAuth,userOrderController.confirmOrder);
+
+router.get('/user/payment/razorpay-checkout', userAuth, userOrderController.razorpayCheckout);
+router.post("/razorpay-callback", userAuth,userOrderController.verifyRazorpayPayment);
+
+
 router.get("/user/order-confirmation", userAuth,userOrderController.orderConfirmationPage);
 
 router.get("/user/my-order",userAuth,setBreadcrumbs,userOrderController.myOrder);
