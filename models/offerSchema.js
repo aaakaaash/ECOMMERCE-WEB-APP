@@ -1,50 +1,85 @@
 const mongoose = require("mongoose");
 const {Schema}  = mongoose;
 
-const couponSchema = new mongoose.Schema({
-    name:{
-        type:String,
-        required:true,
-        unique:true
+const offerSchema = new mongoose.Schema({
+   offerCode: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
     },
-    productId :{
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    description: {
+      type: String,
+      trim: true,
+    },
+    offerType: {
+      type: String,
+      enum: ['product', 'category', 'cart', 'order'], 
+      required: true,
+    },
+    discountType: {
+      type: String,
+      enum: ['percentage', 'flat'], 
+      required: true,
+    },
+    discountValue: {
+      type: Number,
+      required: true,
+    },
+    minPurchaseAmount: {
+      type: Number, 
+      default: 0,
+    },
+    maxDiscountAmount: {
+      type: Number, 
+    },
+    product :{
         type:Schema.Types.ObjectId,
         ref:"Product",
-        required:true
+        required:false
     },
 
-     description:{
-        type:String,
-        required:true
-     },
-     maxPurchaseAmount:{
-        type:Number,
-        required:true
-     },
-     startDate:{
-        type:Date,
-        required:true
-     },
-     endDate:{
-        type:Date,
-        required:true
-     },
-     
-     discountValue:{
-        type:Number,
-        required:true
-     },
-     offerType:{
-        type:String,
-        required:true
-     },
-     status:{
-        type:String,
-        required:true,
-        enum:["Expired","Active","Used","Not available"]
+    category: {
+      type: Schema.Types.ObjectId,
+      ref: "Category",
+      required: false,
     },
-})
+    startDate: {
+      type: Date,
+      required: true,
+    },
+    endDate: {
+      type: Date,
+      required: true,
+    },
+    usageLimit: {
+      type: Number, 
+      default: 0,
+    },
+    usedCount: {
+      type: Number, 
+      default: 0,
+    },
+    status: {
+      type: String,
+      enum: ['active', 'expired', 'upcoming', 'inactive'],
+      default: 'inactive',
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  }, { timestamps: true });
 
-const Coupon = mongoose.model("Coupon",couponSchema);
+const Offer = mongoose.model("Offer",offerSchema);
 
-module.exports = Coupon;
+module.exports = Offer;

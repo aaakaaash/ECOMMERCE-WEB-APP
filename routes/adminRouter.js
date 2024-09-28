@@ -12,6 +12,7 @@ const categoryController = require("../controllers/admin/categoryController");
 const productController = require("../controllers/admin/productController");
 const orderController  = require("../controllers/admin/orderController");
 const couponController  = require("../controllers/admin/couponController");
+const offerController  = require("../controllers/admin/offerController");
 
 
 const storage = multer.diskStorage({
@@ -96,6 +97,13 @@ router.get("/coupons",adminAuth,couponController.coupon)
 router.get("/create-coupon",adminAuth,couponController.createCoupon)
 router.post("/create-coupon/add-coupon",adminAuth,couponController.addCoupon)
 router.delete("/coupons/delete-coupon/:couponId",adminAuth,couponController.deleteCoupon)
+
+// offer management
+
+router.get("/offers",adminAuth,offerController.offer)
+router.get("/create-offer",adminAuth,offerController.createOffer)
+router.post("/create-offer/add-offer",adminAuth,offerController.addOffer)
+router.delete("/offers/delete-offer/:offerId",adminAuth,offerController.deleteOffer)
 
 
 module.exports = router;
