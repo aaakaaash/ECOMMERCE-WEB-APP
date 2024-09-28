@@ -78,6 +78,7 @@ router.post("/cart/place-order/make-payment/confirm-order",userAuth,userOrderCon
 
 router.get('/user/payment/razorpay-checkout', userAuth, userOrderController.razorpayCheckout);
 router.post("/razorpay-callback", userAuth,userOrderController.verifyRazorpayPayment);
+router.post("/verify-razorpay-payment", userAuth,userOrderController.verifyRazorpayPayment);
 
 
 router.get("/user/order-confirmation", userAuth,userOrderController.orderConfirmationPage);
