@@ -6,6 +6,7 @@ const env = require("dotenv").config();
 const User = require("../../models/userSchema");
 const Product = require("../../models/productSchema")
 const Category = require("../../models/categorySchema")
+const Offer = require("../../models/offerSchema")
 
 const loadSingleProduct = async (req, res, next) => {
     try {
@@ -30,18 +31,23 @@ const loadSingleProduct = async (req, res, next) => {
             userId = req.session.user;
         }
 
+        const offer = await Offer.find().populate('category').populate('product').exec();
+
+
         let userData = null;
         if (userId) {
             userData = await User.findById(userId).exec();
             res.render("single", { 
                 user: userData,
                 product: product,
-                categories: categories 
+                categories: categories,
+                offer
             });
         } else {
-            res.render("single", { 
+          return  res.render("single", { 
                 product: product,
-                categories: categories 
+                categories: categories,
+                offer
             });
         }
     } catch (error) {

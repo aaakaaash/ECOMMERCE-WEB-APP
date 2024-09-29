@@ -33,67 +33,69 @@ const createOffer = async (req, res) => {
 };
 
 const addOffer = async (req, res) => {
-    try {
-      const {
-        offerCode,
-        title,
-        description,
-        offerType,
-        discountType,
-        discountValue,
-        minPurchaseAmount,
-        maxDiscountAmount,
-        product,
-        category,
-        usageLimit,
-        startDate,
-        endDate,
-        status
-      } = req.body;
-  
-      // Check if the offer code already exists
-      const existingOffer = await Offer.findOne({ offerCode: offerCode });
-      if (existingOffer) {
-        return res.status(400).json({
-          success: false,
-          message: "Offer code already exists. Please try a different code."
-        });
-      }
-  
-      // Create a new offer
-      const newOffer = new Offer({
-        offerCode,
-        title,
-        description,
-        offerType,
-        discountType,
-        discountValue: Number(discountValue),
-        minPurchaseAmount: Number(minPurchaseAmount),
-        maxDiscountAmount: maxDiscountAmount ? Number(maxDiscountAmount) : undefined,
-        product: product === 'all' ? null : product ? new mongoose.Types.ObjectId(product) : undefined,
-        category: category === 'all' ? null : category ? new mongoose.Types.ObjectId(category) : undefined,        
-        usageLimit: Number(usageLimit),
-        startDate,
-        endDate,
-        status
-    });
-  
-     
-      await newOffer.save();
-  
-      res.status(201).json({
-        success: true,
-        message: "Offer created successfully",
-        offer: newOffer
-      });
-    } catch (error) {
-      console.error("Error creating offer:", error);
-      res.status(500).json({
+  try {
+    const {
+      offerCode,
+      title,
+      description,
+      offerType,
+      discountType,
+      discountValue,
+      minPurchaseAmount,
+      maxDiscountAmount,
+      product,
+      category,
+      usageLimit,
+      startDate,
+      endDate,
+      status
+    } = req.body;
+
+    // Check if the offer code already exists
+    const existingOffer = await Offer.findOne({ offerCode: offerCode });
+    if (existingOffer) {
+      return res.status(400).json({
         success: false,
-        message: "An error occurred while creating the offer"
+        message: "Offer code already exists. Please try a different code."
       });
     }
-  };
+
+    // Create a new offer
+    const newOffer = new Offer({
+      offerCode,
+      title,
+      description,
+      offerType,
+      discountType,
+      discountValue: Number(discountValue),
+      minPurchaseAmount: Number(minPurchaseAmount),
+      maxDiscountAmount: maxDiscountAmount ? Number(maxDiscountAmount) : undefined,
+      product: product === 'all' ? null : product ? new mongoose.Types.ObjectId(product) : undefined,
+      category: category === 'all' ? null : category ? new mongoose.Types.ObjectId(category) : undefined,        
+      usageLimit: Number(usageLimit),
+      startDate,
+      endDate,
+      status
+    });
+
+    await newOffer.save();
+
+    
+    await updateProductOfferPrice();
+
+    res.status(201).json({
+      success: true,
+      message: "Offer created successfully",
+      offer: newOffer
+    });
+  } catch (error) {
+    console.error("Error creating offer:", error);
+    res.status(500).json({
+      success: false,
+      message: "An error occurred while creating the offer"
+    });
+  }
+};
 
 const deleteOffer = async (req, res) => {
   try {
@@ -106,7 +108,11 @@ const deleteOffer = async (req, res) => {
       });
     }
 
+   
     await Offer.findByIdAndDelete(offerId);
+
+   
+    await updateProductOfferPrice();
 
     res.status(200).json({
       success: true,
@@ -121,9 +127,62 @@ const deleteOffer = async (req, res) => {
   }
 };
 
+const updateProductOfferPrice = async () => {
+  try {
+    
+    const offers = await Offer.find().populate('product').populate('category').exec();
+
+    
+    await Product.updateMany({}, { offerPrice: 0 });
+
+    for (const offer of offers) {
+      let productsToUpdate = [];
+
+      
+      if (offer.product) {
+        productsToUpdate = await Product.find({ _id: offer.product });
+
+      
+      } else if (offer.category) {
+        productsToUpdate = await Product.find({ category: offer.category });
+
+      
+      } else if (!offer.product && !offer.category) {
+        productsToUpdate = await Product.find({});
+      }
+
+      
+      for (const product of productsToUpdate) {
+        let offerValue;
+
+     
+        if (offer.discountType === 'percentage') {
+          offerValue = product.salePrice * (offer.discountValue / 100);
+        } else {
+        
+          offerValue = offer.discountValue;
+        }
+
+        
+        const offerPrice = product.salePrice - offerValue;
+
+        product.offerPrice = Math.max(offerPrice, 0);
+
+        
+        await product.save();
+      }
+    }
+  } catch (error) {
+    console.error("Error updating product offer prices:", error);
+  }
+};
+
+
+
 module.exports = {
   offer,
   createOffer,
   addOffer,
-  deleteOffer
+  deleteOffer,
+  updateProductOfferPrice
 };

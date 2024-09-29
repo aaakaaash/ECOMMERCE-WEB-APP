@@ -20,6 +20,11 @@ const cartSchema = new Schema({
         price: {
             type: Number,
             required: true
+        },
+        discountAmount:{
+            type: Number,
+            required:false,
+            default:0
         }
     }],
     createdAt: {

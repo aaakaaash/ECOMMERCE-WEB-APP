@@ -246,7 +246,6 @@
             const formData = new FormData(document.getElementById('offerForm'));
             const offerData = Object.fromEntries(formData.entries());
     
-            // Remove product or category based on offer type
             if (offerData.offerType === 'product') {
                 delete offerData.Categories;
             } else if (offerData.offerType === 'category') {

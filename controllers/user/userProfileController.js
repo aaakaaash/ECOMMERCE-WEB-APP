@@ -13,7 +13,7 @@ const Order = require("../../models/orderSchema")
 
 
 function generateOtp() {
-    return crypto.randomInt(100000, 1000000).toString(); // 6-digit OTP
+    return crypto.randomInt(100000, 1000000).toString(); 
 }
 
 const forgetPasswordPage = async (req, res, next) => {
@@ -32,7 +32,7 @@ const forgetPasswordPage = async (req, res, next) => {
 
 
 function generateOtp() {
-    return crypto.randomInt(100000, 1000000).toString(); // 6-digit OTP
+    return crypto.randomInt(100000, 1000000).toString(); 
 }
 
 const sendVerificationEmail = async (email, otp) => {

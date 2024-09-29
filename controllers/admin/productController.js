@@ -2,7 +2,8 @@ const Product = require("../../models/productSchema");
 const Category = require("../../models/categorySchema");
 
 const User = require("../../models/userSchema")
-const Order = require("../../models/userSchema")
+const Order = require("../../models/orderSchema")
+const Offer = require("../../models/offerSchema")
 
 const fs = require("fs");
 const path = require("path");
@@ -76,6 +77,9 @@ const addProducts = async (req, res) => {
             }
             
             let productStatus = products.quantity > 0 ? "Available" : "Out of stock";
+
+        
+            
             
             const newProduct = new Product({
                 productName: products.productName,

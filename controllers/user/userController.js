@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const env = require("dotenv").config();
 const User = require("../../models/userSchema");
 const Product = require("../../models/productSchema")
+const Offer = require("../../models/offerSchema")
 
 let sessionActive = false;
 
@@ -60,14 +61,23 @@ const loadHomepage = async (req, res, next) => {
         let userData = userId ? await User.findById(userId) : null;
         res.locals.user = userData;
 
-        return res.render('home', {
-            user: userData,
-            products: products,
-            sortBy: sortBy || '',
-            currentPage: page,
-            totalPages: totalPages,
-            totalProducts: totalProducts
-        });
+        const offer = await Offer.find({ status: 'active' })
+        .populate('category')
+        .populate('product')
+        .sort({ createdAt: -1 })  
+        .limit(1)  
+        .exec();
+      
+      return res.render('home', {
+        user: userData,
+        products: products,
+        sortBy: sortBy || '',
+        currentPage: page,
+        totalPages: totalPages,
+        totalProducts: totalProducts,
+        offer: offer.length ? offer[0] : null 
+      });
+
     } catch (error) {
         console.log('Home page not found:', error);
         next(error);
@@ -142,13 +152,17 @@ const loadShoppage = async (req, res, next) => {
         let userData = userId ? await User.findById(userId) : null;
         res.locals.user = userData;
 
+        const offer = await Offer.find().populate('category').populate('product').exec();
+
+
         return res.render("shop", { 
             user: userData,
             products: products,
             sortBy: sortBy || '',
             currentPage: page,
             totalPages: totalPages,
-            totalProducts: totalProducts
+            totalProducts: totalProducts,
+            offer
         });
     } catch (error) {
         console.log("shop page not found:", error);

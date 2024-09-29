@@ -18,183 +18,219 @@ const placeOrder = async (req, res, next) => {
   const userId = req.session.user || req.user;
 
   try {
-      const cart = await Cart.findOne({ userId: userId }).populate('items.product').exec();
-      const user = await User.findById(userId).populate('address').exec();
-      const coupons = await Coupon.find().exec();
-      const addresses = user.address || [];
+    const cart = await Cart.findOne({ userId: userId }).populate('items.product').exec();
+    const user = await User.findById(userId).populate('address').exec();
+    const coupons = await Coupon.find().exec();
+    const addresses = user.address || [];
 
-      if (cart && cart.items.length > 0) {
-          const distinctProducts = new Set(cart.items.map(item => item.product._id.toString()));
-          const distinctProductCount = distinctProducts.size;
+    if (cart && cart.items.length > 0) {
+      const distinctProducts = new Set(cart.items.map(item => item.product._id.toString()));
+      const distinctProductCount = distinctProducts.size;
 
-          cart.discount = cart.discount || 0;
-          cart.platformFee = cart.platformFee || 0;
-          cart.deliveryCharges = cart.deliveryCharges || 0;
+      let totalPrice = 0;
+      let totalDiscount = 0; 
+      const platformFee = 0;
+      const deliveryCharges = 0;
 
-          cart.total = cart.items.reduce((acc, item) => {
-              return acc + (item.product.salePrice || 0) * item.quantity;
-          }, 0);
+     
+      cart.items.forEach(item => {
+        totalPrice += item.product.salePrice * item.quantity;
+        totalDiscount += item.discountAmount * item.quantity;  
+      });
 
-          res.render("checkout-Page", { 
-              cart, 
-              addresses,
-              distinctProductCount,
-              coupons
-          });
-      } else {
-          res.status(400).json({ message: "Your cart is empty. Please add items to your cart before proceeding." });
-      }
+      const finalTotal = totalPrice - totalDiscount + platformFee + deliveryCharges;
+
+      res.render("checkout-Page", { 
+        cart, 
+        addresses,
+        distinctProductCount,
+        coupons,
+        totalPrice: totalPrice.toFixed(2),
+        discount: totalDiscount.toFixed(2),
+        platformFee: platformFee.toFixed(2),
+        deliveryCharges: deliveryCharges.toFixed(2),
+        finalTotal: finalTotal.toFixed(2)
+      });
+    } else {
+      res.status(400).json({ message: "Your cart is empty. Please add items to your cart before proceeding." });
+    }
   } catch (error) {
-      next(error);
+    next(error);
   }
 };
 
+
+
 const addCoupon = async (req, res, next) => {
   try {
-    const { couponId } = req.body;
+    const { couponId } = req.body; 
     const userId = req.session.user || req.user;
     const cart = await Cart.findOne({ userId: userId }).populate('items.product').exec();
-    const coupon = await Coupon.findById(couponId);
-    const usedCoupon = await Order.findOne({ user: userId, coupon: couponId });
-
-    if (usedCoupon) {
-      return res.status(400).json({ message: "Coupon has already been used. Please try another one." });
-    }
-
-    if (!coupon) {
-      return res.status(404).json({ message: "Coupon not found" });
-    }
 
     if (!cart || !cart.items || cart.items.length === 0) {
       return res.status(400).json({ message: "Your cart is empty" });
     }
 
-    const cartTotal = cart.items.reduce((total, item) => {
-      return total + (item.product.salePrice * item.quantity);
-    }, 0);
-
-    if (cartTotal < coupon.minPurchaseAmount || cartTotal > coupon.maxPurchaseAmount) {
-      return res.status(400).json({ message: "Coupon is not applicable for this order amount" });
+    const coupon = await Coupon.findById(couponId);
+    if (!coupon) {
+      return res.status(404).json({ message: "Coupon not found" });
     }
 
-    if (coupon.status === "Not available") {
-      return res.status(400).json({ message: "Coupon is no longer available." });
+    const usedCoupon = await Order.findOne({ user: userId, coupon: couponId });
+    if (usedCoupon) {
+      return res.status(400).json({ message: "Coupon has already been used. Please try another one." });
     }
+
+    // Calculate total price based on already calculated total
+    let totalPrice = 0;
+    let totalDiscount = 0;
     
-    if (coupon.usedCount >= coupon.usageLimit) {
-      return res.status(400).json({ message: "Coupon usage limit exceeded" });
-    }
+    cart.items.forEach(item => {
+      totalPrice += item.product.salePrice * item.quantity;
+      totalDiscount += item.discountAmount * item.quantity; // Add any existing discount (like offer discount)
+    });
 
-    if (new Date() < coupon.startDate || new Date() > coupon.endDate) {
-      return res.status(400).json({ message: "Coupon is not active" });
-    }
+    const platformFee = 0;
+    const deliveryCharges = 0;
+    let finalTotal = totalPrice - totalDiscount + platformFee + deliveryCharges;
 
+    // Calculate coupon discount
     let discountAmount = 0;
     if (coupon.discountType === "fixed") {
       discountAmount = coupon.discountValue;
     } else if (coupon.discountType === "percentage") {
-      discountAmount = (cartTotal * coupon.discountValue) / 100;
+      discountAmount = (finalTotal * coupon.discountValue) / 100;
     }
 
-    discountAmount = Math.min(discountAmount, cartTotal);
+    discountAmount = Math.min(discountAmount, finalTotal); // Ensure discount does not exceed final total
 
-    const platformFee = cart.platformFee || 0;
-    const deliveryCharges = cart.deliveryCharges || 0;
+    // Update the total discount with coupon discount
+    totalDiscount += discountAmount;
 
-    const newTotal = cartTotal - discountAmount + platformFee + deliveryCharges;
+    // Recalculate the final total after applying the coupon discount
+    finalTotal = totalPrice - totalDiscount + platformFee + deliveryCharges;
 
-    const updatedPriceDetails = {
-      subtotal: cartTotal.toFixed(2),
-      discount: discountAmount.toFixed(2),
+    // Respond with the updated price details
+    res.status(200).json({
+      totalPrice: totalPrice.toFixed(2),
+      discount: totalDiscount.toFixed(2), // This now includes both offer and coupon discounts
       platformFee: platformFee.toFixed(2),
       deliveryCharges: deliveryCharges.toFixed(2),
-      total: newTotal.toFixed(2),
+      finalTotal: finalTotal.toFixed(2),
       couponCode: coupon.code,
       couponId: coupon._id
-    };
-
-    res.status(200).json(updatedPriceDetails);
+    });
 
   } catch (error) {
     console.error('Error in addCoupon:', error);
     res.status(500).json({ message: "An error occurred while applying the coupon" });
-    next(error)
+    next(error);
   }
 };
+
 
 const loadPayment = async (req, res, next) => {
   try {
-      const { userId, address, appliedCouponId } = req.body;
+    const { userId, address, appliedCouponId } = req.body;
 
-      const user = await User.findById(userId);
-      const selectedAddress = await Address.findById(address);
-      const cart = await Cart.findOne({ userId: userId }).populate('items.product');
-      let appliedCoupon = null;
+    const user = await User.findById(userId);
+    const selectedAddress = await Address.findById(address);
+    const cart = await Cart.findOne({ userId: userId }).populate('items.product');
+    let appliedCoupon = null;
 
-      if (appliedCouponId) {
-          appliedCoupon = await Coupon.findById(appliedCouponId);
+    // If a coupon ID is provided, fetch the coupon details
+    if (appliedCouponId) {
+      appliedCoupon = await Coupon.findById(appliedCouponId);
+    }
+
+    if (!user || !selectedAddress || !cart) {
+      return res.status(400).json({ message: 'Invalid user, address, or cart information.' });
+    }
+
+    // Calculate total price and any existing discount (like offer discounts) from the cart
+    let totalPrice = 0;
+    let totalDiscount = 0;
+
+    cart.items.forEach(item => {
+      totalPrice += item.product.salePrice * item.quantity;
+      totalDiscount += item.discountAmount * item.quantity; // Existing discount (offer discount)
+    });
+
+    const platformFee = 0;
+    const deliveryCharges = 0;
+    let finalTotal = totalPrice - totalDiscount + platformFee + deliveryCharges;
+
+    // Apply the coupon logic if a coupon is provided
+    let discountAmount = 0;
+    if (appliedCoupon) {
+      if (appliedCoupon.discountType === "fixed") {
+        discountAmount = appliedCoupon.discountValue;
+      } else if (appliedCoupon.discountType === "percentage") {
+        discountAmount = (finalTotal * appliedCoupon.discountValue) / 100;
       }
 
-      if (!user || !selectedAddress || !cart) {
-          return res.status(400).json({ message: 'Invalid user, address, or cart information.' });
-      }
+      // Ensure the coupon discount doesn't exceed the final total
+      discountAmount = Math.min(discountAmount, finalTotal);
+      totalDiscount += discountAmount; // Add coupon discount to total discount
+      finalTotal = totalPrice - totalDiscount + platformFee + deliveryCharges; // Recalculate final total
+    }
 
-      let totalPrice = 0;
-      const items = cart.items.map(item => {
-          totalPrice += item.product.salePrice * item.quantity;
-          return {
-              product: item.product._id,
-              quantity: item.quantity,
-              price: item.product.salePrice,
-          };
-      });
-
-      let discountAmount = 0;
-      if (appliedCoupon) {
-          if (appliedCoupon.discountType === "fixed") {
-              discountAmount = appliedCoupon.discountValue;
-          } else if (appliedCoupon.discountType === "percentage") {
-              discountAmount = (totalPrice * appliedCoupon.discountValue) / 100;
-          }
-          totalPrice -= discountAmount;
-      }
-
-      res.render('payment-page', {
-          user,
-          address: selectedAddress,
-          items,
-          totalPrice,
-          appliedCoupon,
-          discountAmount
-      });
+    // Render the payment page with all calculated values
+    res.render('payment-page', {
+      user,
+      address: selectedAddress,
+      items: cart.items,
+      totalPrice: totalPrice.toFixed(2),
+      discountAmount: totalDiscount.toFixed(2),  
+      platformFee: platformFee.toFixed(2),
+      deliveryCharges: deliveryCharges.toFixed(2),
+      finalTotal: finalTotal.toFixed(2),
+      appliedCoupon 
+    });
 
   } catch (error) {
-      console.error('Error loading payment page:', error);
-      return next(error);
+    console.error('Error loading payment page:', error);
+    return next(error);
   }
 };
 
+
 const confirmOrder = async (req, res, next) => {
   try {
-    const { userId, address, items, totalPrice, appliedCouponId, discountAmount, paymentMethod } = req.body;
-    const parsedItems = items.map(item => JSON.parse(item));
+    const { userId, address, items, totalPrice, finalTotal, appliedCouponId, discountAmount, paymentMethod } = req.body;
+    
+    
+    const parsedFinalTotal = parseFloat(finalTotal);
+    if (isNaN(parsedFinalTotal) || parsedFinalTotal < 0) {
+      throw new Error('Invalid final total amount');
+    }
 
-    const totalprice = Number(totalPrice);  
-    const discountamount = Number(discountAmount);    
-    
-    let actualPrice = totalprice + discountamount;  
-    
+    const parsedItems = items.map(item => {
+      try {
+        return JSON.parse(item);
+      } catch (error) {
+        console.error('Error parsing item:', item);
+        throw new Error('Invalid item data');
+      }
+    });
+
+    const parsedDiscountAmount = parseFloat(discountAmount) || 0;
+    const parsedTotalPrice = parseFloat(totalPrice);
+
+    if (isNaN(parsedTotalPrice)) {
+      throw new Error('Invalid total price');
+    }
 
     const orderData = {
       user: userId,
       address: address,
       items: parsedItems,
-      actualPrice: actualPrice,
-      offerPrice: totalPrice,
+      actualPrice: parsedTotalPrice,
+      offerPrice: parsedFinalTotal, 
       coupon: appliedCouponId || undefined,
-      discount: discountAmount,
+      discount: parsedDiscountAmount,
       status: 'Pending',
-      totalPrice: totalPrice,
+      totalPrice: parsedFinalTotal, 
       payment: [{
         method: paymentMethod === "OnlinePayment" ? "Online Payment" : "Cash On Delivery",
         status: "pending"
@@ -206,7 +242,7 @@ const confirmOrder = async (req, res, next) => {
 
     if (paymentMethod === "OnlinePayment") {
       const razorpayOptions = {
-        amount: totalPrice * 100,
+        amount: Math.round(parsedFinalTotal * 100), 
         currency: "INR",
         receipt: `order_rcptid_${order._id}`
       };
@@ -218,13 +254,12 @@ const confirmOrder = async (req, res, next) => {
 
       return res.redirect(`/user/payment/razorpay-checkout?orderId=${order._id}&razorpayOrderId=${razorpayOrder.id}`);
     } else {
-    
       await finalizeOrder(order, userId, appliedCouponId);
       return res.redirect('/user/order-confirmation');
     }
   } catch (error) {
-   
-    return next(error);
+    console.error('Error in confirmOrder:', error);
+    return res.status(400).json({ error: error.message });
   }
 };
 

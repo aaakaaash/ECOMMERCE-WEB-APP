@@ -6,6 +6,7 @@ const env = require("dotenv").config();
 const User = require("../../models/userSchema");
 const Product = require("../../models/productSchema")
 const Cart = require("../../models/CartSchema");
+const Offer = require("../../models/offerSchema")
 
 
 const cart = async (req, res, next) => {
@@ -27,12 +28,11 @@ const cart = async (req, res, next) => {
             await cart.save();
         }
 
-       
+      
         if (cart.items.length > 0 && cart.items.some(item => item.product && item.product.isBlocked)) {
             const blockedItems = cart.items.filter(item => item.product.isBlocked);
             cart.items = cart.items.filter(item => !item.product.isBlocked);
 
-            
             for (const item of blockedItems) {
                 await Product.findByIdAndUpdate(item.product._id, {
                     $inc: { quantity: item.quantity },
@@ -41,34 +41,46 @@ const cart = async (req, res, next) => {
             await cart.save();
         }
 
-     
+        
         let totalPrice = 0;
         let totalItems = 0;
-        const discount = 0; 
-        const platformFee = 0; 
-        const deliveryCharges = 0; 
+        let totalDiscount = 0;  
+        const platformFee = 0;
+        const deliveryCharges = 0;
         let distinctProductCount = 0;
 
         if (cart.items.length > 0) {
             const distinctProducts = new Set(); 
-            cart.items.forEach(item => {
+            for (const item of cart.items) {
                 if (item.product) {
-                    totalPrice += item.price * item.quantity;
-                    totalItems += item.quantity;
+                    
+                    totalPrice += item.product.salePrice * item.quantity;  
+                    totalItems += item.quantity;  
+
+                  
+                    const discountAmount = item.product.offerPrice && item.product.offerPrice < item.product.salePrice
+                        ? item.product.salePrice - item.product.offerPrice
+                        : 0;
+
+                    totalDiscount += discountAmount * item.quantity;  
                     distinctProducts.add(item.product._id.toString());
                 }
-            });
+            }
             distinctProductCount = distinctProducts.size;
+
+         
+            await cart.save();
         }
 
-        const totalAmount = totalPrice - discount + platformFee + deliveryCharges;
+   
+        const totalAmount = totalPrice - totalDiscount + platformFee + deliveryCharges;
 
        
         res.render("cart", { 
             cart, 
             totalItems, 
             totalPrice, 
-            discount, 
+            totalDiscount,  
             platformFee, 
             deliveryCharges, 
             totalAmount,
@@ -124,13 +136,19 @@ const addToCart = async (req, res, next) => {
         if (existingItemIndex > -1) {
             return res.status(200).json({ message: 'Item already in cart', cartItemsCount: cart.items.length });
         } else {
+           
+            const price = product.offerPrice && product.offerPrice < product.salePrice ? product.offerPrice : product.salePrice;
+            const discountAmount = product.offerPrice && product.offerPrice < product.salePrice
+                ? product.salePrice - product.offerPrice
+                : 0;
+
             cart.items.push({
                 product: product._id,
                 quantity: quantity,
-                price: product.salePrice
+                price: price, 
+                discountAmount: discountAmount  
             });
 
-            
             await Product.findByIdAndUpdate(productId, {
                 $inc: { quantity: -1 },
                 $set: { status: (product.quantity - quantity <= 0) ? "out of stock" : product.status }
@@ -147,6 +165,7 @@ const addToCart = async (req, res, next) => {
         next(error);
     }
 };
+
 
 
 

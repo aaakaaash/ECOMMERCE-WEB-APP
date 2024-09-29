@@ -68,27 +68,28 @@
                             <form action="/cart/place-order/make-payment/confirm-order" method="POST" id="orderForm">
                                 <input type="hidden" name="userId" value="<%= user._id %>">
                                 <input type="hidden" name="address" value="<%= address._id %>">
-                                <input type="hidden" name="totalPrice" value="<%= totalPrice %>">
-								<input type="hidden" name="appliedCouponId" id="appliedCouponId" value="<%= appliedCoupon ? appliedCoupon._id : '' %>">
+                                <input type="hidden" name="totalPrice" id="hiddenTotalPrice" value="<%= totalPrice %>">
+                                <input type="hidden" name="finalTotal" id="hiddenFinalTotal" value="<%= finalTotal %>">
+                                <input type="hidden" name="appliedCouponId" id="appliedCouponId" value="<%= appliedCoupon ? appliedCoupon._id : '' %>">
                                 <input type="hidden" name="discountAmount" id="discountAmount" value="<%= discountAmount %>">
-                                <input type="hidden" name="paymentMethod" id="paymentMethod" value="COD"> 
-
+                                <input type="hidden" name="paymentMethod" id="paymentMethod" value="COD">
+                            
                                 <% items.forEach(item => { %>
-                                    <input type="hidden" name="items[]" value='{"product": "<%= item.product %>", "quantity": <%= item.quantity %>, "price": <%= item.price %>}' />
+                                    <input type="hidden" name="items[]" value='<%= JSON.stringify(item) %>' />
                                 <% }) %>
-
+                            
                                 <h5>Payment Method</h5>
-
+                            
                                 <label>
                                     <input type="radio" name="paymentMethodRadio" value="COD" onclick="setPaymentMethod('COD')" checked>
                                     Cash on Delivery
                                 </label>
-
+                            
                                 <label>
                                     <input type="radio" name="paymentMethodRadio" value="OnlinePayment" onclick="setPaymentMethod('OnlinePayment')">
                                     Pay Online (Razorpay)
                                 </label>
-
+                            
                                 <button class="btn btn-success" type="submit" id="confirmOrderBtn">Confirm Order</button>
                             </form>
                             <div id="responseMessage" style="margin-top: 20px; color: red;"></div>
@@ -116,11 +117,19 @@
 
     <script>
         function setPaymentMethod(method) {
-            const paymentMethodInput = document.getElementById('paymentMethod');
-            paymentMethodInput.value = method;
-
+            document.getElementById('paymentMethod').value = method;
         }
-    </script>
+        
+       
+        document.getElementById('orderForm').onsubmit = function() {
+            var finalTotal = parseFloat(document.getElementById('hiddenFinalTotal').value);
+            if (isNaN(finalTotal)) {
+                alert('Invalid total amount. Please try again.');
+                return false;
+            }
+            return true;
+        };
+        </script>
 </body>
 
 </html>
