@@ -234,15 +234,97 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 							</div>
 						</div>
 						<!--//tabs-->
-					</div>
-					
+					</div>	
 				</div>
+				<br>
 			</div>
+			<!-- Related Products Section -->
+<!-- Related Products Section -->
+<div class="related-products" style="padding: 20px;">
+    <h3>Products might like</h3>
+    <div class="row">
+        <% if (relatedProducts.length > 0) { %>
+            <% relatedProducts.forEach(relatedProduct => { %>
+                <div class="col-md-3 product-men women_two shop-gd">
+                    <div class="product-googles-info googles">
+                        <div class="men-pro-item">
+                            <div class="men-thumb-item">
+                                <img src="/uploads/product-images/<%= relatedProduct.productImage[0] %>" class="img-fluid" alt="<%= relatedProduct.productName %>">
+                                <div class="men-cart-pro">
+                                    <div class="inner-men-cart-pro">
+                                        <a href="/product/<%= relatedProduct._id %>" class="link-product-add-cart">Quick View</a>
+                                    </div>
+                                </div>
+                                <span class="product-new-top">New</span>
+                            </div>
+                            <div class="item-info-product">
+                                <div class="info-product-price">
+                                    <div class="grid_meta">
+                                        <div class="product_price">
+                                            <h4>
+                                                <a href="/product/<%= relatedProduct._id %>"><%= relatedProduct.productName %></a>
+                                            </h4>
+                                            <div class="grid-price mt-2">
+                                                <% if (relatedProduct.offerPrice && relatedProduct.offerPrice < relatedProduct.salePrice) { %>
+                                                    <span class="money" style="text-decoration: line-through;">$<%= relatedProduct.salePrice %></span>
+                                                    <span class="money" style="color: red; font-weight: bold;">$<%= relatedProduct.offerPrice %></span>
+                                                <% } else { %>
+                                                    <span class="money">$<%= relatedProduct.salePrice %></span>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                        <ul class="stars">
+                                            <li>
+                                                <a href="#"><i class="fa fa-star" aria-hidden="true"></i></a>
+                                            </li>
+                                            <li>
+                                                <a href="#"><i class="fa fa-star" aria-hidden="true"></i></a>
+                                            </li>
+                                            <li>
+                                                <a href="#"><i class="fa fa-star" aria-hidden="true"></i></a>
+                                            </li>
+                                            <li>
+                                                <a href="#"><i class="fa fa-star" aria-hidden="true"></i></a>
+                                            </li>
+                                            <li>
+                                                <a href="#"><i class="fa fa-star-half-o" aria-hidden="true"></i></a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="googles single-item hvr-outline-out">
+                                        <form id="addToCartForm-<%= relatedProduct._id %>" onsubmit="return false;">
+                                            <input type="hidden" name="productId" value="<%= relatedProduct._id %>">
+                                            <input type="hidden" name="quantity" value="1">
+                                            <button type="button" class="googles-cart pgoogles-cart" onclick="addToCart('<%= relatedProduct._id %>')">
+                                                <i class="fas fa-cart-plus"></i>
+                                            </button>
+                                        </form>
+                                        <form id="addToWishlistForm-<%= relatedProduct._id %>" onsubmit="return false;">
+                                            <input type="hidden" name="productId" value="<%= relatedProduct._id %>">
+                                            <button type="button" class="googles-cart pgoogles-cart" onclick="addToWishlist('<%= relatedProduct._id %>')">
+                                                <i class="fas fa-heart"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="clearfix"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <p>No related products found.</p>
+        <% } %>
+    </div>
+</div>
+
+</div>
+
 		</section>
 		<!--footer -->
 		<%-include("../../views/partials/user/footer")%>
 		<!-- //footer -->
-
 		<!--jQuery-->
 		<script src="/js/jquery-2.2.3.min.js"></script>
 		<!-- newsletter modal -->

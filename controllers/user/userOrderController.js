@@ -81,20 +81,20 @@ const addCoupon = async (req, res, next) => {
       return res.status(400).json({ message: "Coupon has already been used. Please try another one." });
     }
 
-    // Calculate total price based on already calculated total
+    
     let totalPrice = 0;
     let totalDiscount = 0;
     
     cart.items.forEach(item => {
       totalPrice += item.product.salePrice * item.quantity;
-      totalDiscount += item.discountAmount * item.quantity; // Add any existing discount (like offer discount)
+      totalDiscount += item.discountAmount * item.quantity; 
     });
 
     const platformFee = 0;
     const deliveryCharges = 0;
     let finalTotal = totalPrice - totalDiscount + platformFee + deliveryCharges;
 
-    // Calculate coupon discount
+    
     let discountAmount = 0;
     if (coupon.discountType === "fixed") {
       discountAmount = coupon.discountValue;
@@ -102,18 +102,18 @@ const addCoupon = async (req, res, next) => {
       discountAmount = (finalTotal * coupon.discountValue) / 100;
     }
 
-    discountAmount = Math.min(discountAmount, finalTotal); // Ensure discount does not exceed final total
+    discountAmount = Math.min(discountAmount, finalTotal); 
 
-    // Update the total discount with coupon discount
+    
     totalDiscount += discountAmount;
 
-    // Recalculate the final total after applying the coupon discount
+  
     finalTotal = totalPrice - totalDiscount + platformFee + deliveryCharges;
 
-    // Respond with the updated price details
+    
     res.status(200).json({
       totalPrice: totalPrice.toFixed(2),
-      discount: totalDiscount.toFixed(2), // This now includes both offer and coupon discounts
+      discount: totalDiscount.toFixed(2), 
       platformFee: platformFee.toFixed(2),
       deliveryCharges: deliveryCharges.toFixed(2),
       finalTotal: finalTotal.toFixed(2),
@@ -138,7 +138,7 @@ const loadPayment = async (req, res, next) => {
     const cart = await Cart.findOne({ userId: userId }).populate('items.product');
     let appliedCoupon = null;
 
-    // If a coupon ID is provided, fetch the coupon details
+    
     if (appliedCouponId) {
       appliedCoupon = await Coupon.findById(appliedCouponId);
     }
@@ -147,20 +147,20 @@ const loadPayment = async (req, res, next) => {
       return res.status(400).json({ message: 'Invalid user, address, or cart information.' });
     }
 
-    // Calculate total price and any existing discount (like offer discounts) from the cart
+    
     let totalPrice = 0;
     let totalDiscount = 0;
 
     cart.items.forEach(item => {
       totalPrice += item.product.salePrice * item.quantity;
-      totalDiscount += item.discountAmount * item.quantity; // Existing discount (offer discount)
+      totalDiscount += item.discountAmount * item.quantity; 
     });
 
     const platformFee = 0;
     const deliveryCharges = 0;
     let finalTotal = totalPrice - totalDiscount + platformFee + deliveryCharges;
 
-    // Apply the coupon logic if a coupon is provided
+   
     let discountAmount = 0;
     if (appliedCoupon) {
       if (appliedCoupon.discountType === "fixed") {
@@ -169,23 +169,24 @@ const loadPayment = async (req, res, next) => {
         discountAmount = (finalTotal * appliedCoupon.discountValue) / 100;
       }
 
-      // Ensure the coupon discount doesn't exceed the final total
+     
       discountAmount = Math.min(discountAmount, finalTotal);
-      totalDiscount += discountAmount; // Add coupon discount to total discount
-      finalTotal = totalPrice - totalDiscount + platformFee + deliveryCharges; // Recalculate final total
+      totalDiscount += discountAmount; 
+      finalTotal = totalPrice - totalDiscount + platformFee + deliveryCharges; 
     }
 
-    // Render the payment page with all calculated values
+    
     res.render('payment-page', {
       user,
       address: selectedAddress,
       items: cart.items,
       totalPrice: totalPrice.toFixed(2),
       discountAmount: totalDiscount.toFixed(2),  
+      couponDiscountAmount: discountAmount.toFixed(2),  
       platformFee: platformFee.toFixed(2),
       deliveryCharges: deliveryCharges.toFixed(2),
       finalTotal: finalTotal.toFixed(2),
-      appliedCoupon 
+      appliedCoupon
     });
 
   } catch (error) {
@@ -197,9 +198,36 @@ const loadPayment = async (req, res, next) => {
 
 const confirmOrder = async (req, res, next) => {
   try {
-    const { userId, address, items, totalPrice, finalTotal, appliedCouponId, discountAmount, paymentMethod } = req.body;
-    
-    
+    const { userId, address, items, couponDiscountAmount, totalPrice, finalTotal, appliedCouponId, discountAmount, paymentMethod } = req.body;
+
+    let parsedAddress;
+    try {
+      parsedAddress = typeof address === 'string' ? JSON.parse(address) : address;
+    } catch (error) {
+      throw new Error('Invalid address format');
+    }
+
+    if (!parsedAddress || typeof parsedAddress !== 'object') {
+      throw new Error('Invalid address data');
+    }
+
+    const requiredAddressFields = ['house', 'place', 'city', 'state', 'pin', 'contactNo'];
+    for (const field of requiredAddressFields) {
+      if (!parsedAddress[field]) {
+        throw new Error(`Address ${field} is required`);
+      }
+    }
+
+    const addressData = {
+      house: parsedAddress.house,
+      place: parsedAddress.place,
+      city: parsedAddress.city,
+      state: parsedAddress.state,
+      landMark: parsedAddress.landMark || "",
+      pin: parsedAddress.pin,
+      contactNo: parsedAddress.contactNo
+    };
+
     const parsedFinalTotal = parseFloat(finalTotal);
     if (isNaN(parsedFinalTotal) || parsedFinalTotal < 0) {
       throw new Error('Invalid final total amount');
@@ -221,16 +249,28 @@ const confirmOrder = async (req, res, next) => {
       throw new Error('Invalid total price');
     }
 
+    // Calculate total item count considering quantity
+    let totalItemCount = parsedItems.reduce((sum, item) => sum + item.quantity, 0);
+
+    // Calculate proportional coupon discount per item based on its quantity
+    const discountPerItem = couponDiscountAmount / totalItemCount;
+
+    // Calculate saledPrice for each item based on its quantity
+    parsedItems.forEach(item => {
+      const itemDiscount = discountPerItem * item.quantity;  // total discount for the item
+      item.saledPrice = item.price - (itemDiscount / item.quantity);  // discounted price per unit
+    });
+
     const orderData = {
       user: userId,
-      address: address,
+      address: addressData, 
       items: parsedItems,
       actualPrice: parsedTotalPrice,
-      offerPrice: parsedFinalTotal, 
+      offerPrice: parsedFinalTotal,
       coupon: appliedCouponId || undefined,
       discount: parsedDiscountAmount,
       status: 'Pending',
-      totalPrice: parsedFinalTotal, 
+      totalPrice: parsedFinalTotal,
       payment: [{
         method: paymentMethod === "OnlinePayment" ? "Online Payment" : "Cash On Delivery",
         status: "pending"
@@ -262,6 +302,7 @@ const confirmOrder = async (req, res, next) => {
     return res.status(400).json({ error: error.message });
   }
 };
+
 
 const finalizeOrder = async (order, userId, appliedCouponId) => {
   try {

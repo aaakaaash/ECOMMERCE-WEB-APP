@@ -14,9 +14,34 @@ const orderSchema = new mongoose.Schema({
     required: true
   },
   address: {
-    type: Schema.Types.ObjectId,
-    ref: "Address",
-    required: true
+    house: {
+      type: String,
+      required: true
+    },
+    place: {
+      type: String,
+      required: true
+    },
+    city: {
+      type: String,
+      required: true
+    },
+    state: {
+      type: String,
+      required: true
+    },
+    landMark: {
+      type: String,
+      required: false  
+    },
+    pin: {
+      type: Number,
+      required: true
+    },
+    contactNo: {
+      type: String,  
+      required: true
+    }
   },
   coupon: {
     type: Schema.Types.ObjectId,
@@ -24,6 +49,11 @@ const orderSchema = new mongoose.Schema({
     required:false
   },
   items: [{
+    itemOrderId: {
+      type: String,
+      default: () => uuidv4().split('-')[0],
+      unique: true
+    },
     product: {
       type: Schema.Types.ObjectId,
       ref: 'Product',
@@ -36,7 +66,11 @@ const orderSchema = new mongoose.Schema({
     price: {
       type: Number,
       default: 0
-    }
+    },
+    saledPrice: {
+      type: Number,
+      default: 0
+    },
   }],
   actualPrice: {
     type: Number,

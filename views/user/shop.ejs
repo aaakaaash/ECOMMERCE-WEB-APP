@@ -80,34 +80,33 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 							</div>
 							<!-- price range -->
 							<form action="/shop" method="GET">
-								<select name="sortBy" onchange="this.form.submit()">
-									<option value="">Sort By</option>
-									<option value="popularity" <%= sortBy === 'popularity' ? 'selected' : '' %>>Popularity</option>
-									<option value="priceLowToHigh" <%= sortBy === 'priceLowToHigh' ? 'selected' : '' %>>Price: Low to High</option>
-									<option value="priceHighToLow" <%= sortBy === 'priceHighToLow' ? 'selected' : '' %>>Price: High to Low</option>
-									<option value="averageRatings" <%= sortBy === 'averageRatings' ? 'selected' : '' %>>Average Ratings</option>
-									<option value="featured" <%= sortBy === 'featured' ? 'selected' : '' %>>Featured</option>
-									<option value="newArrivals" <%= sortBy === 'newArrivals' ? 'selected' : '' %>>New Arrivals</option>
-									<option value="aToZ" <%= sortBy === 'aToZ' ? 'selected' : '' %>>A - Z</option>
-									<option value="zToA" <%= sortBy === 'zToA' ? 'selected' : '' %>>Z - A</option>
-								</select>
+								<div class="col-md-6 mb-3" id="categoryField">
+									<label for="category" class="form-label">Select Category</label>
+									<select class="form-control" id="category" name="category" onchange="this.form.submit()"> 
+										<option value="">--Select Category--</option>
+										<% categories.forEach(function(category) { %>
+											<option value="<%= category._id %>" <%= category._id == selectedCategory ? 'selected' : '' %>><%= category.name %></option>
+										<% }); %>
+									</select>
+									<div class="error" id="categoryError"></div>
+								</div>
+							
+								<div class="col-md-6 mb-3">
+									<label for="sortBy" class="form-label">Sort By</label>
+									<select class="form-control" name="sortBy" onchange="this.form.submit()">
+										<option value="">Sort By</option>
+										<option value="popularity" <%= sortBy === 'popularity' ? 'selected' : '' %>>Popularity</option>
+										<option value="priceLowToHigh" <%= sortBy === 'priceLowToHigh' ? 'selected' : '' %>>Price: Low to High</option>
+										<option value="priceHighToLow" <%= sortBy === 'priceHighToLow' ? 'selected' : '' %>>Price: High to Low</option>
+										<option value="averageRatings" <%= sortBy === 'averageRatings' ? 'selected' : '' %>>Average Ratings</option>
+										<option value="featured" <%= sortBy === 'featured' ? 'selected' : '' %>>Featured</option>
+										<option value="newArrivals" <%= sortBy === 'newArrivals' ? 'selected' : '' %>>New Arrivals</option>
+										<option value="aToZ" <%= sortBy === 'aToZ' ? 'selected' : '' %>>A - Z</option>
+										<option value="zToA" <%= sortBy === 'zToA' ? 'selected' : '' %>>Z - A</option>
+									</select>
+								</div>
 							</form>
-							<!-- //price range -->
-							<!--preference -->
-							<div class="left-side">
-								<h3 class="agileits-sear-head">Deal Offer On</h3>
-								<ul>
-									<li>
-										<input type="checkbox" class="checked">
-										<span class="span">Backpack</span>
-									</li>
-									<li>
-										<input type="checkbox" class="checked">
-										<span class="span">Phone Pocket</span>
-									</li>
-
-								</ul>
-							</div>
+							
 							<!-- // preference -->
 							<!-- discounts -->
 							<div class="left-side">

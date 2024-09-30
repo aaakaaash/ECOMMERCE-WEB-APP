@@ -82,7 +82,7 @@
                     <br>
                     <a href="/user/my-order/order-details/<%= order.orderId %>/<%= item.product._id %>">
                       <button class="btn btn-warning">View Order</button>
-                  </a>
+                    </a>
                   
                     <p class="mb-0 mt-2">Order ID: <%= order.orderId %></p>
                   </div>
@@ -93,10 +93,17 @@
                     <p class="mb-0">Color: <%= item.product.color %></p>
                   </div>
                   <div class="col-md-2">
-                    <p class="font-weight-bold mb-0">Price: $<%= item.product.salePrice.toFixed(2) %></p>
+                    <p class="font-weight-bold mb-0">Price: ₹<%= item.product.salePrice.toFixed(2) %></p>
                     <p class="mb-0">Quantity: <%= item.quantity %></p>
-                    <p class="mb-0">Total: $<%= (item.product.salePrice * item.quantity).toFixed(2) %></p>
+                    <p class="mb-0">Total: ₹<%= (item.product.salePrice * item.quantity).toFixed(2) %></p>
+                    
+                    <!-- SaledPrice section underneath -->
+                    <div class="mt-2" style="background-color: #f8d7da; padding: 8px; border-radius: 5px;">
+                      <p class="font-weight-bold text-danger mb-0">Saled Price: ₹<%= item.saledPrice.toFixed(2) %></p>
+                      <p class="text-danger mb-0">Saled Total: ₹<%= (item.saledPrice * item.quantity).toFixed(2) %></p>
+                    </div>
                   </div>
+
                   <div class="col-md-2">
                     <div class="order-status">
                       <% if (order.status === 'Delivered') { %>
@@ -108,11 +115,9 @@
                       <% } %>
                       <span><%= order.status %></span>
                     </div>
-                  
                   </div>
-                 
+
                   <div class="col-md-3 text-right">
-                    
                     <p class="mb-2"><%= order.date.toLocaleString() %></p>
                     <br>
                     <% if (order.status === 'Pending' || order.status === 'Processing') { %>
@@ -165,6 +170,7 @@
     </main>
   </div>
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

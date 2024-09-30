@@ -7,6 +7,7 @@ const env = require("dotenv").config();
 const User = require("../../models/userSchema");
 const Product = require("../../models/productSchema")
 const Offer = require("../../models/offerSchema")
+const Category = require("../../models/categorySchema")
 
 let sessionActive = false;
 
@@ -21,7 +22,6 @@ const pageNotFound = async (req, res, next) => {
 const loadHomepage = async (req, res, next) => {
     try {
         const searchQuery = req.query.searchQuery || '';
-        
         const { sortBy } = req.query;
 
         const page = parseInt(req.query.page) || 1;
@@ -29,10 +29,16 @@ const loadHomepage = async (req, res, next) => {
         const skip = (page - 1) * limit;
 
         let searchCondition = { isBlocked: false };
+
         if (searchQuery) {
             const regex = new RegExp(searchQuery, 'i');
             searchCondition.$or = [{ productName: regex }];
         }
+
+        
+        const listedCategories = await Category.find({ isListed: true }).select('_id').exec();
+        const listedCategoryIds = listedCategories.map(cat => cat._id);
+        searchCondition.category = { $in: listedCategoryIds };
 
         let sortCriteria = {};
         switch (sortBy) {
@@ -62,21 +68,21 @@ const loadHomepage = async (req, res, next) => {
         res.locals.user = userData;
 
         const offer = await Offer.find({ status: 'active' })
-        .populate('category')
-        .populate('product')
-        .sort({ createdAt: -1 })  
-        .limit(1)  
-        .exec();
-      
-      return res.render('home', {
-        user: userData,
-        products: products,
-        sortBy: sortBy || '',
-        currentPage: page,
-        totalPages: totalPages,
-        totalProducts: totalProducts,
-        offer: offer.length ? offer[0] : null 
-      });
+            .populate('category')
+            .populate('product')
+            .sort({ createdAt: -1 })
+            .limit(1)
+            .exec();
+
+        return res.render('home', {
+            user: userData,
+            products: products,
+            sortBy: sortBy || '',
+            currentPage: page,
+            totalPages: totalPages,
+            totalProducts: totalProducts,
+            offer: offer.length ? offer[0] : null
+        });
 
     } catch (error) {
         console.log('Home page not found:', error);
@@ -113,16 +119,29 @@ const loadAboutpage = async (req, res, next) => {
 const loadShoppage = async (req, res, next) => {
     try {
         const searchQuery = req.query.searchQuery || '';
-        const { sortBy } = req.query;
+        const { sortBy, category } = req.query;
 
         const page = parseInt(req.query.page) || 1;
         const limit = 5;
         const skip = (page - 1) * limit;
 
         let searchCondition = { isBlocked: false };
+
         if (searchQuery) {
             const regex = new RegExp(searchQuery, 'i');
             searchCondition.$or = [{ productName: regex }];
+        }
+
+        if (category && category !== '') {
+            searchCondition.category = category;
+        }
+
+    
+        const listedCategories = await Category.find({ isListed: true }).select('_id').exec();
+        const listedCategoryIds = listedCategories.map(cat => cat._id);
+
+        if (!category) {
+            searchCondition.category = { $in: listedCategoryIds };
         }
 
         let sortCriteria = {};
@@ -152,23 +171,28 @@ const loadShoppage = async (req, res, next) => {
         let userData = userId ? await User.findById(userId) : null;
         res.locals.user = userData;
 
+        const categories = await Category.find({ isListed: true }).exec();
+
         const offer = await Offer.find().populate('category').populate('product').exec();
 
-
-        return res.render("shop", { 
+        return res.render("shop", {
             user: userData,
             products: products,
+            categories: categories,
             sortBy: sortBy || '',
             currentPage: page,
             totalPages: totalPages,
             totalProducts: totalProducts,
-            offer
+            offer,
+            selectedCategory: category || ''
         });
+
     } catch (error) {
         console.log("shop page not found:", error);
         next(error);
     }
 };
+
 
 
 

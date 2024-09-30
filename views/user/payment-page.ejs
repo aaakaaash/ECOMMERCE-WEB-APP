@@ -54,7 +54,6 @@
         <div class="container">
             <div class="inner-sec-shop px-lg-4 px-3">
                 <h3 class="tittle-w3layouts my-lg-4 mt-3">Payment </h3>
-                <!--/tabs-->
                 <div class="responsive_tabs">
                     <div id="horizontalTab">
                         <ul class="resp-tabs-list">
@@ -64,16 +63,16 @@
                         </ul>
                         <br>
                         <div class="resp-tabs-container">
-                            <!--/tab_one-->
                             <form action="/cart/place-order/make-payment/confirm-order" method="POST" id="orderForm">
                                 <input type="hidden" name="userId" value="<%= user._id %>">
-                                <input type="hidden" name="address" value="<%= address._id %>">
+                                <input type="hidden" name="address" id="addressInput" value='<%= JSON.stringify(address) %>'>
                                 <input type="hidden" name="totalPrice" id="hiddenTotalPrice" value="<%= totalPrice %>">
                                 <input type="hidden" name="finalTotal" id="hiddenFinalTotal" value="<%= finalTotal %>">
                                 <input type="hidden" name="appliedCouponId" id="appliedCouponId" value="<%= appliedCoupon ? appliedCoupon._id : '' %>">
                                 <input type="hidden" name="discountAmount" id="discountAmount" value="<%= discountAmount %>">
+                                <input type="hidden" name="couponDiscountAmount" id="couponDiscountAmount" value="<%=  couponDiscountAmount %>">
                                 <input type="hidden" name="paymentMethod" id="paymentMethod" value="COD">
-                            
+                               
                                 <% items.forEach(item => { %>
                                     <input type="hidden" name="items[]" value='<%= JSON.stringify(item) %>' />
                                 <% }) %>
@@ -93,16 +92,15 @@
                                 <button class="btn btn-success" type="submit" id="confirmOrderBtn">Confirm Order</button>
                             </form>
                             <div id="responseMessage" style="margin-top: 20px; color: red;"></div>
-                            <br>
                         </div>
                     </div>
                 </div>
-                <!--//tabs-->
             </div>
         </div>
-        <!-- //payment -->
     </section>
-    <!--//Payment-->
+    
+    <!-- Include the JavaScript file -->
+    <script src="/js/checkout.js"></script>
     <%-include("../../views/partials/user/footer")%>
     <!--jQuery-->
     <script src="js/jquery-2.2.3.min.js"></script>
@@ -116,19 +114,28 @@
     <script src="js/minicart.js"></script>
 
     <script>
-        function setPaymentMethod(method) {
-            document.getElementById('paymentMethod').value = method;
+      function setPaymentMethod(method) {
+    document.getElementById('paymentMethod').value = method;
+}
+
+document.getElementById('orderForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(this);
+    const addressData = JSON.parse(formData.get('address'));
+    
+    // Validate address fields
+    const requiredFields = ['house', 'place', 'city', 'state', 'pin', 'contactNo'];
+    for (const field of requiredFields) {
+        if (!addressData[field]) {
+            document.getElementById('responseMessage').textContent = `${field} is required in the address`;
+            return;
         }
-        
-       
-        document.getElementById('orderForm').onsubmit = function() {
-            var finalTotal = parseFloat(document.getElementById('hiddenFinalTotal').value);
-            if (isNaN(finalTotal)) {
-                alert('Invalid total amount. Please try again.');
-                return false;
-            }
-            return true;
-        };
+    }
+
+    // If validation passes, submit the form
+    this.submit();
+});
         </script>
 </body>
 

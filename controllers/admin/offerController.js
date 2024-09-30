@@ -51,7 +51,7 @@ const addOffer = async (req, res) => {
       status
     } = req.body;
 
-    // Check if the offer code already exists
+   
     const existingOffer = await Offer.findOne({ offerCode: offerCode });
     if (existingOffer) {
       return res.status(400).json({
@@ -60,7 +60,7 @@ const addOffer = async (req, res) => {
       });
     }
 
-    // Create a new offer
+    
     const newOffer = new Offer({
       offerCode,
       title,

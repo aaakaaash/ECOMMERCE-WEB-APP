@@ -169,129 +169,165 @@
 </html>
 
     <script>
-        function toggleProductCategory() {
-            const offerType = document.getElementById('offerType').value;
-            const productField = document.getElementById('productField');
-            const categoryField = document.getElementById('categoryField');
-    
-            // Show/Hide fields based on offer type
-            if (offerType === 'product') {
-                productField.style.display = 'block';
-                categoryField.style.display = 'none';
-                document.getElementById('product').required = true;
-                document.getElementById('category').required = false;
-            } else if (offerType === 'category') {
-                productField.style.display = 'none';
-                categoryField.style.display = 'block';
-                document.getElementById('product').required = false;
-                document.getElementById('category').required = true;
-            } else {
-                productField.style.display = 'none';
-                categoryField.style.display = 'none';
-                document.getElementById('product').required = false;
-                document.getElementById('category').required = false;
-            }
+       function toggleProductCategory() {
+    const offerType = document.getElementById('offerType').value;
+    const productField = document.getElementById('productField');
+    const categoryField = document.getElementById('categoryField');
+
+    if (offerType === 'product') {
+        productField.style.display = 'block';
+        categoryField.style.display = 'none';
+        document.getElementById('product').required = true;
+        document.getElementById('category').required = false;
+    } else if (offerType === 'category') {
+        productField.style.display = 'none';
+        categoryField.style.display = 'block';
+        document.getElementById('product').required = false;
+        document.getElementById('category').required = true;
+    } else {
+        productField.style.display = 'none';
+        categoryField.style.display = 'none';
+        document.getElementById('product').required = false;
+        document.getElementById('category').required = false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Show product dropdown by default when page loads
+    document.getElementById('productField').style.display = 'block';
+    document.getElementById('product').required = true;
+
+    document.getElementById('offerForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (validateForm()) {
+            addOffer();
         }
-    
-        document.getElementById('offerForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            if (validateForm()) {
-                addOffer();
-            }
+    });
+
+    // Add event listener for discount type change
+    document.getElementById('discountType').addEventListener('change', function() {
+        validateDiscountValue();
+    });
+
+    // Add event listener for discount value change
+    document.getElementById('discountValue').addEventListener('input', function() {
+        validateDiscountValue();
+    });
+});
+
+function validateForm() {
+    let isValid = true;
+    const fields = ['offerCode', 'title', 'offerType', 'discountType', 'discountValue', 'minPurchaseAmount', 'startDate', 'endDate', 'usageLimit', 'status'];
+
+    fields.forEach(field => {
+        const value = document.getElementById(field).value.trim();
+        const errorElement = document.getElementById(`${field}Error`);
+
+        if (!value) {
+            errorElement.textContent = `${field.charAt(0).toUpperCase() + field.slice(1)} is required.`;
+            isValid = false;
+        } else {
+            errorElement.textContent = '';
+        }
+    });
+
+    const offerType = document.getElementById('offerType').value;
+    if (offerType === 'product' && !document.getElementById('product').value) {
+        document.getElementById('productError').textContent = 'Product is required for product offers.';
+        isValid = false;
+    }
+    if (offerType === 'category' && !document.getElementById('category').value) {
+        document.getElementById('categoryError').textContent = 'Category is required for category offers.';
+        isValid = false;
+    }
+
+    if (new Date(document.getElementById('startDate').value) > new Date(document.getElementById('endDate').value)) {
+        document.getElementById('endDateError').textContent = 'End date must be after start date.';
+        isValid = false;
+    }
+
+    const usageLimit = document.getElementById('usageLimit').value;
+    if (isNaN(usageLimit) || usageLimit < 0) {
+        document.getElementById('usageLimitError').textContent = 'Usage Limit must be a valid number, 0 or greater.';
+        isValid = false;
+    }
+
+    isValid = validateDiscountValue() && isValid;
+
+    return isValid;
+}
+
+function validateDiscountValue() {
+    const discountType = document.getElementById('discountType').value;
+    const discountValue = parseFloat(document.getElementById('discountValue').value);
+    const errorElement = document.getElementById('discountValueError');
+
+    if (discountType === 'percentage') {
+        if (isNaN(discountValue) || discountValue <= 0 || discountValue > 60) {
+            errorElement.textContent = 'Percentage discount must be between 0 and 60.';
+            return false;
+        }
+    } else if (discountType === 'flat') {
+        if (isNaN(discountValue) || discountValue <= 0 || discountValue > 100) {
+            errorElement.textContent = 'Flat discount must be between 0 and 100.';
+            return false;
+        }
+    }
+
+    errorElement.textContent = '';
+    return true;
+}
+
+function addOffer() {
+    const formData = new FormData(document.getElementById('offerForm'));
+    const offerData = Object.fromEntries(formData.entries());
+
+    if (offerData.offerType === 'product') {
+        delete offerData.Categories;
+    } else if (offerData.offerType === 'category') {
+        delete offerData.product;
+    } else {
+        delete offerData.product;
+        delete offerData.Categories;
+    }
+
+    fetch('/admin/create-offer/add-offer', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(offerData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: 'Success!',
+                text: 'Offer created successfully',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/admin/offers';
+                }
+            });
+        } else {
+            Swal.fire({
+                title: 'Error!',
+                text: data.message || 'Failed to create offer',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error!',
+            text: 'An unexpected error occurred',
+            icon: 'error',
+            confirmButtonText: 'OK'
         });
-    
-        function validateForm() {
-            let isValid = true;
-            const fields = ['offerCode', 'title', 'offerType', 'discountType', 'discountValue', 'minPurchaseAmount', 'startDate', 'endDate', 'usageLimit', 'status'];
-    
-            fields.forEach(field => {
-                const value = document.getElementById(field).value.trim();
-                const errorElement = document.getElementById(`${field}Error`);
-    
-                if (!value) {
-                    errorElement.textContent = `${field.charAt(0).toUpperCase() + field.slice(1)} is required.`;
-                    isValid = false;
-                } else {
-                    errorElement.textContent = '';
-                }
-            });
-    
-            const offerType = document.getElementById('offerType').value;
-            if (offerType === 'product' && !document.getElementById('product').value) {
-                document.getElementById('productError').textContent = 'Product is required for product offers.';
-                isValid = false;
-            }
-            if (offerType === 'category' && !document.getElementById('category').value) {
-                document.getElementById('categoryError').textContent = 'Category is required for category offers.';
-                isValid = false;
-            }
-    
-            // Validate date range
-            if (new Date(document.getElementById('startDate').value) > new Date(document.getElementById('endDate').value)) {
-                document.getElementById('endDateError').textContent = 'End date must be after start date.';
-                isValid = false;
-            }
-    
-            // Validate usage limit (must be a number >= 0)
-            const usageLimit = document.getElementById('usageLimit').value;
-            if (isNaN(usageLimit) || usageLimit < 0) {
-                document.getElementById('usageLimitError').textContent = 'Usage Limit must be a valid number, 0 or greater.';
-                isValid = false;
-            }
-    
-            return isValid;
-        }
-    
-        function addOffer() {
-            const formData = new FormData(document.getElementById('offerForm'));
-            const offerData = Object.fromEntries(formData.entries());
-    
-            if (offerData.offerType === 'product') {
-                delete offerData.Categories;
-            } else if (offerData.offerType === 'category') {
-                delete offerData.product;
-            } else {
-                delete offerData.product;
-                delete offerData.Categories;
-            }
-    
-            fetch('/admin/create-offer/add-offer', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(offerData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        title: 'Success!',
-                        text: 'Offer created successfully',
-                        icon: 'success',
-                        confirmButtonText: 'OK'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.href = '/admin/offers';
-                        }
-                    });
-                } else {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: data.message || 'Failed to create offer',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'An unexpected error occurred',
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
-            });
-        }
+    });
+}
     </script>
