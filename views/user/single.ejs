@@ -89,10 +89,10 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 							<h3><%= product.productName %> (<%= product.color %>)</h3>
 							<p>
 								<% if (product.offerPrice && product.offerPrice < product.salePrice) { %>
-								  <span class="item_price">$<%= product.offerPrice %></span>
+								  <span class="item_price">₹<%= product.offerPrice %></span>
 								  <del>$<%= product.salePrice %></del>
 								<% } else { %>
-								  <span class="item_price">$<%= product.regularPrice %></span>
+								  <span class="item_price">₹<%= product.regularPrice %></span>
 								  <del>$<%= product.salePrice %></del>
 								<% } %>
 							  </p>

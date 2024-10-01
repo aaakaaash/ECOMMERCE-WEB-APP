@@ -33,21 +33,13 @@
                             <p><%= order.user.name %></p>
                             <p><%= order.address.house %>, <%= order.address.place %>, <%= order.address.city %>, <%= order.address.state %> - <%= order.address.pin %></p>
                             <p>+91 <%= order.address.contactNo %></p>
-                            <p class="text-muted">This order is tracked by <%= order.orderId %></p>
+                            <p class="text-muted">This item is tracked by <%= selectedItem.itemOrderId %></p>
                         </div>
                         
                         <div class="col-md-4">
-                            <h5>Your Rewards</h5>
+                            <h5>Your Rewards in the whole Order</h5>
                             <p><span class="coin-icon">&#9733;</span> ₹<%= order.discount %> Saved </p>
                         </div>
-                        
-                        <!-- <div class="col-md-4">
-                            <h5>More actions</h5>
-                            <button class="btn btn-warning mb-2">
-                                <i class="fas fa-download"></i> Download Invoice
-                            </button>
-                            <button class="btn btn-outline-primary">Download</button>
-                        </div> -->
                     </div>
                     
                     <hr>
@@ -71,7 +63,7 @@
                                     <h5><%= selectedItem.product.productName %></h5>
                                     <p>Color: <%= selectedItem.product.color %> | SKU: <%= selectedItem.product.skuNumber %></p>
                                 
-                                    <p>₹<%= selectedItem.product.salePrice %> <span class="coin-icon">&#9733;</span><%= selectedItem.quantity %></p>
+                                    <p>Actual price: ₹<%= selectedItem.product.salePrice %> <span class="coin-icon">&#9733;</span><%= selectedItem.quantity %></p>
                                 </div>
                                 <div class="col-md-6">
                                     <% if (selectedItem && selectedItem.saledPrice) { %>
@@ -89,17 +81,11 @@
                                         <p>No saled price available for this item.</p>
                                       </div>
                                     <% } %>
-                                  </div>
-                                  
-                                  
+                                </div>
                                 <div class="col-md-4">
                                     <div class="order-status">
-                                        <p class="text-success"><%= order.status %></p>
+                                        <p class="text-success"><%= selectedItem.itemOrderStatus %></p>
                                     </div>
-                                    <!-- <div>
-                                        <button class="btn btn-outline-primary btn-sm">Rate & Review Product</button>
-                                        <button class="btn btn-outline-secondary btn-sm mt-2">Chat with us</button>
-                                    </div> -->
                                 </div>
                             </div>
                         </div>

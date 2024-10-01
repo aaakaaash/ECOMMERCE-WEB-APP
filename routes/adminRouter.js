@@ -88,7 +88,7 @@ router.delete('/deleteProduct', adminAuth, productController.deleteProduct);
 // order management
 
 router.get("/orders",adminAuth,orderController.orders);
-router.post('/updateOrderStatus/:id', adminAuth, orderController.updateOrderStatus);
+router.post('/updateOrderItemStatus/:id', adminAuth, orderController.updateOrderStatus);
 router.get("/orders/order-details/:orderId", adminAuth,orderController.orderDetails);
 
 // coupon management

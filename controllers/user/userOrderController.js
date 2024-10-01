@@ -76,19 +76,36 @@ const addCoupon = async (req, res, next) => {
       return res.status(404).json({ message: "Coupon not found" });
     }
 
+    // Check if the coupon is expired
+    const today = new Date();
+    if (today > coupon.endDate) {
+      return res.status(400).json({ message: "Coupon has expired" });
+    }
+
+    // Check if the coupon has already been used by the user
     const usedCoupon = await Order.findOne({ user: userId, coupon: couponId });
     if (usedCoupon) {
       return res.status(400).json({ message: "Coupon has already been used. Please try another one." });
     }
 
-    
     let totalPrice = 0;
     let totalDiscount = 0;
-    
+
     cart.items.forEach(item => {
       totalPrice += item.product.salePrice * item.quantity;
       totalDiscount += item.discountAmount * item.quantity; 
     });
+
+   
+const netAmount = totalPrice - totalDiscount;
+
+if (netAmount < coupon.minPurchaseAmount) {
+  return res.status(400).json({ message: `Minimum purchase amount is ${coupon.minPurchaseAmount} for this coupon.` });
+}
+
+if (netAmount > coupon.maxPurchaseAmount) {
+  return res.status(400).json({ message: `Maximum purchase amount is ${coupon.maxPurchaseAmount} for this coupon.` });
+}
 
     const platformFee = 0;
     const deliveryCharges = 0;
@@ -102,18 +119,21 @@ const addCoupon = async (req, res, next) => {
       discountAmount = (finalTotal * coupon.discountValue) / 100;
     }
 
-    discountAmount = Math.min(discountAmount, finalTotal); 
+    // Ensure the discount does not exceed the applicable amount
+    discountAmount = Math.min(discountAmount, (totalPrice - totalDiscount));
 
-    
     totalDiscount += discountAmount;
 
-  
+    // Recalculate final total after applying the discount
     finalTotal = totalPrice - totalDiscount + platformFee + deliveryCharges;
 
-    
+    // Save the applied coupon in session
+    req.session.appliedCoupon = couponId;
+
+    // Respond with the updated details
     res.status(200).json({
       totalPrice: totalPrice.toFixed(2),
-      discount: totalDiscount.toFixed(2), 
+      discount: totalDiscount.toFixed(2),
       platformFee: platformFee.toFixed(2),
       deliveryCharges: deliveryCharges.toFixed(2),
       finalTotal: finalTotal.toFixed(2),
@@ -127,6 +147,8 @@ const addCoupon = async (req, res, next) => {
     next(error);
   }
 };
+
+
 
 
 const loadPayment = async (req, res, next) => {
@@ -249,16 +271,16 @@ const confirmOrder = async (req, res, next) => {
       throw new Error('Invalid total price');
     }
 
-    // Calculate total item count considering quantity
+    
     let totalItemCount = parsedItems.reduce((sum, item) => sum + item.quantity, 0);
 
-    // Calculate proportional coupon discount per item based on its quantity
+    
     const discountPerItem = couponDiscountAmount / totalItemCount;
 
-    // Calculate saledPrice for each item based on its quantity
+    
     parsedItems.forEach(item => {
-      const itemDiscount = discountPerItem * item.quantity;  // total discount for the item
-      item.saledPrice = item.price - (itemDiscount / item.quantity);  // discounted price per unit
+      const itemDiscount = discountPerItem * item.quantity; 
+      item.saledPrice = item.price - (itemDiscount / item.quantity);  
     });
 
     const orderData = {
@@ -309,6 +331,11 @@ const finalizeOrder = async (order, userId, appliedCouponId) => {
     
     order.status = 'Processing';
     order.payment[0].status = 'completed';
+
+    order.items.forEach(item => {
+      item.itemOrderStatus = 'Processing';
+    });
+
     await order.save();
 
    
@@ -371,14 +398,12 @@ const verifyRazorpayPayment = async (req, res) => {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
     
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-     
       return res.status(400).json({ success: false, message: 'Missing required parameters' });
     }
 
     const razorpayKeySecret = process.env.RAZOR_PAY_KEY_SECRET;
 
     if (!razorpayKeySecret) {
-    
       return res.status(500).json({ success: false, message: 'Server configuration error: Missing Razorpay secret key' });
     }
 
@@ -390,40 +415,44 @@ const verifyRazorpayPayment = async (req, res) => {
         .update(sign.toString())
         .digest("hex");
     } catch (cryptoError) {
-     
       return res.status(500).json({ success: false, message: 'Error in payment verification process', error: cryptoError.message });
     }
 
-
     if (razorpay_signature === expectedSign) {
      
-      
+
       const order = await Order.findOne({ 'payment.razorpayOrderId': razorpay_order_id });
       
       if (!order) {
-        
         return res.status(404).json({ success: false, message: 'Order not found' });
       }
 
-     
+      
       order.status = 'Processing';
       order.payment[0].status = 'completed';
       order.payment[0].razorpayPaymentId = razorpay_payment_id;
+
+    
+      order.items.forEach(item => {
+        item.itemOrderStatus = 'Processing';
+      });
+
       await order.save();
 
-
+     
       await Cart.findOneAndUpdate({ userId: order.user }, { $set: { items: [] } });
+
 
       if (order.coupon) {  
         const couponData = await Coupon.findById(order.coupon);
-      
+        
         if (couponData) {
           couponData.usedCount = (couponData.usedCount || 0) + 1;
-      
+          
           if (couponData.usedCount >= couponData.usageLimit && couponData.status !== "Not available") {
             couponData.status = "Not available";
           }
-      
+
           await couponData.save();
         }
       }
@@ -431,12 +460,19 @@ const verifyRazorpayPayment = async (req, res) => {
       return res.status(200).json({ success: true, message: 'Payment successful', orderId: order._id });
 
     } else {
-      
+    
       const order = await Order.findOne({ 'payment.razorpayOrderId': razorpay_order_id });
+
       if (order) {
         console.log('Updating order status to Pending for failed payment:', order._id);
         order.status = 'Pending';
         order.payment[0].status = 'failed';
+
+       
+        order.items.forEach(item => {
+          item.itemOrderStatus = 'Pending';
+        });
+
         await order.save();
       }
 
@@ -447,6 +483,7 @@ const verifyRazorpayPayment = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 };
+
 
 
 const orderConfirmationPage = async (req,res,next) => {
@@ -523,41 +560,86 @@ const myOrder = async (req, res, next) => {
 };
   
 
-  const cancelOrder = async (req, res, next) => {
-    try {
-        const { orderId } = req.params;
+const cancelOrder = async (req, res, next) => {
+  try {
+      const { itemOrderId, cancelReason } = req.params;  // Extract itemOrderId and cancelReason from params
 
-        const order = await Order.findOneAndUpdate(
-            { _id: orderId },
-            { status: "Cancelled" },
-            { new: true }
-        );
+      // Find the order containing the item
+      const order = await Order.findOne({ "items.itemOrderId": itemOrderId });
 
-        if (!order) {
-            return res.status(404).send('Order not found');
-        }
+      if (!order) {
+          return res.status(404).send('Item not found');
+      }
 
-        const products = order.items.map(item => ({
-            productId: item.product._id.toString(),
-            quantity: item.quantity
+      // Find the index of the item in the order
+      const itemIndex = order.items.findIndex(item => item.itemOrderId === itemOrderId);
 
-        }));
-       
-        for (const product of products) {
-            await Product.findOneAndUpdate(
-                { _id: product.productId },  
-                { $inc: { quantity: product.quantity } },  
-                { new: true }  
-            );
-        }
+      if (itemIndex === -1) {
+          return res.status(404).send('Item not found in the order');
+      }
 
-     
-        res.redirect('/user/my-order');
+      // Update the item's status to "Cancelled" and add the cancel reason
+      order.items[itemIndex].itemOrderStatus = "Cancelled";
+      order.items[itemIndex].cancelReason = cancelReason || "No reason provided"; // Default reason if none given
 
-    } catch (error) {
-        next(error);
-    }
+      // Get the saledPrice and quantity for wallet credit
+      const { saledPrice, quantity } = order.items[itemIndex];
+      
+      // Check if the payment method is "Online Payment" and status is "completed"
+      const onlinePayment = order.payment.find(p => p.method === "Online Payment" && p.status === "completed");
+
+      if (onlinePayment) {
+          // Calculate the amount to credit back to the wallet
+          const amountToCredit = saledPrice * quantity;
+
+          // Find the user's wallet
+          const user = await User.findById(order.user).populate('wallet').exec();
+          if (user && user.wallet) {
+              // Update the wallet balance
+              user.wallet.balance += amountToCredit;
+
+              // Create a transaction record
+              user.wallet.transactions.push({
+                  type: "credit",
+                  amount: amountToCredit,
+                  description: `Refund for cancelled order item: ${itemOrderId}. Reason: ${cancelReason || "No reason provided"}`,
+                  date: new Date()
+              });
+
+              // Save the wallet
+              await user.wallet.save();
+          }
+      }
+
+      // Update product quantity back to stock
+      const productId = order.items[itemIndex].product._id.toString();
+      const itemQuantity = order.items[itemIndex].quantity; // Correcting the variable name to avoid confusion
+
+      await Product.findOneAndUpdate(
+          { _id: productId },
+          { $inc: { quantity: itemQuantity } }, // Increment stock by the item quantity
+          { new: true }
+      );
+
+      // Update overall order status
+      const allStatuses = order.items.map(item => item.itemOrderStatus);
+      const uniqueStatuses = [...new Set(allStatuses)];  
+
+      if (uniqueStatuses.length === 1) {
+          order.status = uniqueStatuses[0];
+      } else if (uniqueStatuses.length > 1) {
+          order.status = "Processing";
+      }
+
+      await order.save();
+
+      res.redirect('/user/my-order');
+
+  } catch (error) {
+      next(error);
+  }
 };
+
 
 const orderDetails = async (req, res, next) => {
   try {

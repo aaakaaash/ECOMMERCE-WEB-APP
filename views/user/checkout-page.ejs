@@ -346,43 +346,47 @@
     </script>
     
     <script>
-        $(document).ready(function() {
-            $('#applyCouponBtn').click(function() {
-                const couponId = $('#availableCoupons').val();
-                if (!couponId) {
-                    $('#couponMessage').text('Please select a coupon').removeClass('text-success').addClass('text-danger');
-                    return;
-                }
+       $(document).ready(function() {
+    $('#applyCouponBtn').click(function() {
+        const couponId = $('#availableCoupons').val();
+        if (!couponId) {
+            $('#couponMessage').text('Please select a coupon').removeClass('text-success').addClass('text-danger');
+            return;
+        }
 
-                $.ajax({
-                    url: '/cart/apply-coupon',
-                    method: 'POST',
-                    data: { couponId: couponId },
-                    success: function(response) {
-                        $('#subtotal').text('₹' + response.subtotal);
-                        $('#discount').text('- ₹' + response.discount);
-                        $('#platformFee').text('₹' + response.platformFee);
-                        $('#deliveryCharges').text('₹' + response.deliveryCharges);
-                        $('#totalAmount').text('₹' + response.total);
-                        $('#finalTotal').text('₹' + response.finalTotal);
-                        $('#hiddenFinalTotal').val(response.finalTotal);
-                        $('#savingsMessage').text('You will save ₹' + response.discount + ' on this order');
-                        $('#appliedCouponId').val(response.couponId);
-                        $('#couponMessage').text('Coupon applied successfully!').removeClass('text-danger').addClass('text-success');
-                    },
-                    error: function(xhr) {
-                        const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'An error occurred while applying the coupon.';
-                        $('#couponMessage').text(errorMessage).removeClass('text-success').addClass('text-danger');
-                    }
-                });
-            });
+        $.ajax({
+            url: '/cart/apply-coupon',
+            method: 'POST',
+            data: { couponId: couponId },
+            success: function(response) {
+                $('#subtotal').text('₹' + response.subtotal);
+                $('#discount').text('- ₹' + response.discount);
+                $('#platformFee').text('₹' + response.platformFee);
+                $('#deliveryCharges').text('₹' + response.deliveryCharges);
+                $('#totalAmount').text('₹' + response.total);
+                $('#finalTotal').text('₹' + response.finalTotal);
+                $('#hiddenFinalTotal').val(response.finalTotal);
+                $('#savingsMessage').text('You will save ₹' + response.discount + ' on this order');
+                $('#appliedCouponId').val(response.couponId);
+                $('#couponMessage').text('Coupon applied successfully!').removeClass('text-danger').addClass('text-success');
 
-            // Update the hidden finalTotal field when the form is submitted
-            $('#paymentForm').submit(function() {
-                const finalTotal = $('#finalTotal').text().replace('₹', '');
-                $('#hiddenFinalTotal').val(finalTotal);
-            });
+                // Disable coupon input once applied
+                $('#availableCoupons').prop('disabled', true);
+                $('#applyCouponBtn').prop('disabled', true);
+            },
+            error: function(xhr) {
+                const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'An error occurred while applying the coupon.';
+                $('#couponMessage').text(errorMessage).removeClass('text-success').addClass('text-danger');
+            }
         });
+    });
+
+    $('#paymentForm').submit(function() {
+        const finalTotal = $('#finalTotal').text().replace('₹', '');
+        $('#hiddenFinalTotal').val(finalTotal);
+    });
+});
+
     </script>
 </body>
 </html>

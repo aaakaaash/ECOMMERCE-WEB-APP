@@ -71,6 +71,15 @@ const orderSchema = new mongoose.Schema({
       type: Number,
       default: 0
     },
+    itemOrderStatus: {
+      type: String,
+      required: false,
+      enum: ["Pending", "Processing", "Shipped", "Delivered", "Cancelled", "Return Request", "Returned"],
+       default: "Pending"
+    },
+    cancelReason: {
+      type: String
+    }
   }],
   actualPrice: {
     type: Number,

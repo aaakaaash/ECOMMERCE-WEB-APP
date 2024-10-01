@@ -75,18 +75,18 @@
                                         <input type="number" class="form-control" id="discountValue" name="discountValue" required>
                                         <div class="error" id="discountValueError"></div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
+                                    <!-- <div class="col-md-6 mb-3">
                                         <label for="minPurchaseAmount" class="form-label">Min Purchase Amount</label>
                                         <input type="number" class="form-control" id="minPurchaseAmount" name="minPurchaseAmount" required>
                                         <div class="error" id="minPurchaseAmountError"></div>
-                                    </div>
+                                    </div> -->
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-6 mb-3">
+                                    <!-- <div class="col-md-6 mb-3">
                                         <label for="maxDiscountAmount" class="form-label">Max Discount Amount</label>
                                         <input type="number" class="form-control" id="maxDiscountAmount" name="maxDiscountAmount">
                                         <div class="error" id="maxDiscountAmountError"></div>
-                                    </div>
+                                    </div> -->
                                     <div class="col-md-6 mb-3">
                                         <label for="offerType" class="form-label">Offer Type</label>
                                         <select class="form-select" id="offerType" name="offerType" required onchange="toggleProductCategory()">
@@ -123,11 +123,11 @@
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-6 mb-3">
+                                    <!-- <div class="col-md-6 mb-3">
                                         <label for="usageLimit" class="form-label">Usage Limit</label>
                                         <input type="number" class="form-control" id="usageLimit" name="usageLimit" required>
                                         <div class="error" id="usageLimitError"></div>
-                                    </div>
+                                    </div> -->
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function validateForm() {
     let isValid = true;
-    const fields = ['offerCode', 'title', 'offerType', 'discountType', 'discountValue', 'minPurchaseAmount', 'startDate', 'endDate', 'usageLimit', 'status'];
+    const fields = ['offerCode', 'title', 'offerType', 'discountType', 'discountValue',  'startDate', 'endDate', 'status'];
 
     fields.forEach(field => {
         const value = document.getElementById(field).value.trim();
@@ -246,11 +246,7 @@ function validateForm() {
         isValid = false;
     }
 
-    const usageLimit = document.getElementById('usageLimit').value;
-    if (isNaN(usageLimit) || usageLimit < 0) {
-        document.getElementById('usageLimitError').textContent = 'Usage Limit must be a valid number, 0 or greater.';
-        isValid = false;
-    }
+ 
 
     isValid = validateDiscountValue() && isValid;
 

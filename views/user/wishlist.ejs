@@ -45,7 +45,9 @@
                                             <img src="/uploads/product-images/<%= item.productId.productImage && item.productId.productImage[0] %>" alt="Product Image" class="wishlist-image img-fluid" style="max-width: 100px;"> <!-- Adjusted: item.productId.productImage -->
                                         </div>
                                         <div class="p-2 flex-grow-1">
-                                            <h3 class="wishlist-title"><%= item.productId.productName %></h3> <!-- Adjusted: item.productId.productName -->
+                                            <a href="/product/<%= item.productId._id %>">
+                                                <h3 class="wishlist-title"><%= item.productId.productName %></h3>
+                                            </a>
                                             <!-- Placeholder for rating if required later -->
                                             <!-- 
                                             <div class="wishlist-rating">
@@ -61,14 +63,21 @@
                                                 <span class="wishlist-rating-count"></span>
                                             </div>
                                             -->
-                                            <p class="wishlist-price">₹<%= item.price %></p> 
-                                            <% if (item.productId.regularPrice > item.price) { %> 
-                                                <p class="wishlist-discount">
-                                                    <del>₹<%= item.productId.regularPrice %></del> 
-                                                    <%= Math.round((item.productId.regularPrice - item.price) / item.productId.regularPrice * 100) %> % off
-                                                </p>
-                                            <% } %>
+                                            <p class="wishlist-price">
+                                                ₹<% if (item.productId.offerPrice) { %>
+                                                    <del><%= item.productId.salePrice %></del> ₹<%= item.productId.offerPrice %>
+                                                <% } else { %>
+                                                    <%= item.productId.salePrice %>
+                                                <% } %>
+                                            </p>
                                         </div>
+                                        <form id="addToCartForm-<%= item.productId._id %>" onsubmit="return false;">
+                                            <input type="hidden" name="productId" value="<%= item.productId._id %>">
+                                            <input type="hidden" name="quantity" value="1">
+                                            <button type="button" class="googles-cart pgoogles-cart mr-3" onclick="addToCart('<%= item.productId._id %>', 1)">
+                                              <i class="fas fa-cart-plus"></i>
+                                            </button>
+                                        </form>
                                         <div class="p-2 flex-shrink-0">
                                             <i class="fa fa-trash fa-lg wishlist-remove" style="cursor: pointer;" data-product-id="<%= item.productId._id %>"></i> 
                                         </div>
@@ -216,6 +225,82 @@
         });
     });
     </script>
+
+
+<script>
+	function addToCart(productId) {
+	  const form = document.getElementById(`addToCartForm-${productId}`);
+	  const formData = new FormData(form);
+	
+	  fetch("/add-cart", {
+		method: "POST",
+		headers: {
+		  'Content-Type': 'application/json',
+		},
+		body: JSON.stringify(Object.fromEntries(formData)),
+		credentials: 'include' 
+	  })
+	  .then(response => {
+		return response.json().then(data => {
+		  if (!response.ok) {
+			throw data;
+		  }
+		  return data;
+		});
+	  })
+	  .then(data => {
+		if (data.message === 'Item already in cart') {
+		  Swal.fire({
+			icon: 'info',
+			title: 'Already in Cart',
+			text: 'This item is already in your cart.'
+		  });
+		} else {
+		  Swal.fire({
+			icon: 'success',
+			title: 'Success',
+			text: data.message
+		  });
+		}
+		if (data.cartItemsCount) {
+		  updateCartItemCount(data.cartItemsCount);
+		}
+	  })
+	  .catch(error => {
+		console.error('Error:', error);
+		if (error.error === 'Please login to add items to cart') {
+		  Swal.fire({
+			icon: 'warning',
+			title: 'Authentication Required',
+			text: 'Please login to add items to cart',
+			showCancelButton: true,
+			confirmButtonText: 'Login',
+			cancelButtonText: 'Cancel'
+		  }).then((result) => {
+			if (result.isConfirmed) {
+			  window.location.href = '/login';
+			}
+		  });
+		} else {
+		  Swal.fire({
+			icon: 'error',
+			title: 'Error',
+			text: error.error || 'An error occurred, please login and try again'
+		  });
+		}
+	  });
+	}
+	
+	function updateCartItemCount(count) {
+	  const cartCountElement = document.getElementById('cartItemCount');
+	  if (cartCountElement) {
+		cartCountElement.textContent = count;
+	  }
+	}
+		</script>
+
+
+
     
 </body>
 

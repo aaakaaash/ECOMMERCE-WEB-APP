@@ -3,11 +3,7 @@ const {Schema} = mongoose;
 const {v4:uuidv4} = require("uuid");
 
 const walletSchema = new mongoose.Schema({
-    userId:{
-        type:Schema.Types.ObjectId,
-        required:true,
-        ref:"User"
-    },
+   
         balance: {
             type:Number,
             required:true,
@@ -19,18 +15,23 @@ const walletSchema = new mongoose.Schema({
                 default: ()=>uuidv4(),
                 unique:true
             },
+            type: {
+                type: String,
+                enum: ["credit", "debit"],
+                required: true,
+              },
             amount:{
                 type:Number,
                 required:true
+            },
+            description:{
+                type:String,
+                required:false
             },
             date:{
                 type:Date,
                 dafault:Date.now
             },
-            description:{
-                type:String,
-                required:false
-            }
         }]
 });
 

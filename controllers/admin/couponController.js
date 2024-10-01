@@ -15,10 +15,14 @@ const sharp = require("sharp")
 const coupon = async (req, res, next) => {
   try {
     const coupons = await Coupon.find().exec();
+    const currentDate = new Date(); 
 
     for (const coupon of coupons) {
-      if (coupon.usedCount >= coupon.usageLimit && coupon.status !== "Not available") {
-        coupon.status = "Not available";
+      if (currentDate > coupon.endDate && coupon.status !== "Expired") {
+        coupon.status = "Expired"; 
+        await coupon.save();
+      } else if (coupon.usedCount >= coupon.usageLimit && coupon.status !== "Not available") {
+        coupon.status = "Not available"; 
         await coupon.save();
       }
     }
@@ -29,6 +33,7 @@ const coupon = async (req, res, next) => {
     next(error);
   }
 };
+
 
 const createCoupon = async (req, res, next) => {
   try {

@@ -1,6 +1,7 @@
 const User = require("../../models/userSchema");
 const Order = require("../../models/orderSchema");
 const Product = require("../../models/productSchema");
+const Wallet = require("../../models/walletSchema");
 
 
 const fs = require("fs");
@@ -53,49 +54,96 @@ const orders = async (req, res) => {
 };
 
 const updateOrderStatus = async (req, res) => {
+    
     try {
         const { id } = req.params; 
-        const { status } = req.body; 
+        const { status, itemId, cancelReason } = req.body; 
 
-      
-        if (!id || !status) {
-            return res.status(400).json({ success: false, message: 'Order ID and status are required' });
+        if (!id || !status || !itemId) {
+            return res.status(400).json({ success: false, message: 'Order ID, item ID, and status are required' });
         }
 
-        
-        const updatedOrder = await Order.findByIdAndUpdate(
-            id,
-            { status: status }, 
-            { new: true, runValidators: true } 
-        );
+        const order = await Order.findById(id).populate('user');
 
-       
-        if (!updatedOrder) {
+        if (!order) {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
 
-        
-        if (status === 'Cancelled') {
-           
-            for (const item of updatedOrder.items) {
-                const product = item.product;
-                if (product) {
-                    
-                    await Product.findByIdAndUpdate(
-                        product._id, 
-                        { $inc: { quantity: item.quantity } }, 
-                        { new: true } 
-                    );
-                }
-            }
+        const item = order.items.find(item => item.itemOrderId === itemId);
+
+        if (!item) {
+            return res.status(404).json({ success: false, message: 'Item not found in the order' });
         }
 
-        
-        res.json({ success: true, message: 'Order status updated successfully', order: updatedOrder });
+        if (item.itemOrderStatus === 'Cancelled') {
+            return res.status(400).json({ success: false, message: 'This item has already been cancelled' });
+        }
+
+        item.itemOrderStatus = status;
+
+        if (status === 'Cancelled') {
+           
+            await Product.findByIdAndUpdate(
+                item.product, 
+                { $inc: { quantity: item.quantity } }, 
+                { new: true }
+            );
+
+          
+            if (order.payment[0].method === 'Online Payment' && order.payment[0].status === 'completed') {
+                const refundAmount = item.saledPrice;
+                
+                const user = await User.findById(order.user._id);
+                if (!user) {
+                    throw new Error('User not found');
+                }
+
+                let wallet;
+                if (!user.wallet) {
+                   
+                    wallet = new Wallet({
+                        balance: refundAmount,
+                        transactions: [{
+                            type: 'credit',
+                            amount: refundAmount,
+                            description: `Refund for cancelled item ${item.itemOrderId} in order ${order.orderId}`
+                        }]
+                    });
+                    await wallet.save();
+                    user.wallet = wallet._id;
+                    await user.save();
+                } else {
+                  
+                    wallet = await Wallet.findById(user.wallet);
+                    if (!wallet) {
+                        throw new Error('Wallet not found');
+                    }
+                    wallet.balance += refundAmount;
+                    wallet.transactions.push({
+                        type: 'credit',
+                        amount: refundAmount,
+                        description: `Refund for cancelled item ${item.itemOrderId} in order ${order.orderId}`
+                    });
+                    await wallet.save();
+                }
+            }
+
+            item.cancelReason = cancelReason || 'Not specified';
+        }
+
+       
+        const allItemsCancelled = order.items.every(item => item.itemOrderStatus === 'Cancelled');
+        if (allItemsCancelled) {
+            order.status = 'Cancelled';
+        }
+
+        await order.save();
+
+        res.json({ success: true, message: 'Item status updated successfully', order: order });
 
     } catch (error) {
-      
-        res.status(500).json({ success: false, message: 'An error occurred while updating the order status' });
+        console.error('Error in updateOrderStatus:', error);
+        res.status(500).json({ success: false, message: 'An error occurred while updating the item status' });
     }
 };
 

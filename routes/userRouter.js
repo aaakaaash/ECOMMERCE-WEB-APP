@@ -18,7 +18,7 @@ const { userAuth } = require("../middlewares/auth");
 const setBreadcrumbs = require('../middlewares/breadCrumb')
 const userWishlistController = require("../controllers/user/userWishlistController")
 const userCouponController = require("../controllers/user/userCouponController");
-
+const userWalletController = require("../controllers/user/userWalletController");
 
 
 router.use(nocache());
@@ -84,7 +84,10 @@ router.post("/verify-razorpay-payment", userAuth,userOrderController.verifyRazor
 router.get("/user/order-confirmation", userAuth,userOrderController.orderConfirmationPage);
 
 router.get("/user/my-order",userAuth,setBreadcrumbs,userOrderController.myOrder);
-router.post("/user/my-order/cancel/:orderId", userAuth, userOrderController.cancelOrder);
+router.post("/user/my-order/cancel/:itemOrderId/:cancelReason", userAuth, userOrderController.cancelOrder);
+
+
+
 
 router.get("/user/my-order/order-details/:orderId/:productId", userAuth, setBreadcrumbs, userOrderController.orderDetails);
 
@@ -100,6 +103,10 @@ router.delete('/wishlist/remove-deleted-item',userAuth,userWishlistController.re
 // coupon management
 
 router.get("/user/my-coupons",userAuth,userCouponController.myCoupons);
+
+// wallet management
+
+router.get("/user/my-wallet",userAuth,setBreadcrumbs,userWalletController.wallet);
 
 
 // user google authentication managaement

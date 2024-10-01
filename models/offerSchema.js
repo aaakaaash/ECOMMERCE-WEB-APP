@@ -31,13 +31,7 @@ const offerSchema = new mongoose.Schema({
       type: Number,
       required: true,
     },
-    minPurchaseAmount: {
-      type: Number, 
-      default: 0,
-    },
-    maxDiscountAmount: {
-      type: Number, 
-    },
+   
     product :{
         type:Schema.Types.ObjectId,
         ref:"Product",
@@ -56,14 +50,6 @@ const offerSchema = new mongoose.Schema({
     endDate: {
       type: Date,
       required: true,
-    },
-    usageLimit: {
-      type: Number, 
-      default: 0,
-    },
-    usedCount: {
-      type: Number, 
-      default: 0,
     },
     status: {
       type: String,
