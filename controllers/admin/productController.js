@@ -79,7 +79,21 @@ const addProducts = async (req, res) => {
             let productStatus = products.quantity > 0 ? "Available" : "Out of stock";
 
         
+            const offer = await Offer.findOne({ product: categoryId._id });
+            let offerPrice = products.salePrice;
             
+            if (offer) {
+                let offerValue;
+                
+                if (offer.discountType === 'percentage') {
+                    offerValue = products.salePrice * (offer.discountValue / 100);
+                } else {
+                    offerValue = offer.discountValue;
+                }
+                
+                offerPrice = products.salePrice - offerValue;
+                offerPrice = Math.max(offerPrice, 0); 
+            }
             
             const newProduct = new Product({
                 productName: products.productName,
@@ -88,6 +102,7 @@ const addProducts = async (req, res) => {
                 category: categoryId._id,
                 regularPrice: products.regularPrice,
                 salePrice: products.salePrice,
+                offerPrice: offerPrice,
                 createdOn: new Date(),
                 quantity: products.quantity,
                 size: products.size,
@@ -296,6 +311,21 @@ const editProduct = async (req, res) => {
         }
 
         updateFields.productImage = updatedImages;
+
+
+        const offer = await Offer.findOne({ product: id });
+        if (offer) {
+            let offerValue;
+
+            if (offer.discountType === 'percentage') {
+                offerValue = data.salePrice * (offer.discountValue / 100);
+            } else {
+                offerValue = offer.discountValue;
+            }
+
+            const offerPrice = data.salePrice - offerValue;
+            updateFields.offerPrice = Math.max(offerPrice, 0);
+        }
 
         const updatedProduct = await Product.findByIdAndUpdate(id, updateFields, { new: true });
 

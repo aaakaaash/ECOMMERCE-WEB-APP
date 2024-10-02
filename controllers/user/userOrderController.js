@@ -562,47 +562,47 @@ const myOrder = async (req, res, next) => {
 
 const cancelOrder = async (req, res, next) => {
   try {
-      const { itemOrderId, cancelReason } = req.params;  // Extract itemOrderId and cancelReason from params
+      const { itemOrderId, cancelReason } = req.params;  
 
-      // Find the order containing the item
+      
       const order = await Order.findOne({ "items.itemOrderId": itemOrderId });
 
       if (!order) {
           return res.status(404).send('Item not found');
       }
 
-      // Find the index of the item in the order
+      
       const itemIndex = order.items.findIndex(item => item.itemOrderId === itemOrderId);
 
       if (itemIndex === -1) {
           return res.status(404).send('Item not found in the order');
       }
 
-      // Update the item's status to "Cancelled" and add the cancel reason
+    
       order.items[itemIndex].itemOrderStatus = "Cancelled";
-      order.items[itemIndex].cancelReason = cancelReason || "No reason provided"; // Default reason if none given
+      order.items[itemIndex].cancelReason = cancelReason || "No reason provided"; 
 
-      // Get the saledPrice and quantity for wallet credit
+     
       const { saledPrice, quantity } = order.items[itemIndex];
       
-      // Check if the payment method is "Online Payment" and status is "completed"
+      
       const onlinePayment = order.payment.find(p => p.method === "Online Payment" && p.status === "completed");
 
       if (onlinePayment) {
-          // Calculate the amount to credit back to the wallet
+         
           const amountToCredit = saledPrice * quantity;
 
-          // Find the user's wallet
+       
           const user = await User.findById(order.user).populate('wallet').exec();
           if (user && user.wallet) {
-              // Update the wallet balance
+             
               user.wallet.balance += amountToCredit;
 
-              // Create a transaction record
+             
               user.wallet.transactions.push({
                   type: "credit",
                   amount: amountToCredit,
-                  description: `Refund for cancelled order item: ${itemOrderId}. Reason: ${cancelReason || "No reason provided"}`,
+                  description: `Refund for cancelled order item: ${itemOrderId}`,
                   date: new Date()
               });
 
@@ -611,13 +611,13 @@ const cancelOrder = async (req, res, next) => {
           }
       }
 
-      // Update product quantity back to stock
+  
       const productId = order.items[itemIndex].product._id.toString();
-      const itemQuantity = order.items[itemIndex].quantity; // Correcting the variable name to avoid confusion
+      const itemQuantity = order.items[itemIndex].quantity; 
 
       await Product.findOneAndUpdate(
           { _id: productId },
-          { $inc: { quantity: itemQuantity } }, // Increment stock by the item quantity
+          { $inc: { quantity: itemQuantity } }, 
           { new: true }
       );
 
@@ -637,6 +637,49 @@ const cancelOrder = async (req, res, next) => {
 
   } catch (error) {
       next(error);
+  }
+};
+
+const returnOrder = async (req, res, next) => {
+  try {
+    const { itemOrderId, returnReason } = req.body;
+
+    const order = await Order.findOne({ "items.itemOrderId": itemOrderId });
+
+    if (!order) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
+    const itemIndex = order.items.findIndex(item => item.itemOrderId === itemOrderId);
+
+    if (itemIndex === -1) {
+      return res.status(404).json({ message: 'Item not found in the order' });
+    }
+
+    const item = order.items[itemIndex];
+
+   
+    if (item.itemOrderStatus !== 'Delivered') {
+      return res.status(400).json({ message: 'Item is not eligible for return' });
+    }
+
+    const deliveryDate = item.deliveryDate || order.date; 
+    const currentDate = new Date();
+    const daysSinceDelivery = Math.floor((currentDate - deliveryDate) / (1000 * 60 * 60 * 24));
+
+    if (daysSinceDelivery > 7) {
+      return res.status(400).json({ message: 'Return period has expired' });
+    }
+
+   
+    item.itemOrderStatus = "Return Requested";
+    item.returnReason = returnReason;
+
+    await order.save();
+
+    res.status(200).json({ message: 'Return request submitted successfully' });
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -680,6 +723,7 @@ module.exports = {
     orderConfirmationPage,
     myOrder,
     cancelOrder,
+    returnOrder,
     orderDetails,
     verifyRazorpayPayment,
     razorpayCheckout,

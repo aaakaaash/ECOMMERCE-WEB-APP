@@ -12,28 +12,66 @@ const sharp = require("sharp")
 
 
 
-const coupon = async (req, res, next) => {
+const coupon = async (req, res) => {
   try {
-    const coupons = await Coupon.find().exec();
-    const currentDate = new Date(); 
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
 
-    for (const coupon of coupons) {
-      if (currentDate > coupon.endDate && coupon.status !== "Expired") {
-        coupon.status = "Expired"; 
-        await coupon.save();
-      } else if (coupon.usedCount >= coupon.usageLimit && coupon.status !== "Not available") {
-        coupon.status = "Not available"; 
-        await coupon.save();
+    const searchQuery = req.query.search || '';
+    let query = {};
+
+    if (searchQuery) {
+      query = {
+        $or: [
+          { code: { $regex: searchQuery, $options: 'i' } },
+          { description: { $regex: searchQuery, $options: 'i' } },
+          { discountType: { $regex: searchQuery, $options: 'i' } },
+          { status: { $regex: searchQuery, $options: 'i' } }
+        ]
+      };
+
+     
+      if (!isNaN(searchQuery)) {
+        query.$or.push(
+          { discountValue: parseFloat(searchQuery) },
+          { maxPurchaseAmount: parseFloat(searchQuery) },
+          { minPurchaseAmount: parseFloat(searchQuery) },
+          { usageLimit: parseInt(searchQuery) }
+        );
+      }
+
+     
+      const datePattern = /^\d{4}-\d{2}-\d{2}$/; 
+      if (datePattern.test(searchQuery)) {
+        const searchDate = new Date(searchQuery);
+        query.$or.push(
+          { startDate: { $lte: searchDate }, endDate: { $gte: searchDate } },
+          { createdAt: { $gte: searchDate, $lt: new Date(searchDate.getTime() + 86400000) } } 
+        );
       }
     }
 
-    return res.render("coupons", { coupons });
+    const coupons = await Coupon.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const totalCoupons = await Coupon.countDocuments(query);
+    const totalPages = Math.ceil(totalCoupons / limit);
+
+    res.render("coupons", {
+      coupons,
+      currentPage: page,
+      totalPages,
+      searchQuery
+    });
   } catch (error) {
-    console.error('Error fetching or updating coupons:', error);
-    next(error);
+    console.error('Error fetching coupons:', error);
+    res.status(500).render('error', { message: 'An error occurred while fetching coupons' });
   }
 };
-
 
 const createCoupon = async (req, res, next) => {
   try {

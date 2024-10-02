@@ -5,16 +5,35 @@ const Category = require("../../models/categorySchema");
 
 const offer = async (req, res) => {
   try {
-    const offers = await Offer.find().populate('product').populate('category').exec();
-    
-    for (const offer of offers) {
-      if (offer.usedCount >= offer.usageLimit && offer.status !== "inactive") {
-        offer.status = "inactive";
-        await offer.save();
+    const searchQuery = req.query.search;
+    let query = {};
+
+    if (searchQuery) {
+      query = {
+        $or: [
+          { offerCode: { $regex: searchQuery, $options: 'i' } },
+          { title: { $regex: searchQuery, $options: 'i' } },
+          { status: { $regex: searchQuery, $options: 'i' } }
+        ]
+      };
+
+      
+      const datePattern = /^\d{4}-\d{2}-\d{2}$/; 
+      if (datePattern.test(searchQuery)) {
+        const searchDate = new Date(searchQuery);
+        query.$or.push(
+          { startDate: { $lte: searchDate }, endDate: { $gte: searchDate } }
+        );
       }
     }
+
+    const offers = await Offer.find(query)
+      .populate('product')
+      .populate('category')
+      .exec();
     
-    return res.render("offers", { offers });
+    return res.render("offers", { offers, searchQuery });
+
   } catch (error) {
     console.error('Error fetching or updating offers:', error);
     res.status(500).send("An error occurred while processing offers");
@@ -41,11 +60,8 @@ const addOffer = async (req, res) => {
       offerType,
       discountType,
       discountValue,
-      minPurchaseAmount,
-      maxDiscountAmount,
       product,
       category,
-      usageLimit,
       startDate,
       endDate,
       status
@@ -68,11 +84,8 @@ const addOffer = async (req, res) => {
       offerType,
       discountType,
       discountValue: Number(discountValue),
-      minPurchaseAmount: Number(minPurchaseAmount),
-      maxDiscountAmount: maxDiscountAmount ? Number(maxDiscountAmount) : undefined,
       product: product === 'all' ? null : product ? new mongoose.Types.ObjectId(product) : undefined,
       category: category === 'all' ? null : category ? new mongoose.Types.ObjectId(category) : undefined,        
-      usageLimit: Number(usageLimit),
       startDate,
       endDate,
       status
@@ -153,6 +166,7 @@ const updateProductOfferPrice = async () => {
 
       
       for (const product of productsToUpdate) {
+
         let offerValue;
 
      

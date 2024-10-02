@@ -54,98 +54,108 @@ const orders = async (req, res) => {
 };
 
 const updateOrderStatus = async (req, res) => {
-    
     try {
-        const { id } = req.params; 
-        const { status, itemId, cancelReason } = req.body; 
+      const { id } = req.params;
+      const { status, itemId, cancelReason, returnReason } = req.body;
+  
+      if (!id || !status || !itemId) {
+        return res.status(400).json({ success: false, message: 'Order ID, item ID, and status are required' });
+      }
+  
+      const order = await Order.findById(id).populate('user');
+      if (!order) {
+        return res.status(404).json({ success: false, message: 'Order not found' });
+      }
+  
+      const item = order.items.find(item => item.itemOrderId === itemId);
+      if (!item) {
+        return res.status(404).json({ success: false, message: 'Item not found in the order' });
+      }
 
-        if (!id || !status || !itemId) {
-            return res.status(400).json({ success: false, message: 'Order ID, item ID, and status are required' });
+      if (item.itemOrderStatus === 'Return Requested') {
+        if (status !== 'Returned') {
+          return res.status(400).json({ success: false, message: 'This item can only be marked as Returned' });
         }
-
-        const order = await Order.findById(id).populate('user');
-
-        if (!order) {
-            return res.status(404).json({ success: false, message: 'Order not found' });
+      }
+  
+      if (item.itemOrderStatus === 'Cancelled' || item.itemOrderStatus === 'Returned') {
+        return res.status(400).json({ success: false, message: 'This item status cannot be changed' });
+      }
+  
+      if (status === 'Return Requested' && item.itemOrderStatus !== 'Return Requested') {
+        if (item.itemOrderStatus !== 'Delivered') {
+          return res.status(400).json({ success: false, message: 'Only delivered items can be returned' });
         }
-
-        const item = order.items.find(item => item.itemOrderId === itemId);
-
-        if (!item) {
-            return res.status(404).json({ success: false, message: 'Item not found in the order' });
+        const deliveryDate = item.deliveryDate || order.date;
+        const currentDate = new Date();
+        const daysSinceDelivery = Math.floor((currentDate - deliveryDate) / (1000 * 60 * 60 * 24));
+        if (daysSinceDelivery > 7) {
+          return res.status(400).json({ success: false, message: 'Return period has expired' });
         }
-
-        if (item.itemOrderStatus === 'Cancelled') {
-            return res.status(400).json({ success: false, message: 'This item has already been cancelled' });
-        }
-
-        item.itemOrderStatus = status;
-
-        if (status === 'Cancelled') {
-           
-            await Product.findByIdAndUpdate(
-                item.product, 
-                { $inc: { quantity: item.quantity } }, 
-                { new: true }
-            );
-
+        item.returnReason = returnReason || 'Not specified';
+      }
+  
+      item.itemOrderStatus = status;
+  
+      if (status === 'Cancelled') {
+        await Product.findByIdAndUpdate(
+          item.product,
+          { $inc: { quantity: item.quantity } },
+          { new: true }
+        );
+        
+        if (order.payment[0].method === 'Online Payment' && order.payment[0].status === 'completed') {
+          const refundAmount = item.saledPrice;
+          const user = await User.findById(order.user._id);
+          if (!user) {
+            throw new Error('User not found');
+          }
           
-            if (order.payment[0].method === 'Online Payment' && order.payment[0].status === 'completed') {
-                const refundAmount = item.saledPrice;
-                
-                const user = await User.findById(order.user._id);
-                if (!user) {
-                    throw new Error('User not found');
-                }
-
-                let wallet;
-                if (!user.wallet) {
-                   
-                    wallet = new Wallet({
-                        balance: refundAmount,
-                        transactions: [{
-                            type: 'credit',
-                            amount: refundAmount,
-                            description: `Refund for cancelled item ${item.itemOrderId} in order ${order.orderId}`
-                        }]
-                    });
-                    await wallet.save();
-                    user.wallet = wallet._id;
-                    await user.save();
-                } else {
-                  
-                    wallet = await Wallet.findById(user.wallet);
-                    if (!wallet) {
-                        throw new Error('Wallet not found');
-                    }
-                    wallet.balance += refundAmount;
-                    wallet.transactions.push({
-                        type: 'credit',
-                        amount: refundAmount,
-                        description: `Refund for cancelled item ${item.itemOrderId} in order ${order.orderId}`
-                    });
-                    await wallet.save();
-                }
+          let wallet;
+          if (!user.wallet) {
+            wallet = new Wallet({
+              balance: refundAmount,
+              transactions: [{
+                type: 'credit',
+                amount: refundAmount,
+                description: `Refund for cancelled order item: ${item.itemOrderId}`,
+                date: new Date()
+              }]
+            });
+            await wallet.save();
+            user.wallet = wallet._id;
+            await user.save();
+          } else {
+            wallet = await Wallet.findById(user.wallet);
+            if (!wallet) {
+              throw new Error('Wallet not found');
             }
-
-            item.cancelReason = cancelReason || 'Not specified';
+            wallet.balance += refundAmount;
+            wallet.transactions.push({
+              type: 'credit',
+              amount: refundAmount,
+              description: `Refund for cancelled item ${item.itemOrderId} in order ${order.orderId}`
+            });
+            await wallet.save();
+          }
         }
-
-       
-        const allItemsCancelled = order.items.every(item => item.itemOrderStatus === 'Cancelled');
-        if (allItemsCancelled) {
-            order.status = 'Cancelled';
-        }
-
-        await order.save();
-
-        res.json({ success: true, message: 'Item status updated successfully', order: order });
-
+        
+        item.cancelReason = cancelReason || 'Not specified';
+      }
+  
+      const allItemsCancelled = order.items.every(item => item.itemOrderStatus === 'Cancelled');
+      if (allItemsCancelled) {
+        order.status = 'Cancelled';
+      }
+  
+      await order.save();
+  
+      res.json({ success: true, message: 'Item status updated successfully', order: order });
     } catch (error) {
-        console.error('Error in updateOrderStatus:', error);
-        res.status(500).json({ success: false, message: 'An error occurred while updating the item status' });
+      console.error('Error in updateOrderStatus:', error);
+      res.status(500).json({ success: false, message: 'An error occurred while updating the item status' });
     }
-};
+  };
 
 const orderDetails = async (req, res, next) => {
     try {

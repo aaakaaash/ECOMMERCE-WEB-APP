@@ -131,103 +131,103 @@
 <script>
 
 function updateItemStatus(orderId, itemId) {
-    const currentStatus = document.querySelector(`button[onclick="return updateItemStatus('${orderId}', '${itemId}')"]`).previousElementSibling.innerText;
-    let inputOptions = {
-        'Pending': 'Pending',
-        'Processing': 'Processing',
-        'Shipped': 'Shipped',
-        'Delivered': 'Delivered',
-        'Cancelled': 'Cancelled',
-        'Return Request': 'Return Request',
-        'Returned': 'Returned'
-    };
+  const statusElement = document.querySelector(`button[onclick="return updateItemStatus('${orderId}', '${itemId}')"]`).previousElementSibling;
+  const currentStatus = statusElement.innerText;
+  
+  let inputOptions = {
+    'Pending': 'Pending',
+    'Processing': 'Processing',
+    'Shipped': 'Shipped',
+    'Delivered': 'Delivered',
+    'Cancelled': 'Cancelled',
+    'Return Requested': 'Return Requested',
+    'Returned': 'Returned'
+  };
 
-    // Disable options based on the current status
-    if (currentStatus === 'Delivered') {
-        delete inputOptions.Pending;
-        delete inputOptions.Processing;
-        delete inputOptions.Shipped;
-        delete inputOptions.Cancelled;
-    } else if (currentStatus === 'Cancelled') {
-        Swal.fire({
-            title: 'Error!',
-            text: 'This item has already been cancelled.',
-            icon: 'error'
-        });
-        return;
-    }
-
+  
+  if (currentStatus === 'Delivered') {
+    delete inputOptions.Pending;
+    delete inputOptions.Processing;
+    delete inputOptions.Shipped;
+  } else if (currentStatus === 'Cancelled' || currentStatus === 'Returned') {
     Swal.fire({
-        title: 'Update Item Status',
-        input: 'select',
-        inputOptions: inputOptions,
-        showCancelButton: true,
-        confirmButtonText: 'Update',
-        showLoaderOnConfirm: true,
-        preConfirm: (status) => {
-            let data = { status: status, itemId: itemId };
-            if (status === 'Cancelled') {
-                return Swal.fire({
-                    title: 'Cancellation Reason',
-                    input: 'text',
-                    inputPlaceholder: 'Enter cancellation reason',
-                    showCancelButton: true,
-                    inputValidator: (value) => {
-                        if (!value) {
-                            return 'You need to provide a reason for cancellation!';
-                        }
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        data.cancelReason = result.value;
-                        return fetch(`/admin/updateOrderItemStatus/${orderId}`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(data)
-                        });
-                    }
-                });
-            } else {
-                return fetch(`/admin/updateOrderItemStatus/${orderId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-            }
-        },
-        allowOutsideClick: () => !Swal.isLoading()
-    }).then((result) => {
-        if (result.isConfirmed) {
-            result.value.json().then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        title: 'Success!',
-                        text: 'Item status has been updated.',
-                        icon: 'success'
-                    }).then(() => {
-                        location.reload();
-                    });
-                } else {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: data.message || 'Failed to update item status',
-                        icon: 'error'
-                    });
-                }
-            }).catch(error => {
-                console.error('Error:', error);
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'An error occurred while updating the item status',
-                    icon: 'error'
-                });
-            });
-        }
+      title: 'Error!',
+      text: 'This item status cannot be changed.',
+      icon: 'error'
     });
-}
+    return;
+  } else if (currentStatus === 'Return Requested') {
+    
+    inputOptions = { 'Returned': 'Returned' };
+  }
 
+  Swal.fire({
+    title: 'Update Item Status',
+    input: 'select',
+    inputOptions: inputOptions,
+    showCancelButton: true,
+    confirmButtonText: 'Update',
+    showLoaderOnConfirm: true,
+    preConfirm: (status) => {
+      let data = { status: status, itemId: itemId };
+      
+      if (status === 'Cancelled') {
+        return Swal.fire({
+          title: 'Cancellation Reason',
+          input: 'text',
+          inputPlaceholder: 'Enter cancellation reason',
+          showCancelButton: true,
+          inputValidator: (value) => {
+            if (!value) {
+              return 'You need to provide a reason for cancellation!';
+            }
+          }
+        }).then((result) => {
+          if (result.isConfirmed) {
+            data.cancelReason = result.value;
+            return fetch(`/admin/updateOrderItemStatus/${orderId}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data)
+            });
+          }
+        });
+      } else {
+        return fetch(`/admin/updateOrderItemStatus/${orderId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+      }
+    },
+    allowOutsideClick: () => !Swal.isLoading()
+  }).then((result) => {
+    if (result.isConfirmed) {
+      result.value.json().then(data => {
+        if (data.success) {
+          Swal.fire({
+            title: 'Success!',
+            text: 'Item status has been updated.',
+            icon: 'success'
+          }).then(() => {
+            location.reload();
+          });
+        } else {
+          Swal.fire({
+            title: 'Error!',
+            text: data.message || 'Failed to update item status',
+            icon: 'error'
+          });
+        }
+      }).catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+          title: 'Error!',
+          text: 'An error occurred while updating the item status',
+          icon: 'error'
+        });
+      });
+    }
+  });
+}
 </script>

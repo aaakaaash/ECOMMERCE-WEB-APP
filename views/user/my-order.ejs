@@ -114,26 +114,26 @@
                 </div>
                 
                 <div class="col-md-3 text-right">
-                    <p class="mb-2"><%= order.date.toLocaleString() %></p>
-                    <br>
-                    <% if (item.itemOrderStatus === 'Pending' || item.itemOrderStatus === 'Processing') { %>
-                        <button class="btn btn-sm btn-danger cancel-order-btn" data-item-order-id="<%= item.itemOrderId %>">Cancel Item</button>
-                    <% } else if (item.itemOrderStatus === 'Delivered') { %>
-                        <% 
-                            const deliveryDate = new Date(item.date);
-                            const currentDate = new Date();
-                            const daysSinceDelivery = Math.floor((currentDate - deliveryDate) / (1000 * 60 * 60 * 24));
-                        %>
-                        <% if (daysSinceDelivery <= 7) { %>
-                            <button class="btn btn-sm btn-warning">Return</button>
-                        <% } else { %>
-                            <small class="text-muted">Return period expired</small>
-                        <% } %>
-                    <% } %>
-                    <a href="/user/my-order/order-details/<%= order.orderId %>/<%= item.product._id %>">
+                  <p class="mb-2"><%= order.date.toLocaleString() %></p>
+                  <br>
+                  <% if (item.itemOrderStatus === 'Pending' || item.itemOrderStatus === 'Processing') { %>
+                      <button class="btn btn-sm btn-danger cancel-order-btn" data-item-order-id="<%= item.itemOrderId %>">Cancel Item</button>
+                  <% } else if (item.itemOrderStatus === 'Delivered') { %>
+                      <% 
+                          const deliveryDate = item.deliveryDate || order.date;
+                          const currentDate = new Date();
+                          const daysSinceDelivery = Math.floor((currentDate - deliveryDate) / (1000 * 60 * 60 * 24));
+                      %>
+                      <% if (daysSinceDelivery <= 7) { %>
+                          <button class="btn btn-sm btn-warning return-order-btn" data-item-order-id="<%= item.itemOrderId %>">Return</button>
+                      <% } else { %>
+                          <small class="text-muted">Return period expired</small>
+                      <% } %>
+                  <% } %>
+                  <a href="/user/my-order/order-details/<%= order.orderId %>/<%= item.product._id %>">
                       <button class="btn btn-warning">View Order</button>
-                    </a>
-                </div>
+                  </a>
+              </div>
                 
                 </div>
               </div>
@@ -184,7 +184,7 @@
         event.preventDefault();
         const itemOrderId = this.getAttribute('data-item-order-id');
 
-        // Prompt the user for a cancellation reason
+        
         Swal.fire({
             title: 'Cancel Reason',
             input: 'text',
@@ -196,11 +196,11 @@
                 if (!cancelReason) {
                     Swal.showValidationMessage('You need to enter a reason for cancellation!');
                 }
-                return cancelReason; // Return the entered cancel reason
+                return cancelReason; 
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                const cancelReason = result.value; // Get the cancel reason from the result
+                const cancelReason = result.value; 
 
                 fetch(`/user/my-order/cancel/${itemOrderId}/${encodeURIComponent(cancelReason)}`, {
                     method: 'POST'
@@ -220,6 +220,62 @@
         });
     });
   });
+</script>
+
+<script>
+
+document.querySelectorAll('.return-order-btn').forEach(button => {
+  button.addEventListener('click', function (event) {
+    event.preventDefault();
+    const itemOrderId = this.getAttribute('data-item-order-id');
+
+    Swal.fire({
+      title: 'Return Reason',
+      input: 'text',
+      inputPlaceholder: 'Enter your reason for returning...',
+      showCancelButton: true,
+      confirmButtonText: 'Submit Return Request',
+      cancelButtonText: 'Cancel',
+      preConfirm: (returnReason) => {
+        if (!returnReason) {
+          Swal.showValidationMessage('You need to enter a reason for returning!');
+        }
+        return returnReason;
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const returnReason = result.value;
+
+        fetch('/user/my-order/return-order', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ itemOrderId, returnReason }),
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.message === 'Return request submitted successfully') {
+            Swal.fire(
+              'Submitted!',
+              'Your return request has been submitted.',
+              'success'
+            ).then(() => {
+              location.reload();
+            });
+          } else {
+            Swal.fire('Error!', data.message, 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error submitting return request:', error);
+          Swal.fire('Error!', 'There was an error submitting your return request.', 'error');
+        });
+      }
+    });
+  });
+});
+
 </script>
 
 
