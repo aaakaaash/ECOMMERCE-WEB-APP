@@ -231,7 +231,10 @@
                                             <% } %>
                                         </select>
                                     </div>
+
                                     <button type="button" id="applyCouponBtn" class="btn btn-primary">Apply Coupon</button>
+                                    <button type="button" id="removeCouponBtn" class="btn btn-danger" style="display:none;">Remove Coupon</button>
+                                    
                                 </form>
                                 <div id="couponMessage"></div>
                             </div>
@@ -252,7 +255,7 @@
                     </div>
                 </div>
                 <br>
-                <div class="row product-item" >
+                <div class="row product-item">
                     <% if (cart && cart.items.length > 0) { %>
                         <% cart.items.forEach((item, index) => { %>
                             <div class="col-md-3">
@@ -261,17 +264,58 @@
                                 </a>
                             </div>
                             <div class="col-md-9">
-                                <div class="product-details">
-                                    <h6><%= item.product.productName %></h6>
-                                    <p>Quantity: <%= item.quantity %></p>
-                                    <p class="price">₹<%= item.product.salePrice.toFixed(2) %><span class="discount"></span> <span class="offer"></span></p>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="product-details">
+                                            <h6><%= item.product.productName %></h6>
+                                            <p>Quantity: <%= item.quantity %></p>
+                
+                                            
+                                            <p class="product-price">
+                                              
+                                                ₹<% if (item.product.offerPrice && item.product.offerPrice < item.product.regularPrice) { %>
+                                                    <del><%= item.product.regularPrice %></del> ₹<%= item.product.offerPrice %>
+                                                <% } else if (item.product.salePrice < item.product.regularPrice) { %>
+                                                    <del><%= item.product.regularPrice %></del> ₹<%= item.product.salePrice %>
+                                                <% } else { %>
+                                                    <%= item.product.regularPrice %>
+                                                <% } %>
+                                            </p>
+                                        </div>
+                                    </div>
+                
+                                    
+                                    <div class="col-md-6 text-right">
+                                        <p>
+                                            
+                                            Actual Total: ₹<%= item.product.regularPrice * item.quantity %> 
+                                        </p>
+                                        <p>
+                                           
+                                            Discount: ₹<%= (item.product.offerPrice && item.product.offerPrice < item.product.regularPrice) 
+                                                ? (item.product.regularPrice - item.product.offerPrice) * item.quantity 
+                                                : (item.product.salePrice && item.product.salePrice < item.product.regularPrice)
+                                                ? (item.product.regularPrice - item.product.salePrice) * item.quantity 
+                                                : 0 %>
+                                        </p>
+                                        <p>
+                                            <!-- Net Total (Actual Total - Discount) -->
+                                            Net Total: ₹<%= (item.product.regularPrice * item.quantity) - 
+                                                ((item.product.offerPrice && item.product.offerPrice < item.product.regularPrice) 
+                                                ? (item.product.regularPrice - item.product.offerPrice) * item.quantity 
+                                                : (item.product.salePrice && item.product.salePrice < item.product.regularPrice)
+                                                ? (item.product.regularPrice - item.product.salePrice) * item.quantity 
+                                                : 0) %>
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="w-100"></div> 
-                        <% }) %>
+                            <div class="w-100"></div>
+                        <% }); %>
                     <% } %>
-
                 </div>
+                
+                
                 <br>
             </div>
 
@@ -346,48 +390,81 @@
     </script>
     
     <script>
-       $(document).ready(function() {
-    $('#applyCouponBtn').click(function() {
-        const couponId = $('#availableCoupons').val();
-        if (!couponId) {
-            $('#couponMessage').text('Please select a coupon').removeClass('text-success').addClass('text-danger');
-            return;
-        }
-
-        $.ajax({
-            url: '/cart/apply-coupon',
-            method: 'POST',
-            data: { couponId: couponId },
-            success: function(response) {
-                $('#subtotal').text('₹' + response.subtotal);
-                $('#discount').text('- ₹' + response.discount);
-                $('#platformFee').text('₹' + response.platformFee);
-                $('#deliveryCharges').text('₹' + response.deliveryCharges);
-                $('#totalAmount').text('₹' + response.total);
-                $('#finalTotal').text('₹' + response.finalTotal);
-                $('#hiddenFinalTotal').val(response.finalTotal);
-                $('#savingsMessage').text('You will save ₹' + response.discount + ' on this order');
-                $('#appliedCouponId').val(response.couponId);
-                $('#couponMessage').text('Coupon applied successfully!').removeClass('text-danger').addClass('text-success');
-
-                // Disable coupon input once applied
-                $('#availableCoupons').prop('disabled', true);
-                $('#applyCouponBtn').prop('disabled', true);
-            },
-            error: function(xhr) {
-                const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'An error occurred while applying the coupon.';
-                $('#couponMessage').text(errorMessage).removeClass('text-success').addClass('text-danger');
-            }
+        $(document).ready(function() {
+            // Apply coupon logic
+            $('#applyCouponBtn').click(function() {
+                const couponId = $('#availableCoupons').val();
+                if (!couponId) {
+                    $('#couponMessage').text('Please select a coupon').removeClass('text-success').addClass('text-danger');
+                    return;
+                }
+    
+                $.ajax({
+                    url: '/cart/apply-coupon',
+                    method: 'POST',
+                    data: { couponId: couponId },
+                    success: function(response) {
+                        $('#subtotal').text('₹' + response.totalPrice);
+                        $('#discount').text('- ₹' + response.discount);
+                        $('#platformFee').text('₹' + response.platformFee);
+                        $('#deliveryCharges').text('₹' + response.deliveryCharges);
+                        $('#totalAmount').text('₹' + response.total);
+                        $('#finalTotal').text('₹' + response.finalTotal);
+                        $('#hiddenFinalTotal').val(response.finalTotal);
+                        $('#savingsMessage').text('You will save ₹' + response.discount + ' on this order');
+                        $('#appliedCouponId').val(response.couponId);
+                        $('#couponMessage').text('Coupon applied successfully!').removeClass('text-danger').addClass('text-success');
+    
+                        // Disable coupon input once applied
+                        $('#availableCoupons').prop('disabled', true);
+                        $('#applyCouponBtn').hide();
+                        $('#removeCouponBtn').show(); // Show remove button
+                    },
+                    error: function(xhr) {
+                        const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'An error occurred while applying the coupon.';
+                        $('#couponMessage').text(errorMessage).removeClass('text-success').addClass('text-danger');
+                    }
+                });
+            });
+    
+            // Remove coupon logic
+            $('#removeCouponBtn').click(function() {
+                $.ajax({
+                    url: '/cart/remove-coupon', // Endpoint to remove the coupon
+                    method: 'POST', // Since it's better to use POST for session-related operations
+                    success: function(response) {
+                        $('#subtotal').text('₹' + response.totalPrice);
+                        $('#discount').text('₹' + response.discount); // Restore previous discount
+                        $('#platformFee').text('₹' + response.platformFee);
+                        $('#deliveryCharges').text('₹' + response.deliveryCharges);
+                        $('#totalAmount').text('₹' + response.total);
+                        $('#finalTotal').text('₹' + response.finalTotal);
+                        $('#hiddenFinalTotal').val(response.finalTotal);
+                        $('#savingsMessage').text('Coupon removed.');
+                        $('#appliedCouponId').val(''); // Clear coupon ID
+                        $('#couponMessage').text('Coupon removed successfully!').removeClass('text-danger').addClass('text-success');
+    
+                        // Enable coupon input again
+                        $('#availableCoupons').prop('disabled', false);
+                        $('#applyCouponBtn').show();
+                        $('#removeCouponBtn').hide(); // Hide remove button
+                    },
+                    error: function(xhr) {
+                        const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'An error occurred while removing the coupon.';
+                        $('#couponMessage').text(errorMessage).removeClass('text-success').addClass('text-danger');
+                    }
+                });
+            });
+    
+            $('#paymentForm').submit(function() {
+                const finalTotal = $('#finalTotal').text().replace('₹', '');
+                $('#hiddenFinalTotal').val(finalTotal);
+            });
         });
-    });
-
-    $('#paymentForm').submit(function() {
-        const finalTotal = $('#finalTotal').text().replace('₹', '');
-        $('#hiddenFinalTotal').val(finalTotal);
-    });
-});
-
     </script>
+    
+    
+
 </body>
 </html>
 

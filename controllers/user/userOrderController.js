@@ -34,7 +34,7 @@ const placeOrder = async (req, res, next) => {
 
      
       cart.items.forEach(item => {
-        totalPrice += item.product.salePrice * item.quantity;
+        totalPrice += item.product.regularPrice * item.quantity;
         totalDiscount += item.discountAmount * item.quantity;  
       });
 
@@ -76,13 +76,13 @@ const addCoupon = async (req, res, next) => {
       return res.status(404).json({ message: "Coupon not found" });
     }
 
-    // Check if the coupon is expired
+  
     const today = new Date();
     if (today > coupon.endDate) {
       return res.status(400).json({ message: "Coupon has expired" });
     }
 
-    // Check if the coupon has already been used by the user
+  
     const usedCoupon = await Order.findOne({ user: userId, coupon: couponId });
     if (usedCoupon) {
       return res.status(400).json({ message: "Coupon has already been used. Please try another one." });
@@ -92,12 +92,13 @@ const addCoupon = async (req, res, next) => {
     let totalDiscount = 0;
 
     cart.items.forEach(item => {
-      totalPrice += item.product.salePrice * item.quantity;
+      totalPrice += item.product.regularPrice * item.quantity;
       totalDiscount += item.discountAmount * item.quantity; 
     });
 
    
 const netAmount = totalPrice - totalDiscount;
+
 
 if (netAmount < coupon.minPurchaseAmount) {
   return res.status(400).json({ message: `Minimum purchase amount is ${coupon.minPurchaseAmount} for this coupon.` });
@@ -119,18 +120,18 @@ if (netAmount > coupon.maxPurchaseAmount) {
       discountAmount = (finalTotal * coupon.discountValue) / 100;
     }
 
-    // Ensure the discount does not exceed the applicable amount
+    
     discountAmount = Math.min(discountAmount, (totalPrice - totalDiscount));
 
     totalDiscount += discountAmount;
 
-    // Recalculate final total after applying the discount
+    
     finalTotal = totalPrice - totalDiscount + platformFee + deliveryCharges;
 
-    // Save the applied coupon in session
+   
     req.session.appliedCoupon = couponId;
 
-    // Respond with the updated details
+    
     res.status(200).json({
       totalPrice: totalPrice.toFixed(2),
       discount: totalDiscount.toFixed(2),
@@ -148,6 +149,47 @@ if (netAmount > coupon.maxPurchaseAmount) {
   }
 };
 
+const removeCoupon = async (req, res, next) => {
+  try {
+    const userId = req.session.user || req.user;
+
+   
+    const cart = await Cart.findOne({ userId: userId }).populate('items.product').exec();
+
+    if (!cart || !cart.items || cart.items.length === 0) {
+      return res.status(400).json({ message: "Your cart is empty" });
+    }
+
+    
+    req.session.appliedCoupon = null;
+
+    let totalPrice = 0;
+    let totalDiscount = 0;
+
+    
+    cart.items.forEach(item => {
+      totalPrice += item.product.regularPrice * item.quantity;
+      totalDiscount += item.discountAmount * item.quantity; 
+    });
+
+    const platformFee = 0;
+    const deliveryCharges = 0;
+    const finalTotal = totalPrice - totalDiscount + platformFee + deliveryCharges;
+
+    res.status(200).json({
+      totalPrice: totalPrice.toFixed(2),
+      discount: totalDiscount.toFixed(2), 
+      platformFee: platformFee.toFixed(2),
+      deliveryCharges: deliveryCharges.toFixed(2),
+      finalTotal: finalTotal.toFixed(2),
+    });
+
+  } catch (error) {
+    console.error('Error in removeCoupon:', error);
+    res.status(500).json({ message: "An error occurred while removing the coupon" });
+    next(error);
+  }
+};
 
 
 
@@ -174,7 +216,7 @@ const loadPayment = async (req, res, next) => {
     let totalDiscount = 0;
 
     cart.items.forEach(item => {
-      totalPrice += item.product.salePrice * item.quantity;
+      totalPrice += item.product.regularPrice * item.quantity;
       totalDiscount += item.discountAmount * item.quantity; 
     });
 
@@ -621,7 +663,7 @@ const cancelOrder = async (req, res, next) => {
           { new: true }
       );
 
-      // Update overall order status
+    
       const allStatuses = order.items.map(item => item.itemOrderStatus);
       const uniqueStatuses = [...new Set(allStatuses)];  
 
@@ -727,5 +769,5 @@ module.exports = {
     orderDetails,
     verifyRazorpayPayment,
     razorpayCheckout,
-   
+    removeCoupon
 }

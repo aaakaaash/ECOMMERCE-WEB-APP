@@ -29,8 +29,8 @@ const walletSchema = new mongoose.Schema({
                 required:false
             },
             date:{
-                type:Date,
-                dafault:Date.now
+                type: Date,
+                dafault: Date.now
             },
         }]
 });

@@ -29,14 +29,23 @@
                                         <div class="details-container">
                                             <h5 class="product-name"><%= item.product.productName %></h5>
                                             <p class="product-description"><%= item.product.description %></p>
+
                                             <p class="product-price">
-                                                <% if (item.product.offerPrice && item.product.offerPrice < item.product.salePrice) { %>
-                                                    <del>₹<%= item.product.salePrice %></del> 
-                                                    <span>₹<%= item.product.offerPrice %></span>
+                                                ₹<% if (item.product.offerPrice && item.product.offerPrice < item.product.salePrice) { %>
+                                                 
+                                                  <del><%= item.product.regularPrice %></del> ₹<%= item.product.offerPrice %>
+                                                <% } else if (item.product.salePrice < item.product.regularPrice) { %>
+                                                  
+                                                  <del><%= item.product.regularPrice %></del> ₹<%= item.product.salePrice %>
+                                                <% } else if (item.product.salePrice === item.product.regularPrice && item.product.offerPrice && item.productId.offerPrice < item.productId.salePrice) { %>
+                                                  
+                                                  <del><%= item.product.regularPrice %></del> ₹<%= item.product.offerPrice %>
                                                 <% } else { %>
-                                                    <span>₹<%= item.product.salePrice %></span>
+                                                  
+                                                  <%= item.product.regularPrice %>
                                                 <% } %>
-                                            </p>
+                                              </p>
+                                              
                                         </div>
                                     </div>
                                     <br>

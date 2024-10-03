@@ -122,7 +122,7 @@ const loadShoppage = async (req, res, next) => {
         const { sortBy, category } = req.query;
 
         const page = parseInt(req.query.page) || 1;
-        const limit = 5;
+        const limit = 2;
         const skip = (page - 1) * limit;
 
         let searchCondition = { isBlocked: false };

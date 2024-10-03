@@ -102,12 +102,13 @@ const orderSchema = new mongoose.Schema({
   status: {
     type: String,
     required: true,
-    enum: ["Pending", "Processing", "Shipped", "Delivered", "Cancelled", "Return Requested", "Returned"]
-  },
+    enum: ["Pending", "Processing", "Shipped", "Delivered", "Cancelled", "Return Requested", "Returned"],
+    default: "Pending"
+},
   date: {
     type: Date,
     default: Date.now,
-    required: true
+    required: false
   },
   payment: [{
     method: {

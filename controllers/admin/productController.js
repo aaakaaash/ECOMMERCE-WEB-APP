@@ -10,6 +10,8 @@ const path = require("path");
 const multer = require("multer");
 const sharp = require("sharp")
 
+const { updateProductOfferPrice } = require("../../controllers/admin/offerController");
+
 
 const getProductAddPage = async (req,res) => {
     try {
@@ -112,6 +114,9 @@ const addProducts = async (req, res) => {
             });
             
             await newProduct.save();
+
+            await updateProductOfferPrice();
+
             return res.redirect("/admin/addProducts");
         }
     } catch (error) {
@@ -313,19 +318,6 @@ const editProduct = async (req, res) => {
         updateFields.productImage = updatedImages;
 
 
-        const offer = await Offer.findOne({ product: id });
-        if (offer) {
-            let offerValue;
-
-            if (offer.discountType === 'percentage') {
-                offerValue = data.salePrice * (offer.discountValue / 100);
-            } else {
-                offerValue = offer.discountValue;
-            }
-
-            const offerPrice = data.salePrice - offerValue;
-            updateFields.offerPrice = Math.max(offerPrice, 0);
-        }
 
         const updatedProduct = await Product.findByIdAndUpdate(id, updateFields, { new: true });
 
@@ -336,6 +328,9 @@ const editProduct = async (req, res) => {
         }
 
         await updatedProduct.save();
+
+        await updateProductOfferPrice(); 
+
         res.redirect("/admin/products");
 
     } catch (error) {

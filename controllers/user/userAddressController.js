@@ -108,19 +108,31 @@ const updateNewAddress = async (req, res, next) => {
 
 
 const getEditAddress = async (req, res, next) => {
+    const userId = req.session.user || req.user;
+
     try {
         const id = req.params.id; 
 
-        const address = await Address.findOne({ _id: id });
+        const user = await User.findById(userId).populate('address').exec();
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+       
+        const address = user.address.find(addr => addr._id.toString() === id);
 
         if (!address) {
             return res.status(404).send("Address not found");
         }
+
+        
         res.render("edit-address", { address: address });
     } catch (error) {
         next(error);
     }
 };
+
 
 
 

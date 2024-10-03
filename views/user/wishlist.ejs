@@ -64,12 +64,21 @@
                                             </div>
                                             -->
                                             <p class="wishlist-price">
-                                                ₹<% if (item.productId.offerPrice) { %>
-                                                    <del><%= item.productId.salePrice %></del> ₹<%= item.productId.offerPrice %>
+                                                ₹<% if (item.productId.offerPrice && item.productId.offerPrice < item.productId.salePrice) { %>
+                                                 
+                                                  <del><%= item.productId.regularPrice %></del> ₹<%= item.productId.offerPrice %>
+                                                <% } else if (item.productId.salePrice < item.productId.regularPrice) { %>
+                                                  
+                                                  <del><%= item.productId.regularPrice %></del> ₹<%= item.productId.salePrice %>
+                                                <% } else if (item.productId.salePrice === item.productId.regularPrice && item.productId.offerPrice && item.productId.offerPrice < item.productId.salePrice) { %>
+                                                  
+                                                  <del><%= item.productId.regularPrice %></del> ₹<%= item.productId.offerPrice %>
                                                 <% } else { %>
-                                                    <%= item.productId.salePrice %>
+                                                  
+                                                  <%= item.productId.regularPrice %>
                                                 <% } %>
-                                            </p>
+                                              </p>
+                                              
                                         </div>
                                         <form id="addToCartForm-<%= item.productId._id %>" onsubmit="return false;">
                                             <input type="hidden" name="productId" value="<%= item.productId._id %>">
