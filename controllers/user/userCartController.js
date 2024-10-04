@@ -146,6 +146,9 @@ const addToCart = async (req, res, next) => {
           cartItemsCount: cart.items.length,
         });
     } else {
+
+      const regularPrice = product.regularPrice;
+
       const price =
         product.offerPrice && product.offerPrice < product.salePrice
           ? product.offerPrice
@@ -162,6 +165,7 @@ const addToCart = async (req, res, next) => {
       cart.items.push({
         product: product._id,
         quantity: quantity,
+        regularPrice: regularPrice,
         price: price,
         discountAmount: discountAmount,
       });

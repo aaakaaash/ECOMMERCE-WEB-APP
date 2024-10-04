@@ -194,6 +194,9 @@ const removeCoupon = async (req, res, next) => {
 
 
 const loadPayment = async (req, res, next) => {
+
+  const userId = req.session.user || req.user;
+
   try {
     const { userId, address, appliedCouponId } = req.body;
 
@@ -313,10 +316,10 @@ const confirmOrder = async (req, res, next) => {
       throw new Error('Invalid total price');
     }
 
-    
+   
     let totalItemCount = parsedItems.reduce((sum, item) => sum + item.quantity, 0);
 
-    
+
     const discountPerItem = couponDiscountAmount / totalItemCount;
 
     
@@ -324,6 +327,8 @@ const confirmOrder = async (req, res, next) => {
       const itemDiscount = discountPerItem * item.quantity; 
       item.saledPrice = item.price - (itemDiscount / item.quantity);  
     });
+
+    
 
     const orderData = {
       user: userId,
@@ -356,7 +361,14 @@ const confirmOrder = async (req, res, next) => {
       order.payment[0].razorpayOrderId = razorpayOrder.id;
       await order.save();
 
-      return res.redirect(`/user/payment/razorpay-checkout?orderId=${order._id}&razorpayOrderId=${razorpayOrder.id}`);
+      
+      res.render("razorpay-checkout", {
+        orderId: order._id,
+        razorpayOrderId: razorpayOrder.id,
+        totalPrice: order.totalPrice,  
+        razorpayKeyId: process.env.RAZOR_PAY_KEY_ID  
+      });
+    
     } else {
       await finalizeOrder(order, userId, appliedCouponId);
       return res.redirect('/user/order-confirmation');
@@ -406,18 +418,29 @@ const finalizeOrder = async (order, userId, appliedCouponId) => {
 };
 
 const razorpayCheckout = async (req, res, next) => {
+
+  const currentUser = req.session.user || req.user;
+  console.log(currentUser)
+
   try {
       const { orderId, razorpayOrderId } = req.query;
+
+      
       
       const order = await Order.findById(orderId).populate('user');
       
       if (!order) {
           return res.status(404).send('Order not found');
       }
-
+      console.log(order.user)
       if (!order.user) {
           return res.status(404).send('User not found for this order');
       }
+     
+
+      if (order.user._id !== currentUser._id ) {
+        return res.status(403).send('Unauthorized access to this order');
+    }
 
       res.render('razorpay-checkout', {
           orderId: orderId,

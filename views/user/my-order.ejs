@@ -19,15 +19,32 @@
       border-radius: 4px;
     }
     .status-icon {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      display: inline-block;
-      margin-right: 5px;
-    }
-    .delivered { background-color: green; }
-    .pending { background-color: orange; }
-    .cancelled { background-color: red; }
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.delivered {
+    background-color: blue; /* Assuming blue for Delivered */
+}
+
+.pending {
+    background-color: orange; /* Assuming orange for Pending */
+}
+
+.processing {
+    background-color: green; /* Green for Processing */
+}
+
+.cancelled {
+    background-color: red; /* Red for Cancelled */
+}
+
+.default {
+    background-color: gray; /* Fallback color */
+}
+
   </style>
 </head>
 <body>
@@ -89,14 +106,16 @@
                     <p class="mb-0">Color: <%= item.product.color %></p>
                   </div>
                   <div class="col-md-2">
-                    <p class="font-weight-bold mb-0">Price: ₹<%= item.product.salePrice.toFixed(2) %></p>
+                    <p class="font-weight-bold mb-0">Price: ₹<%= item.product.regularPrice %></p>
                     <p class="mb-0">Quantity: <%= item.quantity %></p>
-                    <p class="mb-0">Total: ₹<%= (item.product.salePrice * item.quantity).toFixed(2) %></p>
+                    <p class="mb-0">Total: ₹<%= (item.product.regularPrice * item.quantity).toFixed(2) %></p>
                     
                     <!-- SaledPrice section underneath -->
                     <div class="mt-2" style="background-color: #f8d7da; padding: 8px; border-radius: 5px;">
-                      <p class="font-weight-bold text-danger mb-0">Saled Price: ₹<%= item.saledPrice.toFixed(2) %></p>
-                      <p class="text-danger mb-0">Saled Total: ₹<%= (item.saledPrice * item.quantity).toFixed(2) %></p>
+                      <p class="font-weight-bold text-success mb-0">Sale Price: ₹<%= item.saledPrice.toFixed(2) %></p>
+                      <p class="text-success mb-0"> Total Discount: ₹<%= (item.product.regularPrice * item.quantity).toFixed(2) -  (item.saledPrice * item.quantity).toFixed(2) %></p>
+                      <p class="text-success mb-0">Saled Total: ₹<%= (item.saledPrice * item.quantity).toFixed(2) %></p>
+                     
                     </div>
                   </div>
 
@@ -106,12 +125,20 @@
                             <div class="status-icon delivered"></div>
                         <% } else if (item.itemOrderStatus === 'Pending') { %>
                             <div class="status-icon pending"></div>
-                        <% } else { %>
+                        <% } else if (item.itemOrderStatus === 'Processing') { %>
+                       
+                            <div class="status-icon processing"></div>
+                        <% } else if (item.itemOrderStatus === 'Cancelled') { %>
+                        
                             <div class="status-icon cancelled"></div>
+                        <% } else { %>
+                         
+                            <div class="status-icon default"></div>
                         <% } %>
                         <span><%= item.itemOrderStatus %></span>
                     </div>
                 </div>
+                
                 
                 <div class="col-md-3 text-right">
                   <p class="mb-2"><%= order.date.toLocaleString() %></p>
