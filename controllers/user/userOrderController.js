@@ -13,6 +13,7 @@ const Address = require("../../models/addressSchema");
 const Order = require("../../models/orderSchema")
 const Coupon = require("../../models/couponSchema")
 const razorpayInstance = require('../../config/razorpay'); 
+const Wallet =require("../../models/walletSchema")
 
 const placeOrder = async (req, res, next) => {
   const userId = req.session.user || req.user;
@@ -629,83 +630,104 @@ const myOrder = async (req, res, next) => {
 
 const cancelOrder = async (req, res, next) => {
   try {
-      const { itemOrderId, cancelReason } = req.params;  
+    const { itemOrderId, cancelReason } = req.params;
+    console.log('Cancelling item with ID:', itemOrderId); 
 
-      
-      const order = await Order.findOne({ "items.itemOrderId": itemOrderId });
+    const order = await Order.findOne({ "items.itemOrderId": itemOrderId }).populate('user');
 
-      if (!order) {
-          return res.status(404).send('Item not found');
-      }
+    if (!order) {
+      console.error('Order not found for ID:', itemOrderId); 
+      return res.status(404).send('Order not found');
+    }
 
-      
-      const itemIndex = order.items.findIndex(item => item.itemOrderId === itemOrderId);
+    const itemIndex = order.items.findIndex(item => item.itemOrderId === itemOrderId);
 
-      if (itemIndex === -1) {
-          return res.status(404).send('Item not found in the order');
-      }
-
-    
-      order.items[itemIndex].itemOrderStatus = "Cancelled";
-      order.items[itemIndex].cancelReason = cancelReason || "No reason provided"; 
-
-     
-      const { saledPrice, quantity } = order.items[itemIndex];
-      
-      
-      const onlinePayment = order.payment.find(p => p.method === "Online Payment" && p.status === "completed");
-
-      if (onlinePayment) {
-         
-          const amountToCredit = saledPrice * quantity;
-
-       
-          const user = await User.findById(order.user).populate('wallet').exec();
-          if (user && user.wallet) {
-             
-              user.wallet.balance += amountToCredit;
-
-             
-              user.wallet.transactions.push({
-                  type: "credit",
-                  amount: amountToCredit,
-                  description: `Refund for cancelled order item: ${itemOrderId}`,
-                  date: new Date()
-              });
-
-              // Save the wallet
-              await user.wallet.save();
-          }
-      }
-
-  
-      const productId = order.items[itemIndex].product._id.toString();
-      const itemQuantity = order.items[itemIndex].quantity; 
-
-      await Product.findOneAndUpdate(
-          { _id: productId },
-          { $inc: { quantity: itemQuantity } }, 
-          { new: true }
-      );
+    if (itemIndex === -1) {
+      console.error('Item not found in the order:', order.items); 
+      return res.status(404).send('Item not found in the order');
+    }
 
     
-      const allStatuses = order.items.map(item => item.itemOrderStatus);
-      const uniqueStatuses = [...new Set(allStatuses)];  
+    order.items[itemIndex].itemOrderStatus = "Cancelled";
+    order.items[itemIndex].cancelReason = cancelReason || "No reason provided";
 
-      if (uniqueStatuses.length === 1) {
-          order.status = uniqueStatuses[0];
-      } else if (uniqueStatuses.length > 1) {
-          order.status = "Processing";
+    const { saledPrice, quantity } = order.items[itemIndex];
+    console.log('Item details:', { saledPrice, quantity }); 
+
+    
+    if (!saledPrice || !quantity) {
+      console.error('Invalid item price or quantity:', { saledPrice, quantity }); 
+      return res.status(400).send('Invalid item price or quantity');
+    }
+
+    const onlinePayment = order.payment.find(p => p.method === "Online Payment" && p.status === "completed");
+
+    if (onlinePayment) {
+      const amountToCredit = saledPrice * quantity;
+
+      if (order.user) {
+        
+        if (!order.user.wallet) {
+          console.log('Creating new wallet for user:', order.user._id); 
+          const newWallet = new Wallet({ balance: 0, transactions: [] });
+          await newWallet.save();
+          order.user.wallet = newWallet._id;
+          await order.user.save();
+        }
+
+        
+        const wallet = await Wallet.findById(order.user.wallet);
+
+        if (wallet) {
+          wallet.balance += amountToCredit;
+          wallet.transactions.push({
+            type: "credit",
+            amount: amountToCredit,
+            description: `Refund for cancelled order item: ${itemOrderId}`,
+            date: new Date()
+          });
+
+          await wallet.save();
+          console.log('Wallet updated successfully:', wallet); 
+        } else {
+          console.error('Wallet not found even after attempted creation');
+          return res.status(404).send('Wallet not found');
+        }
+      } else {
+        console.error('User not found in the order');
+        return res.status(404).send('User not found');
       }
+    }
 
-      await order.save();
+    
+    const productId = order.items[itemIndex].product._id.toString();
+    await Product.findOneAndUpdate(
+      { _id: productId },
+      { $inc: { quantity: quantity } },
+      { new: true }
+    );
 
-      res.redirect('/user/my-order');
+    
+    const allStatuses = order.items.map(item => item.itemOrderStatus);
+    const uniqueStatuses = [...new Set(allStatuses)];
+
+    if (uniqueStatuses.length === 1) {
+      order.status = uniqueStatuses[0];
+    } else if (uniqueStatuses.length > 1) {
+      order.status = "Processing";
+    }
+
+    await order.save();
+
+    res.redirect('/user/my-order');
 
   } catch (error) {
-      next(error);
+    console.error('Error in cancelOrder:', error);
+    next(error);
   }
 };
+
+
 
 const returnOrder = async (req, res, next) => {
   try {

@@ -39,6 +39,19 @@
                         <div class="col-md-4">
                             <h5>Your Rewards in this item</h5>
                             <p  class="text-success" style="font-size: large;" ><span  class="coin-icon">&#9733;</span>  ₹<%= ((selectedItem.regularPrice - selectedItem.saledPrice)*selectedItem.quantity).toFixed() %> Saved </p>
+                            <h6>Payment Method</h6> 
+                            <% if (order.payment && order.payment.length > 0) { %>
+                              <p><span><%= order.payment[0].method %></span></p>
+                            <% } else { %>
+                              <p>No payment method found</p>
+                            <% } %>
+                            
+                            <h6>Payment Status</h6> 
+                            <% if (order.payment && order.payment.length > 0) { %>
+                              <p><span><%= order.payment[0].status %></span></p>
+                            <% } else { %>
+                              <p>No payment status found</p>
+                            <% } %>
                         </div>
                     </div>
                     

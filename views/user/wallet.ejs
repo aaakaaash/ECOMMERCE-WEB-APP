@@ -82,7 +82,16 @@
                     <tbody>
                       <% transactions.forEach(transaction => { %>
                         <tr>
-                          <td><%= new Date(transaction.date).toLocaleDateString() %></td>
+                          <td><%= new Date(transaction.date).toLocaleString('en-US', { 
+                            year: 'numeric', 
+                            month: '2-digit', 
+                            day: '2-digit', 
+                            hour: '2-digit', 
+                            minute: '2-digit', 
+                            second: '2-digit', 
+                            hour12: true // or false for 24-hour format
+                        }) %></td>
+                        
                           <td>
                             <span class="badge <%= transaction.type === 'credit' ? 'bg-success' : 'bg-danger' %>">
                               <%= transaction.type === 'credit' ? 'Credit' : 'Debit' %>
