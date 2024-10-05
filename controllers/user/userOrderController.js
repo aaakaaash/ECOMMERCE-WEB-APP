@@ -263,7 +263,7 @@ const loadPayment = async (req, res, next) => {
 };
 
 
-const confirmOrder = async (req, res, next) => {
+const confirmOrder = async (req, res) => {
   try {
     const { userId, address, items, couponDiscountAmount, totalPrice, finalTotal, appliedCouponId, discountAmount, paymentMethod } = req.body;
 
@@ -349,6 +349,8 @@ const confirmOrder = async (req, res, next) => {
     const order = new Order(orderData);
     await order.save();
 
+    await Cart.findOneAndUpdate({ userId: userId }, { $set: { items: [] } });
+
     if (paymentMethod === "OnlinePayment") {
       const razorpayOptions = {
         amount: Math.round(parsedFinalTotal * 100), 
@@ -393,7 +395,7 @@ const finalizeOrder = async (order, userId, appliedCouponId) => {
     await order.save();
 
    
-    await Cart.findOneAndUpdate({ userId: userId }, { $set: { items: [] } });
+    
 
     if (appliedCouponId) {
 

@@ -13,6 +13,7 @@ const productController = require("../controllers/admin/productController");
 const orderController  = require("../controllers/admin/orderController");
 const couponController  = require("../controllers/admin/couponController");
 const offerController  = require("../controllers/admin/offerController");
+const salesReportController = require("../controllers/admin/salesReportController")
 
 
 const storage = multer.diskStorage({
@@ -104,6 +105,13 @@ router.get("/offers",adminAuth,offerController.offer)
 router.get("/create-offer",adminAuth,offerController.createOffer)
 router.post("/create-offer/add-offer",adminAuth,offerController.addOffer)
 router.delete("/offers/delete-offer/:offerId",adminAuth,offerController.deleteOffer)
+
+
+// sales report
+
+router.get('/sales-report',adminAuth, salesReportController.getSalesReport)
+router.post('/filter-sales',adminAuth, salesReportController.filterSalesReport);
+router.post('/download-report',adminAuth, salesReportController.downloadReport);
 
 
 module.exports = router;
