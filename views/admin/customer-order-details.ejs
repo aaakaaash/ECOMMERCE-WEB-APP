@@ -41,7 +41,7 @@
        
         .dummy{
             width: 100%;
-            height: 150px;
+            height: 100px;
         }
      
     </style>
@@ -108,7 +108,10 @@
                         <p>Color: <%= item.product.color %> | SKU: <%= item.product.skuNumber %></p>
 
                         <p>Quantity: <%= item.quantity %></p>
-                        <p>Price: ₹<%= item.saledPrice %></p>
+                        <p>Actual Price: ₹<%= item.regularPrice * item.quantity %></p>
+                        <p>Discount: ₹<%= ((item.regularPrice - item.saledPrice) * item.quantity).toString() %></p>
+                        <p>Saled Price: ₹<%= item.saledPrice * item.quantity %></p>
+                        
                     </div>
                     <div class="col-md-4">
                         <div class="order-status">

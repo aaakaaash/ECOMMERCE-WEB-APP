@@ -13,7 +13,8 @@ const productController = require("../controllers/admin/productController");
 const orderController  = require("../controllers/admin/orderController");
 const couponController  = require("../controllers/admin/couponController");
 const offerController  = require("../controllers/admin/offerController");
-const salesReportController = require("../controllers/admin/salesReportController")
+const salesReportController = require("../controllers/admin/salesReportController");
+const referralOfferController = require("../controllers/admin/referralOfferController");
 
 
 const storage = multer.diskStorage({
@@ -112,6 +113,12 @@ router.delete("/offers/delete-offer/:offerId",adminAuth,offerController.deleteOf
 router.get('/sales-report',adminAuth, salesReportController.getSalesReport)
 router.post('/filter-sales',adminAuth, salesReportController.filterSalesReport);
 router.post('/download-report',adminAuth, salesReportController.downloadReport);
+
+// referral offer
+
+router.get("/referral-offer",adminAuth, referralOfferController.getReferralOffers)
+router.post("/referral-offer/create",adminAuth, referralOfferController.createReferralOffer)
+router.delete("/referral-offer/delete/:id", adminAuth, referralOfferController.deleteReferralOffer);
 
 
 module.exports = router;

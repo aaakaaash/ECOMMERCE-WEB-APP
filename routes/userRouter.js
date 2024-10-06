@@ -110,6 +110,7 @@ router.get("/user/my-coupons",userAuth,userCouponController.myCoupons);
 // wallet management
 
 router.get("/user/my-wallet",userAuth,setBreadcrumbs,userWalletController.wallet);
+router.post('/user/check-wallet-balance', userAuth,userWalletController.checkWalletBalance);
 
 
 // user google authentication managaement

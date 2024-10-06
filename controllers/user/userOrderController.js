@@ -342,7 +342,8 @@ const confirmOrder = async (req, res) => {
       status: 'Pending',
       totalPrice: parsedFinalTotal,
       payment: [{
-        method: paymentMethod === "OnlinePayment" ? "Online Payment" : "Cash On Delivery",
+        method: paymentMethod === "OnlinePayment" ? "Online Payment" : 
+                 paymentMethod === "WalletPayment" ? "Wallet Payment" : "Cash On Delivery",
         status: "pending"
       }]
     };
@@ -372,6 +373,17 @@ const confirmOrder = async (req, res) => {
         razorpayKeyId: process.env.RAZOR_PAY_KEY_ID  
       });
     
+    } else if (paymentMethod === "WalletPayment") {
+      try {
+        await processWalletPayment(userId, parsedFinalTotal);
+        order.payment[0].status = "completed";
+        await order.save();
+        await finalizeOrder(order, userId, appliedCouponId);
+        return res.redirect('/user/order-confirmation');
+      } catch (error) {
+        console.error('Wallet payment failed:', error);
+        return res.status(400).json({ error: error.message });
+      }
     } else {
       await finalizeOrder(order, userId, appliedCouponId);
       return res.redirect('/user/order-confirmation');
@@ -416,6 +428,34 @@ const finalizeOrder = async (order, userId, appliedCouponId) => {
     
   } catch (error) {
     console.error('Error finalizing order:', error);
+    throw error;
+  }
+};
+
+const processWalletPayment = async (userId, totalAmount) => {
+  try {
+    const user = await User.findById(userId).populate('wallet');
+    if (!user || !user.wallet) {
+      throw new Error('User or wallet not found');
+    }
+
+    if (user.wallet.balance < totalAmount) {
+      throw new Error('Insufficient balance in wallet');
+    }
+
+    
+    user.wallet.balance -= totalAmount;
+    user.wallet.transactions.push({
+      type: 'debit',
+      amount: totalAmount,
+      description: `Payment for order`,
+      date: new Date()
+    });
+
+    await user.wallet.save();
+    return true;
+  } catch (error) {
+    console.error('Error processing wallet payment:', error);
     throw error;
   }
 };
@@ -631,51 +671,47 @@ const myOrder = async (req, res, next) => {
 const cancelOrder = async (req, res, next) => {
   try {
     const { itemOrderId, cancelReason } = req.params;
-    console.log('Cancelling item with ID:', itemOrderId); 
+    console.log('Cancelling item with ID:', itemOrderId);
 
     const order = await Order.findOne({ "items.itemOrderId": itemOrderId }).populate('user');
 
     if (!order) {
-      console.error('Order not found for ID:', itemOrderId); 
+      console.error('Order not found for ID:', itemOrderId);
       return res.status(404).send('Order not found');
     }
 
     const itemIndex = order.items.findIndex(item => item.itemOrderId === itemOrderId);
 
     if (itemIndex === -1) {
-      console.error('Item not found in the order:', order.items); 
+      console.error('Item not found in the order:', order.items);
       return res.status(404).send('Item not found in the order');
     }
 
-    
     order.items[itemIndex].itemOrderStatus = "Cancelled";
     order.items[itemIndex].cancelReason = cancelReason || "No reason provided";
 
     const { saledPrice, quantity } = order.items[itemIndex];
-    console.log('Item details:', { saledPrice, quantity }); 
+    console.log('Item details:', { saledPrice, quantity });
 
-    
     if (!saledPrice || !quantity) {
-      console.error('Invalid item price or quantity:', { saledPrice, quantity }); 
+      console.error('Invalid item price or quantity:', { saledPrice, quantity });
       return res.status(400).send('Invalid item price or quantity');
     }
 
-    const onlinePayment = order.payment.find(p => p.method === "Online Payment" && p.status === "completed");
+    const amountToCredit = saledPrice * quantity;
+    const paymentMethod = order.payment[0].method;
+    const paymentStatus = order.payment[0].status;
 
-    if (onlinePayment) {
-      const amountToCredit = saledPrice * quantity;
-
+    if ((paymentMethod === "Online Payment" || paymentMethod === "Wallet Payment") && paymentStatus === "completed") {
       if (order.user) {
-        
         if (!order.user.wallet) {
-          console.log('Creating new wallet for user:', order.user._id); 
+          console.log('Creating new wallet for user:', order.user._id);
           const newWallet = new Wallet({ balance: 0, transactions: [] });
           await newWallet.save();
           order.user.wallet = newWallet._id;
           await order.user.save();
         }
 
-        
         const wallet = await Wallet.findById(order.user.wallet);
 
         if (wallet) {
@@ -688,7 +724,7 @@ const cancelOrder = async (req, res, next) => {
           });
 
           await wallet.save();
-          console.log('Wallet updated successfully:', wallet); 
+          console.log('Wallet updated successfully:', wallet);
         } else {
           console.error('Wallet not found even after attempted creation');
           return res.status(404).send('Wallet not found');
@@ -699,7 +735,6 @@ const cancelOrder = async (req, res, next) => {
       }
     }
 
-    
     const productId = order.items[itemIndex].product._id.toString();
     await Product.findOneAndUpdate(
       { _id: productId },
@@ -707,7 +742,6 @@ const cancelOrder = async (req, res, next) => {
       { new: true }
     );
 
-    
     const allStatuses = order.items.map(item => item.itemOrderStatus);
     const uniqueStatuses = [...new Set(allStatuses)];
 
@@ -726,7 +760,6 @@ const cancelOrder = async (req, res, next) => {
     next(error);
   }
 };
-
 
 
 const returnOrder = async (req, res, next) => {

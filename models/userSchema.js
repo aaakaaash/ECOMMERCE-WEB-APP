@@ -83,12 +83,14 @@ const userSchema = new Schema({
     },
     referralCode: {
         type: String,
-        required: false
+        default: () => uuidv4().split('-')[0],
+        unique: true,
+        required : false
     },
-    refferals:{
+    referrals: [{ 
         type: Schema.Types.ObjectId,
-        ref: "Referral",
-    },
+        ref: 'Referral'
+    }],
     redeemed: {
         type: Boolean
     },

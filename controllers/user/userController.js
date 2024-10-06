@@ -9,6 +9,10 @@ const Product = require("../../models/productSchema")
 const Offer = require("../../models/offerSchema")
 const Category = require("../../models/categorySchema")
 
+const ReferralOffer = require('../../models/referralOfferSchema');
+const Referral = require('../../models/referralSchema');
+const Wallet = require('../../models/walletSchema');
+
 let sessionActive = false;
 
 const pageNotFound = async (req, res, next) => {
@@ -271,12 +275,13 @@ const signup = async (req, res, next) => {
     
     try {
 
-        const {name,phone,email,password,cPassword} = req.body;
+        const {name,phone,email,password,cPassword,refCode} = req.body;
 
         if(password !== cPassword){
             return res.render("signup",{message:"Passwords are not matching"});
         }
         const findUser = await User.findOne({email});
+
         if(findUser){
             
             return res.render("signup", {message:"User with this email already exists"});
@@ -291,9 +296,11 @@ const signup = async (req, res, next) => {
         }
 
         req.session.userOtp = otp;
-        req.session.userData = {name,phone,email,password};
+        req.session.userData = {name,phone,email,password,refCode};
 
         res.render("verify-otp");
+
+        console.log(refCode)
 
         console.log("OTP Sent",otp);
 
@@ -316,38 +323,170 @@ const securePassword = async (password)=>{
     }
 }
 
-const verifyOtp = async (req, res, next)=>{
-    try{
-        const {otp} = req.body;
-        console.log(otp);
+// const verifyOtp = async (req, res, next)=>{
+//     try{
+//         const {otp} = req.body;
+//         console.log(otp);
         
 
-        if(otp ===req.session.userOtp){
-            const user = req.session.userData;
-            const passwordHash = await securePassword(user.password);
+//         if(otp ===req.session.userOtp){
+//             const user = req.session.userData;
+//             const passwordHash = await securePassword(user.password);
 
-            const saveUserData = new User({
-                name:user.name,
-                email:user.email,
-                phone:user.phone,
-                password:passwordHash
-            })
+//             const saveUserData = new User({
+//                 name:user.name,
+//                 email:user.email,
+//                 phone:user.phone,
+//                 password:passwordHash
+//             })
 
-            await saveUserData.save();
-            req.session.user = saveUserData._id;
-            sessionActive = true;
-            res.json({success:true, redirectUrl:"/"})
-        }else {
-            res.status(400).json({success:false, message:"Invalid OTP, Please try again"})
+//             await saveUserData.save();
+//             req.session.user = saveUserData._id;
+//             sessionActive = true;
+//             res.json({success:true, redirectUrl:"/"})
+//         }else {
+//             res.status(400).json({success:false, message:"Invalid OTP, Please try again"})
+//         }
+
+//     } catch (error){
+
+//         console.error("Error Verifying OTP",error);
+//         res.status(500).json({success:false, message:"An error occured"});
+
+//     }
+// }
+
+
+const verifyOtp = async (req, res) => {
+    try {
+        const { otp } = req.body;
+
+        if (otp !== req.session.userOtp) {
+            return res.status(400).json({ success: false, message: "Invalid OTP, Please try again" });
         }
 
-    } catch (error){
+        const user = req.session.userData;
+        const passwordHash = await securePassword(user.password);
 
-        console.error("Error Verifying OTP",error);
-        res.status(500).json({success:false, message:"An error occured"});
+        const existingUser = await User.findOne({ 
+            $or: [{ email: user.email }, { phone: user.phone }] 
+        });
 
+        if (existingUser) {
+            return res.status(409).json({ success: false, message: "User with this email or phone already exists" });
+        }
+
+        const saveUserData = new User({
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            password: passwordHash
+        });
+
+        await saveUserData.save();
+
+        const newWallet = new Wallet({ user: saveUserData._id, balance: 0 });
+        await newWallet.save();
+
+        saveUserData.wallet = newWallet._id;
+        await saveUserData.save();
+
+        if (user.refCode) {
+            await applyReferralOffer(saveUserData._id, user.refCode);
+        }
+
+        req.session.user = saveUserData._id;
+        sessionActive = true;
+
+        res.status(200).json({ success: true, redirectUrl: "/" });
+
+    } catch (error) {
+        console.error("Error Verifying OTP", error);
+        res.status(500).json({ success: false, message: "An error occurred" });
     }
-}
+};
+
+const applyReferralOffer = async (newUserId, referralCode) => {
+    try {
+        const referrer = await User.findOne({ referralCode });
+        if (!referrer) {
+            console.log('Invalid referral code');
+            return;
+        }
+
+        const currentDate = new Date();
+        const activeOffer = await ReferralOffer.findOne({
+            status: 'active',
+            startDate: { $lte: currentDate },
+            endDate: { $gte: currentDate }
+        });
+        if (!activeOffer) {
+            console.log('No active referral offer found');
+            return;
+        }
+
+        const newReferral = new Referral({
+            referrerUserId: referrer._id,
+            refereeUserId: newUserId
+        });
+        await newReferral.save();
+
+        await User.findByIdAndUpdate(referrer._id, {
+            $push: { referrals: newReferral._id }
+        });
+
+        // Handle referrer reward
+        if (activeOffer.referrerReward > 0) {
+            await creditWallet(referrer._id, activeOffer.referrerReward, 'Referral reward');
+        } else if (activeOffer.walletCreditAmount > 0) {
+            await creditWallet(referrer._id, activeOffer.walletCreditAmount, 'Referral wallet credit');
+        }
+
+        // Handle referee (new user) reward
+        if (activeOffer.refereeReward > 0) {
+            await creditWallet(newUserId, activeOffer.refereeReward, 'New user referral bonus');
+        } else if (activeOffer.walletCreditAmount > 0) {
+            await creditWallet(newUserId, activeOffer.walletCreditAmount, 'New user referral wallet credit');
+        }
+
+        // Set first order discount if applicable
+        if (activeOffer.firstOrderDiscountPercentage > 0) {
+            await User.findByIdAndUpdate(newUserId, {
+                firstOrderDiscount: activeOffer.firstOrderDiscountPercentage
+            });
+        }
+
+        console.log('Referral offer applied successfully');
+
+    } catch (error) {
+        console.error('Error applying referral offer:', error);
+    }
+};
+
+// Helper function to credit wallet
+const creditWallet = async (userId, amount, description) => {
+    try {
+        const user = await User.findById(userId);
+        if (!user || !user.wallet) {
+            console.error('User or wallet not found');
+            return;
+        }
+
+        await Wallet.findByIdAndUpdate(user.wallet, {
+            $inc: { balance: amount },
+            $push: {
+                transactions: {
+                    type: 'credit',
+                    amount: amount,
+                    description: description
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error crediting wallet:', error);
+    }
+};
+
 
 const resendOtp = async (req, res, next) =>{
     try {

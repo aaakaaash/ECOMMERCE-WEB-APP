@@ -140,7 +140,7 @@
                     <div id="otpTimer">
                         <span id="timerValue">60</span>
                     </div>
-                    <a href="#" class="resend-link" onclick="resendOTP()" >Resend OTP?</a> <!-- Changed button to link -->
+                    <a href="#" class="resend-link" onclick="resendOTP()" >Resend OTP?</a> 
                 </div>
                 <% if (locals.message && message.length > 0) { %>
                 <div class="alert alert-danger"><%= message %></div>
@@ -216,9 +216,9 @@
     function resendOTP() {
         clearInterval(timerInterval);
         timer=60;
-        document.getElementById("timerValue").textContent = timer; // Reset the displayed timer value
-    document.getElementById("timerValue").classList.remove("expired"); // Remove the expired class
-    document.getElementById("otp").disabled = false; // Re-enable the OTP input field
+        document.getElementById("timerValue").textContent = timer; 
+    document.getElementById("timerValue").classList.remove("expired"); 
+    document.getElementById("otp").disabled = false; 
         startTimer();
         $.ajax({
             type:"POST",

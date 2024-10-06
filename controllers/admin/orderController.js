@@ -76,133 +76,125 @@ const updateOrderStatus = async (req, res) => {
       return res.status(400).json({ success: false, message: 'This item status cannot be changed' });
     }
 
-      if (status === 'Return Requested' && item.itemOrderStatus !== 'Return Requested') {
-          if (item.itemOrderStatus !== 'Delivered') {
-              return res.status(400).json({ success: false, message: 'Only delivered items can be returned' });
-          }
-          const deliveryDate = item.deliveryDate || order.date;
-          const currentDate = new Date();
-          const daysSinceDelivery = Math.floor((currentDate - deliveryDate) / (1000 * 60 * 60 * 24));
-          if (daysSinceDelivery > 7) {
-              return res.status(400).json({ success: false, message: 'Return period has expired' });
-          }
-          item.returnReason = returnReason || 'Not specified';
+    if (status === 'Return Requested' && item.itemOrderStatus !== 'Return Requested') {
+      if (item.itemOrderStatus !== 'Delivered') {
+        return res.status(400).json({ success: false, message: 'Only delivered items can be returned' });
       }
-
-      if (status === 'Return Rejected') {
-          item.returnRejectionReason = returnRejectionReason || 'Not specified';
+      const deliveryDate = item.deliveryDate || order.date;
+      const currentDate = new Date();
+      const daysSinceDelivery = Math.floor((currentDate - deliveryDate) / (1000 * 60 * 60 * 24));
+      if (daysSinceDelivery > 7) {
+        return res.status(400).json({ success: false, message: 'Return period has expired' });
       }
+      item.returnReason = returnReason || 'Not specified';
+    }
 
-     
-      if (status === 'Cancelled' || status === 'Returned') {
-        item.cancelReason = status === 'Cancelled' ? (cancelReason || 'Not specified') : undefined;
-        await Product.findByIdAndUpdate(item.product, {
-          $inc: { quantity: item.quantity }
-        }, { new: true });
-  
-        if (order.payment[0].status === 'completed') {
-          const refundAmount = item.saledPrice;
-          const user = await User.findById(order.user._id);
-          
-  
-          let wallet;
-  
-          if (!user.wallet) {
-           
-            wallet = await createNewWallet(user, refundAmount, status, item);
-          } else {
-           
-            try {
-              wallet = await Wallet.findById(user.wallet);
-              if (!wallet) {
-                console.log('Wallet not found in database. Creating new wallet.');
-                wallet = await createNewWallet(user, refundAmount, status, item);
-              } else {
-                console.log('Existing wallet found:', wallet);
-               
-                wallet.balance += refundAmount;
-                wallet.transactions.push({
-                  type: 'credit',
-                  amount: refundAmount,
-                  description: `Refund for ${status.toLowerCase()} item ${item.itemOrderId} in order ${order.orderId}`,
-                  date: new Date()
-                });
-                await wallet.save();
-                console.log('Existing wallet updated successfully');
-              }
-            } catch (error) {
-              console.error('Error fetching or updating existing wallet:', error);
-              return res.status(500).json({ success: false, message: 'Error with wallet operation' });
+    if (status === 'Return Rejected') {
+      item.returnRejectionReason = returnRejectionReason || 'Not specified';
+    }
+
+    if (status === 'Cancelled' || status === 'Returned') {
+      item.cancelReason = status === 'Cancelled' ? (cancelReason || 'Not specified') : undefined;
+      await Product.findByIdAndUpdate(item.product, {
+        $inc: { quantity: item.quantity }
+      }, { new: true });
+
+      const paymentMethod = order.payment[0].method;
+      const paymentStatus = order.payment[0].status;
+      const refundAmount = item.saledPrice;
+
+      if ((paymentMethod === 'Online Payment' && paymentStatus === 'completed') || 
+      (paymentMethod === 'Wallet Payment' && paymentStatus === 'completed') ||
+      (paymentMethod === 'Cash On Delivery' && status === 'Returned')) {
+        const user = await User.findById(order.user._id);
+        
+        let wallet;
+
+        if (!user.wallet) {
+          wallet = await createNewWallet(user, refundAmount, status, item);
+        } else {
+          try {
+            wallet = await Wallet.findById(user.wallet);
+            if (!wallet) {
+      
+              wallet = await createNewWallet(user, refundAmount, status, item);
+            } else {
+              wallet.balance += refundAmount;
+              wallet.transactions.push({
+                type: 'credit',
+                amount: refundAmount,
+                description: `Refund for ${status.toLowerCase()} item ${item.itemOrderId} in order ${order.orderId}`,
+                date: new Date()
+              });
+              await wallet.save();
+            
             }
+          } catch (error) {
+            console.error('Error fetching or updating existing wallet:', error);
+            return res.status(500).json({ success: false, message: 'Error with wallet operation' });
           }
         }
       }
-  
-     
-      item.itemOrderStatus = status;
-  
-   
-      const allItemsCancelled = order.items.every(item => item.itemOrderStatus === 'Cancelled');
-      const allItemsReturned = order.items.every(item => item.itemOrderStatus === 'Returned');
-      const allItemsDelivered = order.items.every(item => item.itemOrderStatus === 'Delivered');
-  
-      if (allItemsCancelled) {
-        order.status = 'Cancelled';
-      } else if (allItemsReturned) {
-        order.status = 'Returned';
-      } else if (allItemsDelivered) {
-        order.status = 'Delivered';
-      } else {
-        order.status = 'Processing';
-      }
-  
-      await order.save();
-  
-      res.json({ success: true, message: 'Item status updated successfully', order });
-    } catch (error) {
-      console.error('Error in updateOrderStatus:', error);
-      res.status(500).json({ success: false, message: 'An error occurred while updating the item status' });
     }
-  };
-  
-  
-  async function createNewWallet(user, refundAmount, status, item) {
-    const wallet = new Wallet({
-      balance: refundAmount,
-      transactions: [{
-        type: 'credit',
-        amount: refundAmount,
-        description: `Refund for ${status.toLowerCase()} order item: ${item.itemOrderId}`,
-        date: new Date()
-      }]
-    });
-  
-    try {
-      await wallet.save();
-      console.log('New wallet created:', wallet);
-      
-      user.wallet = wallet._id;
-      await user.save();
-      console.log('User updated with new wallet');
-      return wallet;
-    } catch (error) {
-      console.error('Error creating new wallet:', error);
-      throw error;
+
+    item.itemOrderStatus = status;
+
+    const allItemsCompleted = order.items.every(item => 
+      item.itemOrderStatus === 'Delivered' || 
+      item.itemOrderStatus === 'Returned' || 
+      item.itemOrderStatus === 'Cancelled'
+    );
+    
+    if (allItemsCompleted) {
+      order.status = 'Completed';
+    } else {
+      order.status = 'Processing';
     }
+    
+    await order.save();
+
+
+    res.json({ success: true, message: 'Item status updated successfully', order });
+  } catch (error) {
+    console.error('Error in updateOrderStatus:', error);
+    res.status(500).json({ success: false, message: 'An error occurred while updating the item status' });
   }
-  
- 
-  function formatDateTime(date) {
-    return date.toLocaleString('en-US', { 
-      year: 'numeric', 
-      month: '2-digit', 
-      day: '2-digit', 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      second: '2-digit',
-      hour12: true
-    });
+};
+
+async function createNewWallet(user, refundAmount, status, item) {
+  const wallet = new Wallet({
+    balance: refundAmount,
+    transactions: [{
+      type: 'credit',
+      amount: refundAmount,
+      description: `Refund for ${status.toLowerCase()} order item: ${item.itemOrderId}`,
+      date: new Date()
+    }]
+  });
+
+  try {
+    await wallet.save();
+    
+    user.wallet = wallet._id;
+    await user.save();
+    return wallet;
+  } catch (error) {
+    console.error('Error creating new wallet:', error);
+    throw error;
   }
+}
+
+function formatDateTime(date) {
+  return date.toLocaleString('en-US', { 
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit', 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    second: '2-digit',
+    hour12: true
+  });
+}
 
 const orderDetails = async (req, res, next) => {
     try {
