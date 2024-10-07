@@ -152,6 +152,7 @@ function updateItemStatus(orderId, itemId) {
         delete inputOptions.Pending;
         delete inputOptions.Processing;
         delete inputOptions.Shipped;
+        delete inputOptions.Cancelled;
     } else if (currentStatus === 'Cancelled' || currentStatus === 'Returned') {
         Swal.fire({
             title: 'Error!',

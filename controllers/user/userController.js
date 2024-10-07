@@ -13,6 +13,10 @@ const ReferralOffer = require('../../models/referralOfferSchema');
 const Referral = require('../../models/referralSchema');
 const Wallet = require('../../models/walletSchema');
 
+const { applyReferralOffer, creditWallet } = require('../../controllers/user/userReferralController');
+
+
+
 let sessionActive = false;
 
 const pageNotFound = async (req, res, next) => {
@@ -122,32 +126,35 @@ const loadAboutpage = async (req, res, next) => {
 
 const loadShoppage = async (req, res, next) => {
     try {
-        const searchQuery = req.query.searchQuery || '';
+        
+        const searchQuery = req.query.searchQuery || ''; 
         const { sortBy, category } = req.query;
 
+    
         const page = parseInt(req.query.page) || 1;
-        const limit = 2;
+        const limit = 8;  
         const skip = (page - 1) * limit;
 
+        
         let searchCondition = { isBlocked: false };
 
-        if (searchQuery) {
-            const regex = new RegExp(searchQuery, 'i');
+        
+        if (searchQuery.trim() !== '') {
+            const regex = new RegExp(searchQuery, 'i'); 
             searchCondition.$or = [{ productName: regex }];
         }
 
+        
         if (category && category !== '') {
             searchCondition.category = category;
-        }
-
-    
-        const listedCategories = await Category.find({ isListed: true }).select('_id').exec();
-        const listedCategoryIds = listedCategories.map(cat => cat._id);
-
-        if (!category) {
+        } else {
+        
+            const listedCategories = await Category.find({ isListed: true }).select('_id').exec();
+            const listedCategoryIds = listedCategories.map(cat => cat._id);
             searchCondition.category = { $in: listedCategoryIds };
         }
 
+        
         let sortCriteria = {};
         switch (sortBy) {
             case 'popularity': sortCriteria = { popularity: -1 }; break;
@@ -161,6 +168,7 @@ const loadShoppage = async (req, res, next) => {
             default: sortCriteria = {};
         }
 
+    
         const products = await Product.find(searchCondition)
             .populate('category')
             .sort(sortCriteria)
@@ -168,17 +176,22 @@ const loadShoppage = async (req, res, next) => {
             .limit(limit)
             .exec();
 
+        
         const totalProducts = await Product.countDocuments(searchCondition);
         const totalPages = Math.ceil(totalProducts / limit);
 
+        
         let userId = req.user || req.session.user;
         let userData = userId ? await User.findById(userId) : null;
         res.locals.user = userData;
 
+    
         const categories = await Category.find({ isListed: true }).exec();
 
+    
         const offer = await Offer.find().populate('category').populate('product').exec();
 
+        
         return res.render("shop", {
             user: userData,
             products: products,
@@ -188,7 +201,9 @@ const loadShoppage = async (req, res, next) => {
             totalPages: totalPages,
             totalProducts: totalProducts,
             offer,
-            selectedCategory: category || ''
+            selectedCategory: category || '',
+            searchQuery, 
+            message: products.length === 0 ? 'No products found.' : '' 
         });
 
     } catch (error) {
@@ -196,7 +211,6 @@ const loadShoppage = async (req, res, next) => {
         next(error);
     }
 };
-
 
 
 
@@ -323,38 +337,6 @@ const securePassword = async (password)=>{
     }
 }
 
-// const verifyOtp = async (req, res, next)=>{
-//     try{
-//         const {otp} = req.body;
-//         console.log(otp);
-        
-
-//         if(otp ===req.session.userOtp){
-//             const user = req.session.userData;
-//             const passwordHash = await securePassword(user.password);
-
-//             const saveUserData = new User({
-//                 name:user.name,
-//                 email:user.email,
-//                 phone:user.phone,
-//                 password:passwordHash
-//             })
-
-//             await saveUserData.save();
-//             req.session.user = saveUserData._id;
-//             sessionActive = true;
-//             res.json({success:true, redirectUrl:"/"})
-//         }else {
-//             res.status(400).json({success:false, message:"Invalid OTP, Please try again"})
-//         }
-
-//     } catch (error){
-
-//         console.error("Error Verifying OTP",error);
-//         res.status(500).json({success:false, message:"An error occured"});
-
-//     }
-// }
 
 
 const verifyOtp = async (req, res) => {
@@ -406,86 +388,6 @@ const verifyOtp = async (req, res) => {
     }
 };
 
-const applyReferralOffer = async (newUserId, referralCode) => {
-    try {
-        const referrer = await User.findOne({ referralCode });
-        if (!referrer) {
-            console.log('Invalid referral code');
-            return;
-        }
-
-        const currentDate = new Date();
-        const activeOffer = await ReferralOffer.findOne({
-            status: 'active',
-            startDate: { $lte: currentDate },
-            endDate: { $gte: currentDate }
-        });
-        if (!activeOffer) {
-            console.log('No active referral offer found');
-            return;
-        }
-
-        const newReferral = new Referral({
-            referrerUserId: referrer._id,
-            refereeUserId: newUserId
-        });
-        await newReferral.save();
-
-        await User.findByIdAndUpdate(referrer._id, {
-            $push: { referrals: newReferral._id }
-        });
-
-        // Handle referrer reward
-        if (activeOffer.referrerReward > 0) {
-            await creditWallet(referrer._id, activeOffer.referrerReward, 'Referral reward');
-        } else if (activeOffer.walletCreditAmount > 0) {
-            await creditWallet(referrer._id, activeOffer.walletCreditAmount, 'Referral wallet credit');
-        }
-
-        // Handle referee (new user) reward
-        if (activeOffer.refereeReward > 0) {
-            await creditWallet(newUserId, activeOffer.refereeReward, 'New user referral bonus');
-        } else if (activeOffer.walletCreditAmount > 0) {
-            await creditWallet(newUserId, activeOffer.walletCreditAmount, 'New user referral wallet credit');
-        }
-
-        // Set first order discount if applicable
-        if (activeOffer.firstOrderDiscountPercentage > 0) {
-            await User.findByIdAndUpdate(newUserId, {
-                firstOrderDiscount: activeOffer.firstOrderDiscountPercentage
-            });
-        }
-
-        console.log('Referral offer applied successfully');
-
-    } catch (error) {
-        console.error('Error applying referral offer:', error);
-    }
-};
-
-// Helper function to credit wallet
-const creditWallet = async (userId, amount, description) => {
-    try {
-        const user = await User.findById(userId);
-        if (!user || !user.wallet) {
-            console.error('User or wallet not found');
-            return;
-        }
-
-        await Wallet.findByIdAndUpdate(user.wallet, {
-            $inc: { balance: amount },
-            $push: {
-                transactions: {
-                    type: 'credit',
-                    amount: amount,
-                    description: description
-                }
-            }
-        });
-    } catch (error) {
-        console.error('Error crediting wallet:', error);
-    }
-};
 
 
 const resendOtp = async (req, res, next) =>{

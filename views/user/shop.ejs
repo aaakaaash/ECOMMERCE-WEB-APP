@@ -71,24 +71,28 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 							<div class="search-hotel">
 								<h3 class="agileits-sear-head">Search Here..</h3>
 								<form id="searchForm" action="/shop" method="get" class="d-flex">
-									<input id="searchInput" class="form-control" type="search" name="searchQuery" placeholder="Search here..." required="">
-										<button class="btn1">
-												<i class="fas fa-search"></i>
-										</button>
-										<div class="clearfix"> </div>
-									</form>
+									<input id="searchInput" class="form-control" type="search" name="searchQuery" 
+										   placeholder="Search here..." value="<%= searchQuery %>" >
+									<button class="btn1">
+										<i class="fas fa-search"></i>
+									</button>
+									<div class="clearfix"></div>
+								</form>
 							</div>
 							<!-- price range -->
 							<form action="/shop" method="GET">
+								<input type="hidden" name="searchQuery" value="<%= searchQuery %>">
 								<div class="col-md-6 mb-3" id="categoryField">
 									<label for="category" class="form-label">Select Category</label>
-									<select class="form-control" id="category" name="category" onchange="this.form.submit()"> 
+									<select class="form-control" id="category" name="category" onchange="this.form.submit()">
 										<option value="">--Select Category--</option>
 										<% categories.forEach(function(category) { %>
-											<option value="<%= category._id %>" <%= category._id == selectedCategory ? 'selected' : '' %>><%= category.name %></option>
+											<option value="<%= category._id %>" 
+													<%= category._id == selectedCategory ? 'selected' : '' %>>
+												<%= category.name %>
+											</option>
 										<% }); %>
 									</select>
-									<div class="error" id="categoryError"></div>
 								</div>
 							
 								<div class="col-md-6 mb-3">
@@ -106,140 +110,10 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 									</select>
 								</div>
 							</form>
+						
 							
 							<!-- // preference -->
-							<!-- discounts -->
-							<div class="left-side">
-								<h3 class="agileits-sear-head">Discount</h3>
-								<ul>
-									<li>
-										<input type="checkbox" class="checked">
-										<span class="span">5% or More</span>
-									</li>
-									<li>
-										<input type="checkbox" class="checked">
-										<span class="span">10% or More</span>
-									</li>
-									<li>
-										<input type="checkbox" class="checked">
-										<span class="span">20% or More</span>
-									</li>
-									<li>
-										<input type="checkbox" class="checked">
-										<span class="span">30% or More</span>
-									</li>
-									<li>
-										<input type="checkbox" class="checked">
-										<span class="span">50% or More</span>
-									</li>
-									<li>
-										<input type="checkbox" class="checked">
-										<span class="span">60% or More</span>
-									</li>
-								</ul>
-							</div>
-							<!-- //discounts -->
-							<!-- reviews -->
-							<div class="customer-rev left-side">
-								<h3 class="agileits-sear-head">Customer Review</h3>
-								<ul>
-									<li>
-										<a href="#">
-											<i class="fa fa-star" aria-hidden="true"></i>
-											<i class="fa fa-star" aria-hidden="true"></i>
-											<i class="fa fa-star" aria-hidden="true"></i>
-											<i class="fa fa-star" aria-hidden="true"></i>
-											<i class="fa fa-star" aria-hidden="true"></i>
-											<span>5.0</span>
-										</a>
-									</li>
-									<li>
-										<a href="#">
-											<i class="fa fa-star" aria-hidden="true"></i>
-											<i class="fa fa-star" aria-hidden="true"></i>
-											<i class="fa fa-star" aria-hidden="true"></i>
-											<i class="fa fa-star" aria-hidden="true"></i>
-											<i class="fa fa-star-o" aria-hidden="true"></i>
-											<span>4.0</span>
-										</a>
-									</li>
-									<li>
-										<a href="#">
-											<i class="fa fa-star" aria-hidden="true"></i>
-											<i class="fa fa-star" aria-hidden="true"></i>
-											<i class="fa fa-star" aria-hidden="true"></i>
-											<i class="fa fa-star-half-o" aria-hidden="true"></i>
-											<i class="fa fa-star-o" aria-hidden="true"></i>
-											<span>3.5</span>
-										</a>
-									</li>
-									<li>
-										<a href="#">
-											<i class="fa fa-star" aria-hidden="true"></i>
-											<i class="fa fa-star" aria-hidden="true"></i>
-											<i class="fa fa-star" aria-hidden="true"></i>
-											<i class="fa fa-star-o" aria-hidden="true"></i>
-											<i class="fa fa-star-o" aria-hidden="true"></i>
-											<span>3.0</span>
-										</a>
-									</li>
-									<li>
-										<a href="#">
-											<i class="fa fa-star" aria-hidden="true"></i>
-											<i class="fa fa-star" aria-hidden="true"></i>
-											<i class="fa fa-star-half-o" aria-hidden="true"></i>
-											<i class="fa fa-star-o" aria-hidden="true"></i>
-											<i class="fa fa-star-o" aria-hidden="true"></i>
-											<span>2.5</span>
-										</a>
-									</li>
-								</ul>
-							</div>
-							<!-- //reviews -->
-							<!-- deals -->
-							<div class="deal-leftmk left-side">
-								<h3 class="agileits-sear-head">Special Deals</h3>
-								<div class="special-sec1">
-									<div class="img-deals">
-										<img src="images/s1.jpg" alt="">
-									</div>
-									<div class="img-deal1">
-										<h3>Farenheit (Grey)</h3>
-										<a href="/single">$575.00</a>
-									</div>
-									<div class="clearfix"></div>
-								</div>
-								<div class="special-sec1">
-									<div class="col-xs-4 img-deals">
-										<img src="images/s2.jpg" alt="">
-									</div>
-									<div class="col-xs-8 img-deal1">
-										<h3>Opium (Grey)</h3>
-										<a href="/single">$325.00</a>
-									</div>
-									<div class="clearfix"></div>
-								</div>
-								<div class="special-sec1">
-										<div class="col-xs-4 img-deals">
-											<img src="images/m2.jpg" alt="">
-										</div>
-										<div class="col-xs-8 img-deal1">
-											<h3>Azmani Round</h3>
-											<a href="/single">$725.00</a>
-										</div>
-										<div class="clearfix"></div>
-									</div>
-									<div class="special-sec1">
-											<div class="col-xs-4 img-deals">
-												<img src="images/m4.jpg" alt="">
-											</div>
-											<div class="col-xs-8 img-deal1">
-												<h3>Farenheit Oval</h3>
-												<a href="/single">$325.00</a>
-											</div>
-											<div class="clearfix"></div>
-										</div>
-							</div>
+							
 							<!-- //deals -->
 						</div>
 						<!-- //product left -->
@@ -257,6 +131,9 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 											</div>
 						
 								</div>
+								<% if (message) { %>
+									<h5><%= message %></h5> 
+								<% } else { %>
 								<div class="row">
 									<% products.forEach(product => { %>
 										<div class="col-md-3 product-men women_two shop-gd">
@@ -354,27 +231,24 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 										</div>
 									<% }) %>
 								</div>
-								
-								<div class="pagination-container">
-									<% if (currentPage > 1) { %>
-									  <a href="?page=<%= currentPage - 1 %>&sortBy=<%= sortBy %>">&laquo; Previous</a>
-									<% } %> 
-									
-									<% for (let i = 1; i <= totalPages; i++) { %> 
-									  <% if (i === currentPage) { %>
-										<span class="current-page"><%= i %></span>
-									  <% } else { %>
-										<a href="?page=<%= i %>&sortBy=<%= sortBy %>"><%= i %></a>
-									  <% } %>
-									<% } %> 
-									
-									<% if (currentPage < totalPages) { %>
-									  <a href="?page=<%= currentPage + 1 %>&sortBy=<%= sortBy %>">Next &raquo;</a>
-									<% } %>
-								  </div>
-								  
-							  
+								<% } %>
 
+								
+							    <div class="pagination-container">
+									<% if (currentPage > 1) { %>
+										<a href="?page=<%= currentPage - 1 %>&searchQuery=<%= searchQuery %>&sortBy=<%= sortBy %>&category=<%= selectedCategory %>">&laquo; Previous</a>
+									<% } %>
+									<% for (let i = 1; i <= totalPages; i++) { %>
+										<% if (i === currentPage) { %>
+											<span class="current-page"><%= i %></span>
+										<% } else { %>
+											<a href="?page=<%= i %>&searchQuery=<%= searchQuery %>&sortBy=<%= sortBy %>&category=<%= selectedCategory %>"><%= i %></a>
+										<% } %>
+									<% } %>
+									<% if (currentPage < totalPages) { %>
+										<a href="?page=<%= currentPage + 1 %>&searchQuery=<%= searchQuery %>&sortBy=<%= sortBy %>&category=<%= selectedCategory %>">Next &raquo;</a>
+									<% } %>
+								</div>
 
 						<!--//product right-->
 					</div>

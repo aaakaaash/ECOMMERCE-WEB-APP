@@ -32,6 +32,17 @@ const createReferralOffer = async (req, res) => {
   } = req.body;
 
   try {
+
+    const existingReferralOfferCount = await ReferralOffer.countDocuments();
+
+    
+    if (existingReferralOfferCount > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "A referral offer already exists. Only one referral offer can be active at a time."
+      });
+    }
+
     const newReferralOffer = new ReferralOffer({
       offerCode,
       title,
