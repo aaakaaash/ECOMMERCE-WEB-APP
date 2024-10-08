@@ -10,8 +10,6 @@ const path = require("path");
 const multer = require("multer");
 const sharp = require("sharp")
 
-
-
 const coupon = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -20,6 +18,12 @@ const coupon = async (req, res) => {
 
     const searchQuery = req.query.search || '';
     let query = {};
+
+    
+    await Coupon.updateMany(
+      { endDate: { $lt: new Date() }, status: { $ne: 'Expired' } }, 
+      { $set: { status: 'Expired' } }
+    );
 
     if (searchQuery) {
       query = {
@@ -31,7 +35,6 @@ const coupon = async (req, res) => {
         ]
       };
 
-     
       if (!isNaN(searchQuery)) {
         query.$or.push(
           { discountValue: parseFloat(searchQuery) },
@@ -41,7 +44,6 @@ const coupon = async (req, res) => {
         );
       }
 
-     
       const datePattern = /^\d{4}-\d{2}-\d{2}$/; 
       if (datePattern.test(searchQuery)) {
         const searchDate = new Date(searchQuery);
@@ -136,6 +138,37 @@ const addCoupon = async (req, res) => {
   }
 };
 
+const editCoupon = async (req, res) => {
+  try {
+    const couponId = req.params.couponId;
+    const coupon = await Coupon.findById(couponId);
+
+    if (!coupon) {
+      return res.status(404).send('Coupon not found');
+    }
+
+    res.render('edit-coupon', { coupon });
+  } catch (error) {
+    console.error('Error fetching coupon:', error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+const updateCoupon = async (req, res) => {
+  try {
+    const couponId = req.params.couponId;
+    const updatedData = req.body;
+
+    await Coupon.findByIdAndUpdate(couponId, updatedData, { new: true });
+
+    return res.json({ success: true, message: 'Coupon updated successfully' });
+  } catch (error) {
+    console.error('Error updating coupon:', error);
+    return res.json({ success: false, message: 'Error updating coupon' });
+  }
+};
+
+
 const deleteCoupon = async (req, res) => {
     try {
 
@@ -171,5 +204,7 @@ module.exports = {
   coupon,
   createCoupon,
   addCoupon,
+  editCoupon,
+  updateCoupon,
   deleteCoupon
 };

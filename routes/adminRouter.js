@@ -98,6 +98,9 @@ router.get("/orders/order-details/:orderId", adminAuth,orderController.orderDeta
 router.get("/coupons",adminAuth,couponController.coupon)
 router.get("/create-coupon",adminAuth,couponController.createCoupon)
 router.post("/create-coupon/add-coupon",adminAuth,couponController.addCoupon)
+router.get('/coupons/edit/:couponId', adminAuth, couponController.editCoupon);
+router.put('/coupons/:couponId', adminAuth, couponController.updateCoupon); 
+
 router.delete("/coupons/delete-coupon/:couponId",adminAuth,couponController.deleteCoupon)
 
 // offer management

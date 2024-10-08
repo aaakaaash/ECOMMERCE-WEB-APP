@@ -399,7 +399,7 @@ const finalizeOrder = async (order, userId, appliedCouponId) => {
   try {
     
     order.status = 'Processing';
-    order.payment[0].status = 'completed';
+    order.payment[0].status = 'pending';
 
     order.items.forEach(item => {
       item.itemOrderStatus = 'Processing';

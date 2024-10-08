@@ -18,6 +18,10 @@ const preventCache = require("./middlewares/preventCache");
 const nocache = require("nocache");
 const { userAuth,adminAuth } = require("./middlewares/auth");
 const setBreadcrumbs = require('./middlewares/breadCrumb');
+
+const methodOverride = require('method-override');
+
+
 db();
 
 app.use(cors({
@@ -25,6 +29,14 @@ app.use(cors({
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type']
 }));
+
+app.use(methodOverride((req, res) => {
+    if (req.body && typeof req.body === 'object' && '_method' in req.body) {
+      const method = req.body._method;
+      delete req.body._method;
+      return ['PUT', 'PATCH'].includes(method) ? method : undefined;
+    }
+  }));
 
 
 app.use(express.json());

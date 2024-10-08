@@ -60,8 +60,10 @@
                     <td><%= coupon.usageLimit %></td>
                     <td><%= coupon.createdAt.toLocaleDateString() %></td>
                     <td>
+                      <a href="/admin/coupons/edit/<%= coupon._id %>" class="btn btn-sm btn-outline-primary">Edit</a>
                       <a href="#" onclick="deleteCoupon('<%= coupon._id %>')" class="btn btn-sm btn-outline-danger">Delete</a>
                     </td>
+                    
                   </tr>
                 <% }); %>
               <% } else { %>
@@ -130,3 +132,4 @@ function deleteCoupon(couponId) {
   });
 }
 </script>
+

@@ -142,7 +142,7 @@ function validateForm() {
         }
     });
 
-    // Validate description: Alphanumeric characters only
+    
     const description = document.getElementById('description').value.trim();
     const descriptionError = document.getElementById('descriptionError');
     if (!/^[a-zA-Z0-9\s]+$/.test(description)) {
@@ -152,13 +152,29 @@ function validateForm() {
         descriptionError.textContent = '';
     }
 
-    // Validate date range
-    if (new Date(document.getElementById('startDate').value) > new Date(document.getElementById('endDate').value)) {
-        document.getElementById('endDateError').textContent = 'End date must be after start date.';
+
+    const currentDate = new Date();
+    const startDate = new Date(document.getElementById('startDate').value);
+    const endDate = new Date(document.getElementById('endDate').value);
+
+    if (startDate > endDate) {
+        document.getElementById('endDateError').textContent = 'End date must be after the start date.';
         isValid = false;
+    } else {
+        document.getElementById('endDateError').textContent = '';
     }
 
-    // Validate min/max purchase amounts
+    if (endDate <= currentDate) {
+        document.getElementById('endDateError').textContent = 'End date must be at least one day after the current date.';
+        isValid = false;
+    } else if (startDate.getTime() === endDate.getTime()) {
+        document.getElementById('endDateError').textContent = 'Start date and end date cannot be the same.';
+        isValid = false;
+    } else {
+        document.getElementById('endDateError').textContent = '';
+    }
+
+
     const minPurchaseAmount = parseFloat(document.getElementById('minPurchaseAmount').value);
     const maxPurchaseAmount = parseFloat(document.getElementById('maxPurchaseAmount').value);
     if (minPurchaseAmount >= maxPurchaseAmount) {
@@ -166,14 +182,14 @@ function validateForm() {
         isValid = false;
     }
 
-    // Validate usage limit (must be a number > 0)
+
     const usageLimit = document.getElementById('usageLimit').value;
     if (isNaN(usageLimit) || usageLimit <= 0) {
         document.getElementById('usageLimitError').textContent = 'Usage Limit must be a valid number greater than 0.';
         isValid = false;
     }
 
-    // Validate discount value based on discount type
+
     const discountType = document.getElementById('discountType').value;
     const discountValue = parseFloat(document.getElementById('discountValue').value);
     const discountValueError = document.getElementById('discountValueError');
