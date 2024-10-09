@@ -33,7 +33,15 @@
               <tbody>
                 <% for(let i = 0; i < orders.length; i++) { %>
                   <tr>
-                    <td><%= orders[i].orderId %></td>
+                    <td>
+                      <%= orders[i].orderId %>
+                      <br>
+                    
+                      <% if (orders[i].items.some(item => item.itemOrderStatus === 'Return Requested')) { %>
+                        <p class="text-danger">Return Requested</p>
+                      <% } %>
+                
+                    </td>
                     <td>
                       <% if (orders[i].user) { %>
                         <%= orders[i].user.username || orders[i].user.email || 'N/A' %>

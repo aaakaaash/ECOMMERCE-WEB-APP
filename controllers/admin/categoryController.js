@@ -39,24 +39,21 @@ const categoryInfo = async (req, res) => {
 
 
 const addCategory = async (req, res) => {
-    const {name,description} = req.body;
+    const {name, description} = req.body;
     try {
-        
-        const existingCategory = await Category.findOne({name});
+        const existingCategory = await Category.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
         if(existingCategory) {
-            return res.status(400).json({error:"category already exists"})
+            return res.status(400).json({error: "Category already exists"})
         }
         const newCategory = new Category({
             name,
             description
         })
         await newCategory.save();
-        return res.json({message:"Category added successfully"})
-
+        return res.json({message: "Category added successfully"})
     } catch (error) {
-
-        return res.status(500).json({error:"Internal Server Error"})
-        
+        console.error('Error adding category:', error);
+        return res.status(500).json({error: "Internal Server Error"})
     }
 }
 
@@ -164,26 +161,41 @@ const editCategory = async (req, res) => {
     try {
         const id = req.params.id;
         const { categoryName, description } = req.body;
-        const existingCategory = await Category.findOne({ name: categoryName });
+    
+        console.log(`Editing category ${id}. New name: ${categoryName}, New description: ${description}`);
 
-        if (existingCategory) {
-            return res.status(400).json({ error: "Category exists, please choose another name" });
+        const currentCategory = await Category.findById(id);
+        if (!currentCategory) {
+            console.log(`Category with id ${id} not found`);
+            return res.status(404).json({ error: "Category not found" });
         }
-
+    
+        if (currentCategory.name !== categoryName) {
+            console.log(`Category name changed from ${currentCategory.name} to ${categoryName}. Checking for duplicates.`);
+            const existingCategory = await Category.findOne({ name: categoryName });
+            if (existingCategory && existingCategory._id.toString() !== id) {
+                console.log(`Duplicate category name found: ${categoryName}`);
+                return res.status(400).json({ error: "Category exists, please choose another name" });
+            }
+        }
+        
         const updatedCategory = await Category.findByIdAndUpdate(id, {
             name: categoryName,
             description: description,
         }, { new: true });
 
         if (updatedCategory) {
-            res.redirect("/admin/category");
+            console.log(`Category updated successfully: ${JSON.stringify(updatedCategory)}`);
+            res.status(200).json({ message: "Category updated successfully" });
         } else {
+            console.log(`Failed to update category ${id}`);
             res.status(404).json({ error: "Category not found" });
         }
     } catch (error) {
+        console.error('Error in editCategory:', error);
         res.status(500).json({ error: "Internal server error" });
     }
-}
+};
 
 
 const deleteCategory = async (req, res) => {

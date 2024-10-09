@@ -391,7 +391,7 @@
     
     <script>
         $(document).ready(function() {
-            // Apply coupon logic
+            
             $('#applyCouponBtn').click(function() {
                 const couponId = $('#availableCoupons').val();
                 if (!couponId) {
@@ -415,10 +415,10 @@
                         $('#appliedCouponId').val(response.couponId);
                         $('#couponMessage').text('Coupon applied successfully!').removeClass('text-danger').addClass('text-success');
     
-                        // Disable coupon input once applied
+                        
                         $('#availableCoupons').prop('disabled', true);
                         $('#applyCouponBtn').hide();
-                        $('#removeCouponBtn').show(); // Show remove button
+                        $('#removeCouponBtn').show(); 
                     },
                     error: function(xhr) {
                         const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'An error occurred while applying the coupon.';
@@ -427,27 +427,27 @@
                 });
             });
     
-            // Remove coupon logic
+    
             $('#removeCouponBtn').click(function() {
                 $.ajax({
-                    url: '/cart/remove-coupon', // Endpoint to remove the coupon
-                    method: 'POST', // Since it's better to use POST for session-related operations
+                    url: '/cart/remove-coupon', 
+                    method: 'POST', 
                     success: function(response) {
                         $('#subtotal').text('₹' + response.totalPrice);
-                        $('#discount').text('₹' + response.discount); // Restore previous discount
+                        $('#discount').text('₹' + response.discount); 
                         $('#platformFee').text('₹' + response.platformFee);
                         $('#deliveryCharges').text('₹' + response.deliveryCharges);
                         $('#totalAmount').text('₹' + response.total);
                         $('#finalTotal').text('₹' + response.finalTotal);
                         $('#hiddenFinalTotal').val(response.finalTotal);
                         $('#savingsMessage').text('Coupon removed.');
-                        $('#appliedCouponId').val(''); // Clear coupon ID
+                        $('#appliedCouponId').val(''); 
                         $('#couponMessage').text('Coupon removed successfully!').removeClass('text-danger').addClass('text-success');
     
-                        // Enable coupon input again
+                        
                         $('#availableCoupons').prop('disabled', false);
                         $('#applyCouponBtn').show();
-                        $('#removeCouponBtn').hide(); // Hide remove button
+                        $('#removeCouponBtn').hide(); 
                     },
                     error: function(xhr) {
                         const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'An error occurred while removing the coupon.';

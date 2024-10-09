@@ -9,6 +9,7 @@ const {userAuth, adminAuth} = require("../middlewares/auth");
 const adminController = require("../controllers/admin/adminController");
 const customerController = require("../controllers/admin/customerController");
 const categoryController = require("../controllers/admin/categoryController");
+const brandController = require("../controllers/admin/brandController");
 const productController = require("../controllers/admin/productController");
 const orderController  = require("../controllers/admin/orderController");
 const couponController  = require("../controllers/admin/couponController");
@@ -65,6 +66,18 @@ router.get("/editCategory",adminAuth,categoryController.getEditCategory);
 router.get("/editCategory/:id",adminAuth,categoryController.getEditCategory);
 router.post("/editCategory/:id", adminAuth, categoryController.editCategory);
 router.delete('/deleteCategory', adminAuth, categoryController.deleteCategory);
+
+// brand management
+
+router.get("/brand",adminAuth,brandController.brandInfo);
+router.post("/addBrand",adminAuth,brandController.addBrand);
+router.get("/getBrands", adminAuth, brandController.getBrands);
+router.get("/listBrand",adminAuth,brandController.getListBrand);
+router.get("/unlistBrand",adminAuth,brandController.getUnListBrand);
+router.get("/editBrand",adminAuth,brandController.getEditBrand);
+router.get("/editBrand/:id",adminAuth,brandController.getEditBrand);
+router.post("/editBrand/:id", adminAuth, brandController.editBrand);
+router.delete('/deleteBrand', adminAuth, brandController.deleteBrand);
 
 //Product management
 

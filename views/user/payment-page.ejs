@@ -39,7 +39,7 @@
             <div class="inner_breadcrumb">
                 <ul class="short">
                     <li>
-                        <a href="index.html">Home</a>
+                        <a href="/home">Home</a>
                         <i>|</i>
                     </li>
                     <li>Payment </li>
@@ -130,7 +130,12 @@ document.getElementById('orderForm').addEventListener('submit', async function(e
     const paymentMethod = formData.get('paymentMethod');
     const finalTotal = parseFloat(formData.get('finalTotal'));
     
-    // Validate address fields
+    if (finalTotal > 1000 && paymentMethod === 'COD') {
+        document.getElementById('responseMessage').textContent = "Cash on delivery is not applicable for price above ₹1000";
+        document.getElementById('responseMessage').style.color = 'red'; 
+        return;
+    }
+    
     const requiredFields = ['house', 'place', 'city', 'state', 'pin', 'contactNo'];
     for (const field of requiredFields) {
         if (!addressData[field]) {

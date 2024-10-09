@@ -139,6 +139,10 @@ const updateOrderStatus = async (req, res) => {
 
     item.itemOrderStatus = status;
 
+    if (status === 'Delivered' && order.payment[0].method === 'Cash On Delivery') {
+      order.payment[0].status = 'completed'; 
+    }
+
     const allItemsCompleted = order.items.every(item => 
       item.itemOrderStatus === 'Delivered' || 
       item.itemOrderStatus === 'Returned' || 

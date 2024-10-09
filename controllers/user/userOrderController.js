@@ -269,6 +269,7 @@ const confirmOrder = async (req, res) => {
     const { userId, address, items, couponDiscountAmount, totalPrice, finalTotal, appliedCouponId, discountAmount, paymentMethod } = req.body;
 
     let parsedAddress;
+    
     try {
       parsedAddress = typeof address === 'string' ? JSON.parse(address) : address;
     } catch (error) {
@@ -399,7 +400,12 @@ const finalizeOrder = async (order, userId, appliedCouponId) => {
   try {
     
     order.status = 'Processing';
-    order.payment[0].status = 'pending';
+
+    if (order.payment[0].method === "Wallet Payment") {
+      order.payment[0].status = 'completed';
+    } else if (order.payment[0].method === "Cash On Delivery") {
+      order.payment[0].status = 'pending';
+    }
 
     order.items.forEach(item => {
       item.itemOrderStatus = 'Processing';
