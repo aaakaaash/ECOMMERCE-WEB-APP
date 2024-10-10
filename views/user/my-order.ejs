@@ -157,9 +157,14 @@
                           <small class="text-muted">Return period expired</small>
                       <% } %>
                   <% } %>
-                  <a href="/user/my-order/order-details/<%= order.orderId %>/<%= item.product._id %>">
-                      <button class="btn btn-warning">View Order</button>
-                  </a>
+                  <div>
+                    <br>
+                  <form action="/user/my-order/order-details" method="POST">
+                    <input type="hidden" name="orderId" value="<%= order.orderId %>">
+                    <input type="hidden" name="productId" value="<%= item.product._id %>">
+                    <button type="submit" class="btn btn-warning">View Order</button>
+                  </form>
+                </div>
               </div>
                 
                 </div>

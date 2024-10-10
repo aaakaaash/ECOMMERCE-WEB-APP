@@ -90,9 +90,11 @@ router.get("/user/my-order",userAuth,setBreadcrumbs,userOrderController.myOrder)
 router.post("/user/my-order/cancel/:itemOrderId/:cancelReason", userAuth, userOrderController.cancelOrder);
 router.post('/user/my-order/return-order',userAuth, userOrderController.returnOrder);
 
+router.post('/user/my-order/return-order',userAuth, userOrderController.returnOrder);
 
+router.post("/user/my-order/order-details", userAuth,setBreadcrumbs,userOrderController.orderDetails);
 
-router.get("/user/my-order/order-details/:orderId/:productId", userAuth, setBreadcrumbs, userOrderController.orderDetails);
+router.post("/user/my-order/order-details/re-checkout/:orderId", userAuth,userOrderController.confirmRePayment);
 
 
 // wishlist management

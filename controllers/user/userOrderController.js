@@ -469,7 +469,7 @@ const processWalletPayment = async (userId, totalAmount) => {
 const razorpayCheckout = async (req, res, next) => {
 
   const currentUser = req.session.user || req.user;
-  console.log(currentUser)
+  
 
   try {
       const { orderId, razorpayOrderId } = req.query;
@@ -697,7 +697,7 @@ const cancelOrder = async (req, res, next) => {
     order.items[itemIndex].cancelReason = cancelReason || "No reason provided";
 
     const { saledPrice, quantity } = order.items[itemIndex];
-    console.log('Item details:', { saledPrice, quantity });
+    
 
     if (!saledPrice || !quantity) {
       console.error('Invalid item price or quantity:', { saledPrice, quantity });
@@ -730,7 +730,7 @@ const cancelOrder = async (req, res, next) => {
           });
 
           await wallet.save();
-          console.log('Wallet updated successfully:', wallet);
+          
         } else {
           console.error('Wallet not found even after attempted creation');
           return res.status(404).send('Wallet not found');
@@ -806,6 +806,7 @@ const returnOrder = async (req, res, next) => {
     await order.save();
 
     res.status(200).json({ message: 'Return request submitted successfully' });
+
   } catch (error) {
     next(error);
   }
@@ -814,7 +815,7 @@ const returnOrder = async (req, res, next) => {
 
 const orderDetails = async (req, res, next) => {
   try {
-    const { orderId, productId } = req.params;
+    const { orderId, productId } = req.body; 
 
     const order = await Order.findOne({ orderId })
       .populate('user')
@@ -832,15 +833,58 @@ const orderDetails = async (req, res, next) => {
       return res.status(404).send('Product not found in order');
     }
 
-   
-
     return res.render('order-details-page', { order, selectedItem });
+
   } catch (error) {
     console.error('Error fetching order details:', error);
     return next(error);
   }
 };
 
+
+const confirmRePayment = async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+    const { razorpayOrderId } = req.body;
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    if (order.payment[0].status === 'completed') {
+      return res.status(400).json({ success: false, message: 'Payment already completed for this order' });
+    }
+
+    let razorpayOrder;
+    if (razorpayOrderId) {
+      
+      razorpayOrder = await razorpayInstance.orders.fetch(razorpayOrderId);
+    } else {
+      
+      razorpayOrder = await razorpayInstance.orders.create({
+        amount: Math.round(order.totalPrice * 100), 
+        currency: 'INR',
+        receipt: `order_rcptid_${order._id}`,
+        payment_capture: 1
+      });
+
+      
+      order.payment[0].razorpayOrderId = razorpayOrder.id;
+      await order.save();
+    }
+
+    res.status(200).json({
+      success: true,
+      amount: razorpayOrder.amount,
+      razorpayOrderId: razorpayOrder.id
+    });
+
+  } catch (error) {
+    console.error('Error in confirmRePayment:', error);
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+  }
+};
 
 
 module.exports = {
@@ -855,5 +899,6 @@ module.exports = {
     orderDetails,
     verifyRazorpayPayment,
     razorpayCheckout,
-    removeCoupon
+    removeCoupon,
+    confirmRePayment
 }
