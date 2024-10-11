@@ -27,7 +27,7 @@
                                             <img src="/uploads/product-images/<%= item.product.productImage[0] %>" alt="Product Image" class="product-image">
                                         </div>
                                         <div class="details-container">
-                                            <h5 class="product-name"><%= item.product.productName %></h5>
+                                            <h5 class="product-name"> <%= item.product.brand ? item.product.brand.name : '' %><%= item.product.productName %></h5>
                                             <p class="product-description"><%= item.product.description %></p>
 
                                             <p class="product-price">

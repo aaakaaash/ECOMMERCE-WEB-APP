@@ -86,7 +86,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 							</div>
 						</div>
 						<div class="col-lg-8 single-right-left simpleCart_shelfItem">
-							<h3><%= product.productName %> (<%= product.color %>)</h3>
+							<h3><%= product.brand ? product.brand.name : '' %> <%= product.productName %>(<%= product.color %>)</h3>
 							<p>
 								<% if (product.offerPrice && product.offerPrice < product.salePrice) { %>
 								  
@@ -115,17 +115,33 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 									<li><a href="#"><i class="fa fa-star-o" aria-hidden="true"></i></a></li>
 								</ul>
 							</div>
-		
+							<br>
 							<div class="color-quality">
-								<div class="color-quality-right">
-									<h5>Categories:</h5>
+								<div style="display: flex; align-items: center;">
+									<h5 style="margin-right: 10px;">Category:</h5>
+									<p style="margin: 0;">
+										<%= product.category ? product.category.name : 'No Category' %>
+									</p>
+								</div>
+
+								<!-- <div class="color-quality-right">
+									
 									<select class="frm-field required sect">
 										<% categories.forEach(category => { %>
 											<option value="<%= category._id %>"><%= category.name %></option>
 										<% }) %>
 									</select>
+								</div> -->
+
+								<div style="display: flex; align-items: center;">
+									<h5 style="margin-right: 10px;">Brand:</h5>
+									<p style="margin: 0;">
+										<%= product.brand ? product.brand.name : 'No Brand' %>
+									</p>
 								</div>
+
 							</div>
+							
 							
 							<div class="occasional">
 								<!-- <h5>Types :</h5>

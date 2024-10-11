@@ -8,6 +8,7 @@ const User = require("../../models/userSchema");
 const Product = require("../../models/productSchema")
 const Offer = require("../../models/offerSchema")
 const Category = require("../../models/categorySchema")
+const Brand = require("../../models/brandSchema")
 
 const ReferralOffer = require('../../models/referralOfferSchema');
 const Referral = require('../../models/referralSchema');
@@ -48,6 +49,11 @@ const loadHomepage = async (req, res, next) => {
         const listedCategoryIds = listedCategories.map(cat => cat._id);
         searchCondition.category = { $in: listedCategoryIds };
 
+        
+        const listedBrands = await Brand.find({ isListed: true }).select('_id').exec();
+        const listedBrandIds = listedBrands.map(brand => brand._id);
+        searchCondition.brand = { $in: listedBrandIds };
+
         let sortCriteria = {};
         switch (sortBy) {
             case 'popularity': sortCriteria = { popularity: -1 }; break;
@@ -63,6 +69,7 @@ const loadHomepage = async (req, res, next) => {
 
         const products = await Product.find(searchCondition)
             .populate('category')
+            .populate('brand')  
             .sort(sortCriteria)
             .skip(skip)
             .limit(limit)
@@ -100,7 +107,6 @@ const loadHomepage = async (req, res, next) => {
 
 
 
-
 const loadAboutpage = async (req, res, next) => {
     try {
         let userId;
@@ -126,16 +132,13 @@ const loadAboutpage = async (req, res, next) => {
 
 const loadShoppage = async (req, res, next) => {
     try {
-        
         const searchQuery = req.query.searchQuery || ''; 
         const { sortBy, category } = req.query;
 
-    
         const page = parseInt(req.query.page) || 1;
         const limit = 8;  
         const skip = (page - 1) * limit;
 
-        
         let searchCondition = { isBlocked: false };
 
         
@@ -148,13 +151,17 @@ const loadShoppage = async (req, res, next) => {
         if (category && category !== '') {
             searchCondition.category = category;
         } else {
-        
             const listedCategories = await Category.find({ isListed: true }).select('_id').exec();
             const listedCategoryIds = listedCategories.map(cat => cat._id);
             searchCondition.category = { $in: listedCategoryIds };
         }
 
-        
+    
+        const listedBrands = await Brand.find({ isListed: true }).select('_id').exec();
+        const listedBrandIds = listedBrands.map(brand => brand._id);
+        searchCondition.brand = { $in: listedBrandIds };
+
+
         let sortCriteria = {};
         switch (sortBy) {
             case 'popularity': sortCriteria = { popularity: -1 }; break;
@@ -168,7 +175,7 @@ const loadShoppage = async (req, res, next) => {
             default: sortCriteria = {};
         }
 
-    
+        
         const products = await Product.find(searchCondition)
             .populate('category')
             .sort(sortCriteria)
@@ -176,7 +183,6 @@ const loadShoppage = async (req, res, next) => {
             .limit(limit)
             .exec();
 
-        
         const totalProducts = await Product.countDocuments(searchCondition);
         const totalPages = Math.ceil(totalProducts / limit);
 
@@ -185,13 +191,13 @@ const loadShoppage = async (req, res, next) => {
         let userData = userId ? await User.findById(userId) : null;
         res.locals.user = userData;
 
-    
+        
         const categories = await Category.find({ isListed: true }).exec();
 
-    
+       
         const offer = await Offer.find().populate('category').populate('product').exec();
 
-        
+       
         return res.render("shop", {
             user: userData,
             products: products,

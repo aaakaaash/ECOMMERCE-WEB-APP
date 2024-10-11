@@ -205,10 +205,16 @@ const orderDetails = async (req, res, next) => {
       const { orderId } = req.params;
   
       const order = await Order.findOne({ orderId })
-        .populate('user')
-        .populate('address')
-        .populate('items.product')
-        .exec();
+      .populate('user')
+      .populate('address')
+      .populate({
+        path: 'items.product',
+        populate: {
+          path: 'brand',
+          select: 'name' 
+        }
+      })
+      .exec();
   
       if (!order) {
         return res.status(404).send('Order not found');

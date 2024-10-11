@@ -267,7 +267,12 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="product-details">
-                                            <h6><%= item.product.productName %></h6>
+                                            <h6>
+                                                <%= item.product.brand ? item.product.brand.name : '' %> 
+                                                <%= item.product.productName %> 
+
+                                             </h6>
+                                              
                                             <p>Quantity: <%= item.quantity %></p>
                 
                                             

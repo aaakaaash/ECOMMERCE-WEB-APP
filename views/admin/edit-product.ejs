@@ -92,6 +92,22 @@
                             </div>
                             <div class="col-lg-4">
                                 <div class="mb-4">
+                                    <label class="form-label">Brand</label>
+                                    
+                                    <select class="form-select" name="brand">
+                                        <% for (let i = 0; i < brand.length; i++) { %>
+                                            <option value="<%= brand[i].name %>" <%= product.brand && product.brand.name === brand[i].name ? 'selected' : '' %>>
+                                                <%= brand[i].name %>
+                                            </option>
+                                        <% } %>
+                                    </select>
+                                    
+                                    <div id="brand-error" class="error-message"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-4">
+                                <div class="mb-4">
                                     <label class="form-label">Category</label>
                                     <select class="form-select" name="category">
                                         <% for (let i = 0; i < cat.length; i++) { %>

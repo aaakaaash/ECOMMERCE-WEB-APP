@@ -96,6 +96,8 @@ router.post("/user/my-order/order-details", userAuth,setBreadcrumbs,userOrderCon
 
 router.post("/user/my-order/order-details/re-checkout/:orderId", userAuth,userOrderController.confirmRePayment);
 
+router.get("/user/my-order/:orderId/download-invoice/:itemId", userAuth, userOrderController.downloadInvoice);
+
 
 // wishlist management
 

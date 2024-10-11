@@ -1,5 +1,6 @@
 const Product = require("../../models/productSchema");
 const Category = require("../../models/categorySchema");
+const Brand = require("../../models/brandSchema")
 
 const User = require("../../models/userSchema")
 const Order = require("../../models/orderSchema")
@@ -16,8 +17,12 @@ const { updateProductOfferPrice } = require("../../controllers/admin/offerContro
 const getProductAddPage = async (req,res) => {
     try {
         const category = await Category.find({isListed: true });
+
+        const brand = await Brand.find({isListed: true});
+
         res.render("Product-add", {
             cat:category,
+            brand
         });
 
 
@@ -71,6 +76,11 @@ const addProducts = async (req, res) => {
                     }
                 }
             }
+
+            const brandId = await Brand.findById(products.brand);
+            if (!brandId) {
+                return res.status(400).json("Invalid brand ID");
+            }
             
             const categoryId = await Category.findOne({ name: products.category });
             
@@ -96,11 +106,14 @@ const addProducts = async (req, res) => {
                 offerPrice = products.salePrice - offerValue;
                 offerPrice = Math.max(offerPrice, 0); 
             }
+
+          
             
             const newProduct = new Product({
                 productName: products.productName,
                 description: products.description,
                 SKUNumber: products.SKUNumber,
+                brand: brandId._id,
                 category: categoryId._id,
                 regularPrice: products.regularPrice,
                 salePrice: products.salePrice,
@@ -126,45 +139,52 @@ const addProducts = async (req, res) => {
 };
 
 
-const getAllProducts = async (req,res)=>{
+const getAllProducts = async (req, res) => {
     try {
-        
         const search = req.query.search || "";
-        const page = req.query.page || 1;
+        const page = parseInt(req.query.page) || 1;  
         const limit = 10;
-        const productData = await Product.find({
-            $or:[
-                {productName:{$regex:new RegExp(".*"+search+".*","i")}},
-            ],
-        }).limit(limit*1).skip((page-1)*limit).populate("category").exec();
 
+        
+        const productData = await Product.find({
+            $or: [
+                { productName: { $regex: new RegExp(".*" + search + ".*", "i") } },
+            ],
+        })
+            .limit(limit)
+            .skip((page - 1) * limit)
+            .populate("category")  
+            .populate("brand")     
+            .exec();
+
+        
         const count = await Product.find({
-            $or:[
-                {
-                    productName:{$regex:new RegExp(".*"+search+".*","i")},
-                }
+            $or: [
+                { productName: { $regex: new RegExp(".*" + search + ".*", "i") } },
             ],
         }).countDocuments();
-        const category = await Category.find({isListed:true});
 
-        if(category){
-            res.render("products", {
-                data:productData,
-                currentPage:page,
-                totalPages:page,
-                totalPages:Math.ceil(count/limit),
-                cat:category,
-            })
-        } else {
-            res.render("page-404")
-        }
+        const category = await Category.find({ isListed: true });
+        const brand = await Brand.find({ isListed: true });
 
-    } catch (error) {
-
-        res.redirect("/admin/pageerror");
         
+        if (category && brand) {
+            res.render("products", {
+                data: productData,
+                currentPage: page,
+                totalPages: Math.ceil(count / limit), 
+                cat: category,
+                brand: brand
+            });
+        } else {
+            res.render("page-404");  
+        }
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        res.redirect("/admin/pageerror");  
     }
-}
+};
+
 
 const blockProduct = async (req,res) => {
     try {
@@ -213,9 +233,11 @@ const getEditProduct = async (req, res)=>{
         const id = req.query.id;
         const product = await Product.findOne({_id:id});
         const category = await Category.find({});
+        const brand = await Brand.find();
         res.render("edit-product",{
             product:product,
             cat:category,
+            brand:brand
 
         })
     } catch (error) {
@@ -245,10 +267,16 @@ const editProduct = async (req, res) => {
             return res.status(400).json({ error: "Invalid category name" });
         }
 
+        const brand = await Brand.findOne({ name: data.brand });
+        if (!brand) { 
+            return res.status(400).json({ error: "Invalid Brand name" });
+        }
+
         const updateFields = {
             productName: data.productName,
             description: data.description,
             category: category._id, 
+            brand: brand._id,
             regularPrice: data.regularPrice,
             salePrice: data.salePrice,
             quantity: data.quantity,

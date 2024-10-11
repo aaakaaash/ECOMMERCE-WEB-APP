@@ -156,7 +156,10 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 															<div class="grid_meta">
 																<div class="product_price">
 																	<h4>
-																		<a href="/product/<%= product._id %>"><%= product.productName %></a>
+																		<a href="/product/<%= product._id %>">
+																			<%= product.brand ? product.brand.name : '' %> <%= product.productName %>
+																		</a>
+																		
 																	</h4>
 																	<div class="grid-price mt-2">
 																		<% if (product.offerPrice && product.offerPrice < product.salePrice) { %>

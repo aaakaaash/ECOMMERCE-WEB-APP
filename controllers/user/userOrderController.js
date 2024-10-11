@@ -14,12 +14,25 @@ const Order = require("../../models/orderSchema")
 const Coupon = require("../../models/couponSchema")
 const razorpayInstance = require('../../config/razorpay'); 
 const Wallet =require("../../models/walletSchema")
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
+
+
 
 const placeOrder = async (req, res, next) => {
+
   const userId = req.session.user || req.user;
 
   try {
-    const cart = await Cart.findOne({ userId: userId }).populate('items.product').exec();
+    const cart = await Cart.findOne({ userId: userId })
+    .populate({
+      path: 'items.product',
+      populate: {
+        path: 'brand',
+        select: 'name'
+      }
+    })
+    .exec();
     const user = await User.findById(userId).populate('address').exec();
     const coupons = await Coupon.find().exec();
     const addresses = user.address || [];
@@ -622,14 +635,19 @@ const myOrder = async (req, res, next) => {
       const totalPages = Math.ceil(totalOrders / limit);
   
       let orders = await Order.find(searchCondition)
-        .populate({
-          path: 'items.product',
-          select: 'productName description color salePrice skuNumber productImage'
-        })
-        .sort({ date: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean();
+  .populate({
+    path: 'items.product',
+    select: 'productName description color salePrice skuNumber productImage',
+    populate: {
+      path: 'brand',
+      select: 'name' 
+    }
+  })
+  .sort({ date: -1 })
+  .skip(skip)
+  .limit(limit)
+  .lean();
+
   
       if (searchQuery) {
         const regex = new RegExp(searchQuery, 'i');
@@ -818,10 +836,17 @@ const orderDetails = async (req, res, next) => {
     const { orderId, productId } = req.body; 
 
     const order = await Order.findOne({ orderId })
-      .populate('user')
-      .populate('address')
-      .populate('items.product')
-      .exec();
+    .populate('user')
+    .populate('address')
+    .populate({
+      path: 'items.product',
+      populate: {
+        path: 'brand',
+        select: 'name' 
+      }
+    })
+    .exec();
+  
 
     if (!order) {
       return res.status(404).send('Order not found');
@@ -887,6 +912,126 @@ const confirmRePayment = async (req, res, next) => {
 };
 
 
+
+const downloadInvoice = async (req, res, next) => {
+
+  try {
+    const { orderId, itemId } = req.params;
+    
+
+    const order = await Order.findById(orderId)
+    .populate('user')
+    .populate('address')
+    .populate({
+      path: 'items.product',
+      populate: {
+        path: 'brand',
+        select: 'name' 
+      }
+    })
+    .exec();
+    
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    
+    const selectedItem = order.items.find(item => item.itemOrderId === itemId);
+
+    if (!selectedItem) {
+      return res.status(404).json({ message: 'Item not found in the order' });
+    }
+
+  
+    const doc = new PDFDocument();
+    const chunks = [];
+
+    
+    doc.on('data', chunk => chunks.push(chunk));
+    doc.on('end', () => {
+      const pdfData = Buffer.concat(chunks);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=Invoice-${order.invoice.invoiceNo}.pdf`);
+      res.send(pdfData);
+    });
+
+    
+    doc.fontSize(20).text('Tax Invoice', { align: 'center' });
+    doc.moveDown(2);
+    
+    
+    doc.fontSize(12);
+    
+    
+    let leftColumnX = 50;
+    let startY = 110;
+    
+    doc.text(`Sold by`, leftColumnX, startY, { underline: true }); 
+    doc.text(`GOOGLE SHOP`, leftColumnX, startY + 20); 
+    doc.text(`No 6`, leftColumnX, startY + 40); 
+    doc.text(`ABC Complex, Kottayam, Kerala`, leftColumnX, startY + 60); 
+    doc.text(`Pin: 686011`, leftColumnX, startY + 80);
+    
+    
+    const rightColumnX = 400;
+    doc.text(`Order Id: ${order.orderId}`, rightColumnX, startY);
+    doc.text(`Invoice No: ${order.invoice.invoiceNo}`, rightColumnX, startY + 20);
+    doc.text(`Order Date: ${order.date.toLocaleString()}`, rightColumnX, startY + 40);
+    doc.text(`Invoice Date: ${order.invoice.invoiceDate.toLocaleString()}`, rightColumnX, startY + 80);
+    
+    
+    doc.moveDown(2);
+    
+    
+    let shippingAddressStartY = startY + 120; 
+    doc.text('Shipping Address:', leftColumnX, shippingAddressStartY, { underline: true });
+    doc.text(`${order.user.name}`, leftColumnX, shippingAddressStartY + 20);
+    doc.text(`${order.address.house}, ${order.address.place}`, leftColumnX, shippingAddressStartY + 40);
+    doc.text(`${order.address.city}, ${order.address.state} - ${order.address.pin}`, leftColumnX, shippingAddressStartY + 60);
+    doc.text(`Phone: ${order.address.contactNo}`, leftColumnX, shippingAddressStartY + 80);
+    
+    
+    doc.moveDown();
+
+    
+    const tableTop = 350;
+    doc.font('Helvetica-Bold');
+    doc.text('Name', 50, tableTop);
+    doc.text('Brand', 125, tableTop);
+    doc.text('Qty', 200, tableTop);
+    doc.text('Amount', 250, tableTop);
+    doc.text('Discount', 325, tableTop);
+    doc.text('Taxable Value', 400, tableTop);
+    doc.text('Total', 500, tableTop);
+
+    
+    doc.font('Helvetica');
+    const tableRow = tableTop + 25;
+    doc.text(selectedItem.product.productName, 50, tableRow);
+    doc.text(selectedItem.product.brand.name, 125, tableRow);
+    doc.text(selectedItem.quantity.toString(), 200, tableRow);
+    doc.text(selectedItem.regularPrice.toFixed(2), 250, tableRow);
+    doc.text((selectedItem.regularPrice - selectedItem.saledPrice).toFixed(2), 325, tableRow);
+    doc.text(selectedItem.saledPrice.toFixed(2), 400, tableRow);
+    doc.text((selectedItem.saledPrice * selectedItem.quantity).toFixed(2), 500, tableRow);
+
+    doc.moveDown();
+    const totalRow = tableRow + 30;
+    doc.font('Helvetica-Bold');
+    doc.text('Total:', 400, totalRow);
+    doc.text(`₹${(selectedItem.saledPrice * selectedItem.quantity).toFixed(2)}`, 500, totalRow);
+
+    doc.moveDown();
+    doc.text('All values are in INR', 50, 600);
+
+  
+    doc.end();
+
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
     placeOrder,
     addCoupon,
@@ -900,5 +1045,6 @@ module.exports = {
     verifyRazorpayPayment,
     razorpayCheckout,
     removeCoupon,
-    confirmRePayment
+    confirmRePayment,
+    downloadInvoice
 }

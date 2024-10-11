@@ -16,8 +16,12 @@ const cart = async (req, res, next) => {
       return res.status(401).json({ error: "User not authenticated" });
     }
 
+  
     let cart = await Cart.findOne({ userId: userId })
-      .populate("items.product")
+      .populate({
+        path: 'items.product',
+        populate: [{ path: 'brand' }, { path: 'category' }]
+      })
       .exec();
 
     if (!cart) {
@@ -28,21 +32,45 @@ const cart = async (req, res, next) => {
       await cart.save();
     }
 
+    
     if (
       cart.items.length > 0 &&
-      cart.items.some((item) => item.product && item.product.isBlocked)
+      cart.items.some(
+        (item) =>
+          item.product &&
+          (item.product.isBlocked ||
+            (item.product.brand && !item.product.brand.isListed) || 
+            (item.product.category && !item.product.category.isListed))
+      )
     ) {
-      const blockedItems = cart.items.filter((item) => item.product.isBlocked);
-      cart.items = cart.items.filter((item) => !item.product.isBlocked);
+      
+      const blockedOrUnlistedItems = cart.items.filter(
+        (item) =>
+          item.product.isBlocked ||
+          (item.product.brand && !item.product.brand.isListed) || 
+          (item.product.category && !item.product.category.isListed)
+      );
 
-      for (const item of blockedItems) {
+      
+      cart.items = cart.items.filter(
+        (item) =>
+          !item.product.isBlocked &&
+          (!item.product.brand || (item.product.brand && item.product.brand.isListed)) && 
+          (!item.product.category || (item.product.category && item.product.category.isListed)) 
+      );
+
+      
+      for (const item of blockedOrUnlistedItems) {
         await Product.findByIdAndUpdate(item.product._id, {
           $inc: { quantity: item.quantity },
         });
       }
+
+    
       await cart.save();
     }
 
+    
     let totalPrice = 0;
     let totalItems = 0;
     let totalDiscount = 0;
@@ -71,12 +99,15 @@ const cart = async (req, res, next) => {
       }
       distinctProductCount = distinctProducts.size;
 
+      
       await cart.save();
     }
 
+    
     const totalAmount =
       totalPrice - totalDiscount + platformFee + deliveryCharges;
 
+    
     return res.render("cart", {
       cart,
       totalItems,
@@ -92,6 +123,7 @@ const cart = async (req, res, next) => {
     next(error);
   }
 };
+
 
 const addToCart = async (req, res, next) => {
   try {

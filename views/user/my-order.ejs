@@ -100,7 +100,11 @@
                     <p class="mb-0 mt-2">Order ID: <%= order.orderId %></p>
                   </div>
                   <div class="col-md-3">
-                    <h5><%= item.product.productName %></h5>
+                    <h5>
+                      <%= item.product.brand ? item.product.brand.name : '' %> 
+                      <%= item.product.productName %>
+                  </h5>
+                  
                     <p class="mb-0">SKU: <%= item.product.skuNumber %></p>
                     <p class="mb-0"><%= item.product.description %></p>
                     <p class="mb-0">Color: <%= item.product.color %></p>

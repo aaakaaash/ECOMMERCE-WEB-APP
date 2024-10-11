@@ -104,7 +104,10 @@
                              onerror="this.src='/images/placeholder-image.jpg'; this.onerror=null;">
                     </div>
                     <div class="col-md-6">
-                        <h5><%= item.product.productName %></h5>
+                        <h5>
+                            <%= item.product.brand ? item.product.brand.name : 'No Brand' %> 
+                            <%= item.product.productName %>
+                          </h5>
                         <p>Color: <%= item.product.color %> | SKU: <%= item.product.skuNumber %></p>
 
                         <p>Quantity: <%= item.quantity %></p>

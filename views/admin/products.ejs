@@ -32,7 +32,7 @@
                       <tr>
                         <td><%= data[i].productName %></td>
                         <td><%= data[i].skuNumber %></td> 
-                        <td></td>
+                        <td><%= data[i].brand ? data[i].brand.name : 'No Brand' %></td>
                         <td><%= data[i].category.name %></td>
                         <td><%= data[i].salePrice %></td>
                         <td><%= data[i].quantity %></td>

@@ -100,14 +100,14 @@ const calculateStats = async (startDate, endDate) => {
         }
     });
 
-    // Calculate existing order-level stats
+    
     const totalOrders = orders.length;
     const totalSales = orders.reduce((sum, order) => sum + order.totalPrice, 0);
     const totalDiscount = orders.reduce((sum, order) => sum + order.discount, 0);
     const totalActualPrice = orders.reduce((sum, order) => sum + order.actualPrice, 0);
     const totalOfferPrice = orders.reduce((sum, order) => sum + order.offerPrice, 0);
 
-    // Now integrate the detailed item-level stats from calculateOrderStats
+    
     const detailedStats = calculateOrderStats(orders);
 
     return { 
@@ -116,41 +116,41 @@ const calculateStats = async (startDate, endDate) => {
         totalDiscount, 
         totalActualPrice, 
         totalOfferPrice,
-        ...detailedStats  // Spread the detailed stats into the return object
+        ...detailedStats  
     };
 };
 
 const calculateOrderStats = (orders) => {
-    // Filtering orders where payment status is "completed"
+    
     const completedOrders = orders.filter(order => 
         order.payment.some(payment => payment.status === "completed")
     );
 
-    // Total number of items in all completed orders
+    
     const totalItemOrders = completedOrders.reduce((sum, order) => sum + order.items.length, 0);
 
-    // Total payment received (sum of saledPrice for items in completed orders)
+    
     const TotalPaymentRecieved = completedOrders.reduce((sum, order) => {
         return sum + order.items.reduce((itemSum, item) => itemSum + item.saledPrice, 0);
     }, 0);
 
-    // Total actual price of items (sum of regularPrice for items in completed orders)
+    
     const itemsActualTotal = completedOrders.reduce((sum, order) => {
         return sum + order.items.reduce((itemSum, item) => itemSum + item.regularPrice, 0);
     }, 0);
 
-    // Actual total discount
+    
     const ActualTotalDiscount = itemsActualTotal - TotalPaymentRecieved;
 
-    // Total offer discount (difference between regularPrice and price for items in completed orders)
+    
     const totalOfferDiscount = completedOrders.reduce((sum, order) => {
         return sum + order.items.reduce((itemSum, item) => itemSum + (item.regularPrice - item.price), 0);
     }, 0);
 
-    // Coupon and other discount
+
     const couponAndOtherDiscount = ActualTotalDiscount - totalOfferDiscount;
 
-    // Calculate sum of saledPrice for items that were returned
+    
     const returnedItemTotal = completedOrders.reduce((sum, order) => {
         return sum + order.items.reduce((itemSum, item) => {
             return item.itemOrderStatus === "Returned" ? itemSum + item.saledPrice : itemSum;
@@ -164,7 +164,7 @@ const calculateOrderStats = (orders) => {
         ActualTotalDiscount,
         totalOfferDiscount,
         couponAndOtherDiscount,
-        returnedItemTotal  // Sum of saledPrice for returned items
+        returnedItemTotal  
     };
 };
 
@@ -202,7 +202,7 @@ const downloadReport = async (req, res) => {
                 throw new Error("Invalid date filter");
         }
 
-        // Fetch completed orders with item details
+        
         const completedOrders = await fetchCompletedOrdersWithItems(start, end);
 
         if (format === 'excel') {
@@ -226,8 +226,8 @@ const fetchCompletedOrdersWithItems = async (startDate, endDate) => {
             $gte: startDate, 
             $lte: endDate 
         },
-        'payment.status': 'completed'  // Filtering based on completed payment status
-    }).populate('items.product');  // Populate product details for each item
+        'payment.status': 'completed'  
+    }).populate('items.product');  
 
     return orders.map(order => ({
         orderId: order._id,
@@ -255,7 +255,7 @@ const generateExcel = async (res, orders, dateFilter, startDate, endDate) => {
     worksheet.addRow(['Date Range:', `${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`]);
     worksheet.addRow(['']);
 
-    // Add table headings
+
     worksheet.addRow([ 
         'SI', 'Item Order ID', 'Date', 'Product', 'SKU', 'Color', 
         'Regular Price', 'Saled Price', 'Quantity', 'Order Status', 
@@ -269,16 +269,16 @@ const generateExcel = async (res, orders, dateFilter, startDate, endDate) => {
     let totalDiscount = 0;
     let totalNetPrice = 0;
 
-    // Populate table with values
+    
     orders.forEach(order => {
         order.items.forEach(item => {
-            // Correct the calculations here
-            const regularPrice = item.regularPrice * item.quantity; // Correct calculation
-            const saledPrice = item.saledPrice * item.quantity; // Correct calculation
-            const discount = (item.regularPrice - item.saledPrice) * item.quantity; // Discount calculation
-            const netPrice = saledPrice; // Net price calculation
             
-            // Safe access to payment status
+            const regularPrice = item.regularPrice * item.quantity; 
+            const saledPrice = item.saledPrice * item.quantity; 
+            const discount = (item.regularPrice - item.saledPrice) * item.quantity; 
+            const netPrice = saledPrice; 
+            
+        
             const paymentStatus = Array.isArray(order.payment) 
                 ? order.payment.find(payment => payment.status === 'completed')?.status || 'N/A'
                 : 'N/A';
@@ -290,15 +290,15 @@ const generateExcel = async (res, orders, dateFilter, startDate, endDate) => {
                 item.productName || 'N/A',
                 item.skuNumber || 'N/A',
                 item.color || 'N/A',
-                regularPrice.toFixed(2), // Use calculated regularPrice
-                saledPrice.toFixed(2),   // Use calculated saledPrice
+                regularPrice.toFixed(2), 
+                saledPrice.toFixed(2),   
                 item.quantity || 0,
                 paymentStatus,
-                discount.toFixed(2),     // Use calculated discount
-                netPrice.toFixed(2)     // Use calculated netPrice
+                discount.toFixed(2),     
+                netPrice.toFixed(2)     
             ]);
 
-            // Update totals
+        
             totalRegularPrice += regularPrice;
             totalSaledPrice += saledPrice;
             totalQuantity += item.quantity || 0;
@@ -307,7 +307,7 @@ const generateExcel = async (res, orders, dateFilter, startDate, endDate) => {
         });
     });
 
-    // Add totals row
+    
     worksheet.addRow([ 
         '', '', '', '', '', 'TOTAL', 
         totalRegularPrice.toFixed(2),
@@ -358,8 +358,8 @@ const generatePDF = async (res, orders, dateFilter, startDate, endDate) => {
     let totalDiscount = 0;
     let totalNetPrice = 0;
 
-    // Set fixed starting Y position for the first page
-    let fixedY = 150; // **Modification: Starting Y position**
+    
+    let fixedY = 150; 
 
     const addHeader = () => {
         doc.fontSize(16).text('Sales Report', { align: 'center' });
@@ -417,14 +417,14 @@ const generatePDF = async (res, orders, dateFilter, startDate, endDate) => {
                 itemsOnCurrentPage = 0;
                 resetPageTotals();
                 addHeader();
-                fixedY = 150; // **Modification: Reset Y position to 150 on page break**
+                fixedY = 150; 
             }
 
-            // Correct the calculations
-            const regularPrice = item.regularPrice * item.quantity; // Correct calculation
-            const saledPrice = item.saledPrice * item.quantity; // Correct calculation
-            const discount = (item.regularPrice - item.saledPrice) * item.quantity; // Correct discount calculation
-            const netPrice = saledPrice; // Net price calculation
+            
+            const regularPrice = item.regularPrice * item.quantity; 
+            const saledPrice = item.saledPrice * item.quantity; 
+            const discount = (item.regularPrice - item.saledPrice) * item.quantity; 
+            const netPrice = saledPrice; 
 
             const paymentStatus = Array.isArray(order.payment) 
                 ? order.payment.find(payment => payment.status === 'completed')?.status || 'N/A'
