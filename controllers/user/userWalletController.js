@@ -53,8 +53,8 @@ const checkWalletBalance = async (req, res) => {
     try {
       const { amount } = req.body;
 
-      const userId = req.user.session || req.user;
-  
+      const userId = req.user?.session || req.user?._id || req.user;
+
       const user = await User.findById(userId).populate('wallet');
       if (!user || !user.wallet) {
         return res.json({ success: false, message: 'User or wallet not found' });

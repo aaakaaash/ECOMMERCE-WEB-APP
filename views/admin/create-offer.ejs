@@ -191,7 +191,7 @@
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Show product dropdown by default when page loads
+    
     document.getElementById('productField').style.display = 'block';
     document.getElementById('product').required = true;
 
@@ -202,12 +202,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Add event listener for discount type change
+    
     document.getElementById('discountType').addEventListener('change', function() {
         validateDiscountValue();
     });
 
-    // Add event listener for discount value change
+    
     document.getElementById('discountValue').addEventListener('input', function() {
         validateDiscountValue();
     });
@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function validateForm() {
     let isValid = true;
-    const fields = ['offerCode', 'title', 'offerType', 'discountType', 'discountValue',  'startDate', 'endDate', 'status'];
+    const fields = ['offerCode', 'title', 'offerType', 'discountType', 'discountValue', 'startDate', 'endDate', 'status'];
 
     fields.forEach(field => {
         const value = document.getElementById(field).value.trim();
@@ -239,17 +239,29 @@ function validateForm() {
         isValid = false;
     }
 
-    if (new Date(document.getElementById('startDate').value) > new Date(document.getElementById('endDate').value)) {
-        document.getElementById('endDateError').textContent = 'End date must be after start date.';
+    
+    const startDate = new Date(document.getElementById('startDate').value);
+    const endDate = new Date(document.getElementById('endDate').value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);  
+
+    
+    if (endDate < today) {
+        document.getElementById('endDateError').textContent = 'End date cannot be before today.';
         isValid = false;
     }
-
- 
+    else if (startDate > endDate) {
+        document.getElementById('endDateError').textContent = 'End date must be after start date.';
+        isValid = false;
+    } else {
+        document.getElementById('endDateError').textContent = '';  
+    }
 
     isValid = validateDiscountValue() && isValid;
 
     return isValid;
 }
+
 
 function validateDiscountValue() {
     const discountType = document.getElementById('discountType').value;

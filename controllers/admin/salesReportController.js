@@ -101,17 +101,30 @@ const calculateStats = async (startDate, endDate) => {
     });
 
     
-    const totalOrders = orders.length;
+    const totalOrders = orders.reduce((total, order) => total + order.items.length, 0);
+    const cancelledOrders = orders.filter(order =>
+        order.items.some(item => item.itemOrderStatus === "Cancelled")
+      );
+      
+      const returnedOrders = orders.filter(order =>
+        order.items.some(item => item.itemOrderStatus === "Returned")
+      );
+    const completedOrders = orders.filter(order => order.payment.some(payment => payment.status === "completed"));
+    const ordersWithCoupon = orders.filter(order => order.coupon);
+
     const totalSales = orders.reduce((sum, order) => sum + order.totalPrice, 0);
     const totalDiscount = orders.reduce((sum, order) => sum + order.discount, 0);
     const totalActualPrice = orders.reduce((sum, order) => sum + order.actualPrice, 0);
     const totalOfferPrice = orders.reduce((sum, order) => sum + order.offerPrice, 0);
 
-    
     const detailedStats = calculateOrderStats(orders);
 
     return { 
         totalOrders, 
+        completedOrders: completedOrders.length,
+        cancelledOrders: cancelledOrders.length,
+        returnedOrders: returnedOrders.length,
+        totalOrdersWithCoupon: ordersWithCoupon.length,
         totalSales, 
         totalDiscount, 
         totalActualPrice, 
@@ -251,10 +264,21 @@ const generateExcel = async (res, orders, dateFilter, startDate, endDate) => {
     const workbook = new Excel.Workbook();
     const worksheet = workbook.addWorksheet('Sales Report');
 
-    worksheet.addRow(['Sales Report']);
+    const stats = await calculateStats(startDate, endDate);
+
     worksheet.addRow(['Date Range:', `${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`]);
+
+    worksheet.addRow(['Sales Summary']);
+    worksheet.addRow(['Total Orders', stats.totalOrders]);
+    worksheet.addRow(['Payment Completed', stats.completedOrders]);
+    worksheet.addRow(['Cancelled Orders', stats.cancelledOrders]);
+    worksheet.addRow(['Returned Orders', stats.returnedOrders]);
+    worksheet.addRow(['Total Coupon Applied', stats.totalOrdersWithCoupon]);
     worksheet.addRow(['']);
 
+    worksheet.addRow(['Sales Report(payment completed)']);
+   
+    worksheet.addRow(['']);
 
     worksheet.addRow([ 
         'SI', 'Item Order ID', 'Date', 'Product', 'SKU', 'Color', 
@@ -268,17 +292,15 @@ const generateExcel = async (res, orders, dateFilter, startDate, endDate) => {
     let totalQuantity = 0;
     let totalDiscount = 0;
     let totalNetPrice = 0;
+    let totalReturnedAmount = 0;
 
-    
     orders.forEach(order => {
         order.items.forEach(item => {
-            
-            const regularPrice = item.regularPrice * item.quantity; 
-            const saledPrice = item.saledPrice * item.quantity; 
-            const discount = (item.regularPrice - item.saledPrice) * item.quantity; 
-            const netPrice = saledPrice; 
-            
-        
+            const regularPrice = item.regularPrice * item.quantity;
+            const saledPrice = item.saledPrice * item.quantity;
+            const discount = (item.regularPrice - item.saledPrice) * item.quantity;
+            const netPrice = saledPrice;
+
             const paymentStatus = Array.isArray(order.payment) 
                 ? order.payment.find(payment => payment.status === 'completed')?.status || 'N/A'
                 : 'N/A';
@@ -293,32 +315,38 @@ const generateExcel = async (res, orders, dateFilter, startDate, endDate) => {
                 regularPrice.toFixed(2), 
                 saledPrice.toFixed(2),   
                 item.quantity || 0,
-                paymentStatus,
+                item.itemOrderStatus,
                 discount.toFixed(2),     
                 netPrice.toFixed(2)     
             ]);
 
-        
             totalRegularPrice += regularPrice;
             totalSaledPrice += saledPrice;
             totalQuantity += item.quantity || 0;
             totalDiscount += discount;
             totalNetPrice += netPrice;
+
+            if (item.itemOrderStatus === "Returned") {
+                totalReturnedAmount += netPrice;
+            }
         });
     });
 
-    
+    worksheet.addRow(['', '', '', '', '', 'Returned Total', 
+        '', 
+        '', '', '', '', totalReturnedAmount.toFixed(2),
+    ])
+
     worksheet.addRow([ 
-        '', '', '', '', '', 'TOTAL', 
+        '', '', '', '', '', 'NET TOTAL', 
         totalRegularPrice.toFixed(2),
         totalSaledPrice.toFixed(2),
         totalQuantity,
         '',
         totalDiscount.toFixed(2),
-        totalNetPrice.toFixed(2)
+        (totalNetPrice - totalReturnedAmount).toFixed(2)
     ]);
 
-    // Set column widths for better readability
     worksheet.getColumn(1).width = 5;
     worksheet.getColumn(2).width = 20;
     worksheet.getColumn(3).width = 20;
@@ -332,13 +360,11 @@ const generateExcel = async (res, orders, dateFilter, startDate, endDate) => {
     worksheet.getColumn(11).width = 15;
     worksheet.getColumn(12).width = 15;
 
-    // Set headers for Excel file download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename=sales-report-${dateFilter}.xlsx`);
 
     await workbook.xlsx.write(res);
 };
-
 
 const generatePDF = async (res, orders, dateFilter, startDate, endDate) => {
     const doc = new PDFDocument({ margin: 10, size: 'A4', layout: 'landscape' });
@@ -357,39 +383,56 @@ const generatePDF = async (res, orders, dateFilter, startDate, endDate) => {
     let totalQuantity = 0;
     let totalDiscount = 0;
     let totalNetPrice = 0;
+    let totalReturnedAmount = 0;
 
-    
-    let fixedY = 150; 
+    let fixedY = 230;
+
+    const stats = await calculateStats(startDate, endDate);
 
     const addHeader = () => {
         doc.fontSize(16).text('Sales Report', { align: 'center' });
         doc.moveDown();
+
         doc.fontSize(12).text(`Date Range: ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`, { align: 'center' });
         doc.moveDown();
+
+        doc.fontSize(12).text('Sales Summary');
+        doc.moveDown();
+        doc.fontSize(10)
+            .text(`Total Item orderd: ${stats.totalOrders}`)
+            .text(`Payment Completed: ${stats.completedOrders}`)
+            .text(`Cancelled Orders: ${stats.cancelledOrders}`)
+            .text(`Returned Orders: ${stats.returnedOrders}`)
+            .text(`Total Coupon Applied: ${stats.totalOrdersWithCoupon}`);
+        doc.moveDown();
+
+        doc.fontSize(16).text('Sales Report(payment completed)', { align: 'center' });
+        doc.moveDown();
+       
         
-        doc.fontSize(10).text('SI', 30, 80, { continued: false, width: 10 });
-        doc.text('Order ID', 60, 80, { continued: false, width: 60 });
-        doc.text('Date', 140, 80, { continued: false, width: 60 });
-        doc.text('Product', 220, 80, { continued: false, width: 60 });
-        doc.text('SKU', 320, 80, { continued: false, width: 60 });
-        doc.text('Color', 380, 80, { continued: false, width: 60 });
-        doc.text('Regular Price', 430, 80, { continued: false, width: 60 });
-        doc.text('Saled Price', 500, 80, { continued: false, width: 60 });
-        doc.text('Quantity', 570, 80, { continued: false, width: 60 });
-        doc.text('Order Status', 620, 80, { continued: false, width: 60 });
-        doc.text('Discount', 690, 80, { continued: false, width: 60 });
-        doc.text('Net Price', 750, 80, { width: 60 });
+        doc.fontSize(10).text('SI', 30, 200, { continued: false, width: 10 });
+        doc.text('Order ID', 60, 200, { continued: false, width: 60 });
+        doc.text('Date', 140, 200, { continued: false, width: 60 });
+        doc.text('Product', 220, 200, { continued: false, width: 60 });
+        doc.text('SKU', 290, 200, { continued: false, width: 60 });
+        doc.text('Color', 380, 200, { continued: false, width: 60 });
+        doc.text('Regular Price', 430, 200, { continued: false, width: 60 });
+        doc.text('Saled Price', 500, 200, { continued: false, width: 60 });
+        doc.text('Quantity', 570, 200, { continued: false, width: 60 });
+        doc.text('Order Status', 620, 200, { continued: false, width: 60 });
+        doc.text('Discount', 690, 200, { continued: false, width: 60 });
+        doc.text('Net Price', 750, 200, { width: 60 });
         doc.moveDown();
     };
 
-    const addPageTotal = () => {
-        doc.text('Total:', 320, fixedY, { continued: false });
-        doc.text(totalRegularPrice.toFixed(2), 430, fixedY, { continued: false, width: 60 });
-        doc.text(totalSaledPrice.toFixed(2), 500, fixedY, { continued: false, width: 60 });
-        doc.text(totalQuantity.toString(), 570, fixedY, { continued: false, width: 60 });
-        doc.text(totalDiscount.toFixed(2), 690, fixedY, { continued: false, width: 60 });
-        doc.text(totalNetPrice.toFixed(2), 750, fixedY, { width: 60 });
-    };
+    // const addPageTotal = () => {
+    //     doc.text('Total:', 320, fixedY, { continued: false });
+    //     doc.text(totalRegularPrice.toFixed(2), 430, fixedY, { continued: false, width: 60 });
+    //     doc.text(totalSaledPrice.toFixed(2), 500, fixedY, { continued: false, width: 60 });
+    //     doc.text(totalQuantity.toString(), 570, fixedY, { continued: false, width: 60 });
+    //     doc.text(totalDiscount.toFixed(2), 690, fixedY, { continued: false, width: 60 });
+    //     doc.text((totalNetPrice - totalReturnedAmount).toFixed(2), 750, fixedY, { width: 60 });
+    // };
 
     const resetPageTotals = () => {
         totalRegularPrice = 0;
@@ -397,6 +440,7 @@ const generatePDF = async (res, orders, dateFilter, startDate, endDate) => {
         totalQuantity = 0;
         totalDiscount = 0;
         totalNetPrice = 0;
+        totalReturnedAmount = 0;
     };
 
     addHeader();
@@ -407,6 +451,7 @@ const generatePDF = async (res, orders, dateFilter, startDate, endDate) => {
     let grandTotalQuantity = 0;
     let grandTotalDiscount = 0;
     let grandTotalNetPrice = 0;
+    let grandTotalReturnedAmount = 0;
 
     orders.forEach((order, orderIndex) => {
         order.items.forEach((item, itemIndex) => {
@@ -417,14 +462,13 @@ const generatePDF = async (res, orders, dateFilter, startDate, endDate) => {
                 itemsOnCurrentPage = 0;
                 resetPageTotals();
                 addHeader();
-                fixedY = 150; 
+                fixedY = 180;
             }
 
-            
-            const regularPrice = item.regularPrice * item.quantity; 
-            const saledPrice = item.saledPrice * item.quantity; 
-            const discount = (item.regularPrice - item.saledPrice) * item.quantity; 
-            const netPrice = saledPrice; 
+            const regularPrice = item.regularPrice * item.quantity;
+            const saledPrice = item.saledPrice * item.quantity;
+            const discount = (item.regularPrice - item.saledPrice) * item.quantity;
+            const netPrice = saledPrice;
 
             const paymentStatus = Array.isArray(order.payment) 
                 ? order.payment.find(payment => payment.status === 'completed')?.status || 'N/A'
@@ -435,12 +479,12 @@ const generatePDF = async (res, orders, dateFilter, startDate, endDate) => {
                 .text(item.itemOrderId || 'N/A', 60, fixedY, { continued: false, width: 60 })
                 .text(order.orderDate ? order.orderDate.toLocaleString() : 'N/A', 140, fixedY, { continued: false, width: 60 })
                 .text(item.productName || 'N/A', 220, fixedY, { continued: false, width: 60 })
-                .text(item.skuNumber || 'N/A', 320, fixedY, { continued: false, width: 60 })
+                .text(item.skuNumber || 'N/A', 290, fixedY, { continued: false, width: 60 })
                 .text(item.color || 'N/A', 380, fixedY, { continued: false, width: 60 })
                 .text(regularPrice.toFixed(2), 430, fixedY, { continued: false, width: 60 })
                 .text(saledPrice.toFixed(2), 500, fixedY, { continued: false, width: 60 })
                 .text((item.quantity || 0).toString(), 570, fixedY, { continued: false, width: 60 })
-                .text(paymentStatus, 620, fixedY, { continued: false, width: 60 })
+                .text(item.itemOrderStatus, 620, fixedY, { continued: false, width: 60 })
                 .text(discount.toFixed(2), 690, fixedY, { continued: false, width: 60 })
                 .text(netPrice.toFixed(2), 750, fixedY, { width: 60 });
 
@@ -456,18 +500,26 @@ const generatePDF = async (res, orders, dateFilter, startDate, endDate) => {
             grandTotalDiscount += discount;
             grandTotalNetPrice += netPrice;
 
+            if (item.itemOrderStatus === "Returned") {
+                totalReturnedAmount += netPrice;
+                grandTotalReturnedAmount += netPrice;
+            }
+
             itemsOnCurrentPage++;
             fixedY += 50;
 
             if (orderIndex === orders.length - 1 && itemIndex === order.items.length - 1) {
-                addPageTotal();
+                // addPageTotal();
+                doc.fontSize(8).text(`Returned Total:`, 320, fixedY, { continued: false, width: 60 });
+                doc.text((grandTotalReturnedAmount).toFixed(2), 750, fixedY, { continued: false, width: 60 });
                 doc.moveDown();
-                doc.text('Grand Total:', 320, fixedY +=50, { continued: false });
+
+                doc.fontSize(12).text('Net Total:', 320, fixedY += 50, { continued: false });
                 doc.text(grandTotalRegularPrice.toFixed(2), 430, fixedY, { continued: false, width: 60 });
                 doc.text(grandTotalSaledPrice.toFixed(2), 500, fixedY, { continued: false, width: 60 });
                 doc.text(grandTotalQuantity.toString(), 570, fixedY, { continued: false, width: 60 });
                 doc.text(grandTotalDiscount.toFixed(2), 690, fixedY, { continued: false, width: 60 });
-                doc.text(grandTotalNetPrice.toFixed(2), 750, fixedY, { continued:false, width: 60 });
+                doc.text((grandTotalNetPrice - grandTotalReturnedAmount).toFixed(2), 750, fixedY, { continued: false, width: 60 });
             }
         });
     });
