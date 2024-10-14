@@ -48,11 +48,9 @@ const applyReferralOffer = async (newUserId, referralCode) => {
           $push: { referrals: newReferral._id }
       });
 
-      
-      if (activeOffer.referrerReward > 0) {
-          await creditWallet(referrer._id, activeOffer.referrerReward, 'Referral reward');
-      } else if (activeOffer.walletCreditAmount > 0) {
-          await creditWallet(referrer._id, activeOffer.walletCreditAmount, 'Referral wallet credit');
+      let referrerRewardAmount = activeOffer.referrerReward + activeOffer.walletCreditAmount;
+      if (referrerRewardAmount > 0) {
+          await creditWallet(referrer._id, referrerRewardAmount, 'Referral reward');
       }
 
       if (activeOffer.refereeReward > 0) {
@@ -77,27 +75,43 @@ const applyReferralOffer = async (newUserId, referralCode) => {
 
 
 const creditWallet = async (userId, amount, description) => {
-  try {
-      const user = await User.findById(userId);
-      if (!user || !user.wallet) {
-          console.error('User or wallet not found');
-          return;
+    try {
+      let user = await User.findById(userId);
+      if (!user) {
+        console.error('User not found');
+        return;
       }
-
+  
+      if (!user.wallet) {
+        
+        const newWallet = new Wallet({
+          userId: user._id,
+          balance: 0,
+          transactions: []
+        });
+        const savedWallet = await newWallet.save();
+        
+        
+        user = await User.findByIdAndUpdate(userId, { wallet: savedWallet._id }, { new: true });
+      }
+  
+      
       await Wallet.findByIdAndUpdate(user.wallet, {
-          $inc: { balance: amount },
-          $push: {
-              transactions: {
-                  type: 'credit',
-                  amount: amount,
-                  description: description
-              }
+        $inc: { balance: amount },
+        $push: {
+          transactions: {
+            type: 'credit',
+            amount: amount,
+            description: description,
+            date: new Date()
           }
+        }
       });
-  } catch (error) {
+  
+    } catch (error) {
       console.error('Error crediting wallet:', error);
-  }
-};
+    }
+  };
 
 module.exports = { 
   applyReferralOffer, 

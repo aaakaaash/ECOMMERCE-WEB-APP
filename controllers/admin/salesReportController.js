@@ -368,7 +368,7 @@ const generateExcel = async (res, orders, dateFilter, startDate, endDate) => {
 
 const generatePDF = async (res, orders, dateFilter, startDate, endDate) => {
     const doc = new PDFDocument({ margin: 10, size: 'A4', layout: 'landscape' });
-    
+
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=sales-report-${dateFilter}.pdf`);
 
@@ -389,27 +389,28 @@ const generatePDF = async (res, orders, dateFilter, startDate, endDate) => {
 
     const stats = await calculateStats(startDate, endDate);
 
-    const addHeader = () => {
+    const addHeader = (includeSummary) => {
         doc.fontSize(16).text('Sales Report', { align: 'center' });
         doc.moveDown();
 
         doc.fontSize(12).text(`Date Range: ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`, { align: 'center' });
         doc.moveDown();
 
-        doc.fontSize(12).text('Sales Summary');
-        doc.moveDown();
-        doc.fontSize(10)
-            .text(`Total Item orderd: ${stats.totalOrders}`)
-            .text(`Payment Completed: ${stats.completedOrders}`)
-            .text(`Cancelled Orders: ${stats.cancelledOrders}`)
-            .text(`Returned Orders: ${stats.returnedOrders}`)
-            .text(`Total Coupon Applied: ${stats.totalOrdersWithCoupon}`);
+        if (includeSummary) {
+            doc.fontSize(12).text('Sales Summary');
+            doc.moveDown();
+            doc.fontSize(10)
+                .text(`Total Item orderd: ${stats.totalOrders}`)
+                .text(`Payment Completed: ${stats.completedOrders}`)
+                .text(`Cancelled Orders: ${stats.cancelledOrders}`)
+                .text(`Returned Orders: ${stats.returnedOrders}`)
+                .text(`Total Coupon Applied: ${stats.totalOrdersWithCoupon}`);
+            doc.moveDown();
+        }
+
+        doc.fontSize(16).text('Sales Report (payment completed)', { align: 'center' });
         doc.moveDown();
 
-        doc.fontSize(16).text('Sales Report(payment completed)', { align: 'center' });
-        doc.moveDown();
-       
-        
         doc.fontSize(10).text('SI', 30, 200, { continued: false, width: 10 });
         doc.text('Order ID', 60, 200, { continued: false, width: 60 });
         doc.text('Date', 140, 200, { continued: false, width: 60 });
@@ -425,15 +426,6 @@ const generatePDF = async (res, orders, dateFilter, startDate, endDate) => {
         doc.moveDown();
     };
 
-    // const addPageTotal = () => {
-    //     doc.text('Total:', 320, fixedY, { continued: false });
-    //     doc.text(totalRegularPrice.toFixed(2), 430, fixedY, { continued: false, width: 60 });
-    //     doc.text(totalSaledPrice.toFixed(2), 500, fixedY, { continued: false, width: 60 });
-    //     doc.text(totalQuantity.toString(), 570, fixedY, { continued: false, width: 60 });
-    //     doc.text(totalDiscount.toFixed(2), 690, fixedY, { continued: false, width: 60 });
-    //     doc.text((totalNetPrice - totalReturnedAmount).toFixed(2), 750, fixedY, { width: 60 });
-    // };
-
     const resetPageTotals = () => {
         totalRegularPrice = 0;
         totalSaledPrice = 0;
@@ -443,7 +435,8 @@ const generatePDF = async (res, orders, dateFilter, startDate, endDate) => {
         totalReturnedAmount = 0;
     };
 
-    addHeader();
+    
+    addHeader(true);
 
     let si = 1;
     let grandTotalRegularPrice = 0;
@@ -456,13 +449,14 @@ const generatePDF = async (res, orders, dateFilter, startDate, endDate) => {
     orders.forEach((order, orderIndex) => {
         order.items.forEach((item, itemIndex) => {
             if (itemsOnCurrentPage === itemsPerPage) {
-                addPageTotal();
+        
                 doc.addPage();
                 currentPage++;
                 itemsOnCurrentPage = 0;
                 resetPageTotals();
-                addHeader();
-                fixedY = 180;
+
+                
+                fixedY = 80;  
             }
 
             const regularPrice = item.regularPrice * item.quantity;
@@ -509,9 +503,8 @@ const generatePDF = async (res, orders, dateFilter, startDate, endDate) => {
             fixedY += 50;
 
             if (orderIndex === orders.length - 1 && itemIndex === order.items.length - 1) {
-                // addPageTotal();
-                doc.fontSize(8).text(`Returned Total:`, 320, fixedY, { continued: false, width: 60 });
-                doc.text((grandTotalReturnedAmount).toFixed(2), 750, fixedY, { continued: false, width: 60 });
+                doc.fontSize(8).text("Returned Total:", 320, fixedY, { continued: false, width: 60 });
+                doc.text(grandTotalReturnedAmount.toFixed(2), 750, fixedY, { continued: false, width: 60 });
                 doc.moveDown();
 
                 doc.fontSize(12).text('Net Total:', 320, fixedY += 50, { continued: false });
@@ -519,13 +512,14 @@ const generatePDF = async (res, orders, dateFilter, startDate, endDate) => {
                 doc.text(grandTotalSaledPrice.toFixed(2), 500, fixedY, { continued: false, width: 60 });
                 doc.text(grandTotalQuantity.toString(), 570, fixedY, { continued: false, width: 60 });
                 doc.text(grandTotalDiscount.toFixed(2), 690, fixedY, { continued: false, width: 60 });
-                doc.text((grandTotalNetPrice - grandTotalReturnedAmount).toFixed(2), 750, fixedY, { continued: false, width: 60 });
+                doc.text((grandTotalNetPrice - grandTotalReturnedAmount).toFixed(2), 750, fixedY, { width: 60 });
             }
         });
     });
 
     doc.end();
 };
+
 
 module.exports = {
     getSalesReport,

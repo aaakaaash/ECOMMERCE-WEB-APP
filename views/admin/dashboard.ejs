@@ -194,16 +194,16 @@
     }
 
     const categoryPieChartCtx = document.getElementById('categoryPieChart').getContext('2d');
-    const categorySalesData = <%- JSON.stringify(categorySalesData) %>;
-    
-    if (categorySalesData && categorySalesData.length > 0) {
-        new Chart(categoryPieChartCtx, {
-            type: 'pie',
-            data: {
-                labels: categorySalesData.map(data => data.category),
-                datasets: [{
-                    data: categorySalesData.map(data => data.totalSales),
-                    backgroundColor: [
+const categorySalesData = <%- JSON.stringify(categorySalesData) %>;
+
+if (categorySalesData && categorySalesData.length > 0) {
+    new Chart(categoryPieChartCtx, {
+        type: 'pie',
+        data: {
+            labels: categorySalesData.map(data => data.category),
+            datasets: [{
+                data: categorySalesData.map(data => data.totalSales),
+                backgroundColor: [
                         'rgb(255, 99, 132)',
                         'rgb(54, 162, 235)',
                         'rgb(255, 205, 86)',
@@ -214,19 +214,33 @@
                 }]
             },
             options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    title: {
-                        display: true,
-                        text: 'Category Sales Distribution'
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Category Sales Distribution'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed !== null) {
+                                label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed);
+                            }
+                            return label;
+                        }
                     }
                 }
             }
-        });
-    } else {
+        }
+    });
+} else {
         categoryPieChartCtx.font = '20px Arial';
         categoryPieChartCtx.fillText('No data available for the selected period', 10, 50);
     }

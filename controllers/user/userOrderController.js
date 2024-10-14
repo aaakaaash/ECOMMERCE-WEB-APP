@@ -114,6 +114,7 @@ const addCoupon = async (req, res, next) => {
 const netAmount = totalPrice - totalDiscount;
 
 
+
 if (netAmount < coupon.minPurchaseAmount) {
   return res.status(400).json({ message: `Minimum purchase amount is ${coupon.minPurchaseAmount} for this coupon.` });
 }
@@ -124,14 +125,14 @@ if (netAmount > coupon.maxPurchaseAmount) {
 
     const platformFee = 0;
     const deliveryCharges = 0;
-    let finalTotal = totalPrice - totalDiscount + platformFee + deliveryCharges;
-
+  
+    
     
     let discountAmount = 0;
     if (coupon.discountType === "fixed") {
       discountAmount = coupon.discountValue;
     } else if (coupon.discountType === "percentage") {
-      discountAmount = (finalTotal * coupon.discountValue) / 100;
+      discountAmount = (netAmount * coupon.discountValue) / 100;
     }
 
     
@@ -140,7 +141,7 @@ if (netAmount > coupon.maxPurchaseAmount) {
     totalDiscount += discountAmount;
 
     
-    finalTotal = totalPrice - totalDiscount + platformFee + deliveryCharges;
+   let finalTotal = totalPrice - totalDiscount + platformFee + deliveryCharges;
 
    
     req.session.appliedCoupon = couponId;
@@ -239,7 +240,7 @@ const loadPayment = async (req, res, next) => {
 
     const platformFee = 0;
     const deliveryCharges = 0;
-    let finalTotal = totalPrice - totalDiscount + platformFee + deliveryCharges;
+    let finalTotal = totalPrice - totalDiscount;
 
    
     let discountAmount = 0;

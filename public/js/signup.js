@@ -42,15 +42,30 @@ function emailValidateChecking(event) {
 }
 
 function phoneValidateChecking(event) {
-    const phoneval = phoneid.value;
+    const phoneval = phoneid.value.trim();
 
-    if (phoneval.trim() === "") {
+    
+    if (phoneval === "") {
         error3.style.display = "block";
         error3.innerHTML = "Enter valid phone number";
-    } else if (phoneval.length < 10 || phoneval.length > 10) {
+    }
+    
+    else if (phoneval.length !== 10) {
         error3.style.display = "block";
         error3.innerHTML = "Enter 10 digits";
-    } else {
+    }
+    
+    else if (!/^\d+$/.test(phoneval)) {
+        error3.style.display = "block";
+        error3.innerHTML = "Phone number must contain only digits";
+    }
+    
+    else if (/^0+$/.test(phoneval)) {
+        error3.style.display = "block";
+        error3.innerHTML = "Phone number cannot be all zeros";
+    }
+    
+    else {
         error3.style.display = "none";
         error3.innerHTML = "";
     }

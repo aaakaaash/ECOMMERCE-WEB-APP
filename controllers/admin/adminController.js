@@ -63,11 +63,10 @@ const logout = async (req,res)=>{
 
 
 const getCategorySalesData = async (startDate, endDate) => {
-    
     const pipeline = [
         {
             $match: {
-                date: { $gte: startDate, $lte: endDate }
+                date: { $gte: new Date(startDate), $lte: new Date(endDate) }
             }
         },
         { $unwind: "$items" },
@@ -106,7 +105,6 @@ const getCategorySalesData = async (startDate, endDate) => {
 
     try {
         const result = await Order.aggregate(pipeline);
-    
         return result;
     } catch (error) {
         console.error('Error in getCategorySalesData:', error);
@@ -115,11 +113,10 @@ const getCategorySalesData = async (startDate, endDate) => {
 };
 
 const getPaymentMethodsData = async (startDate, endDate) => {
-    
     const pipeline = [
         {
             $match: {
-                date: { $gte: startDate, $lte: endDate }
+                date: { $gte: new Date(startDate), $lte: new Date(endDate) }
             }
         },
         { $unwind: "$payment" },
@@ -134,10 +131,8 @@ const getPaymentMethodsData = async (startDate, endDate) => {
 
     try {
         const result = await Order.aggregate(pipeline);
-        
         return result;
     } catch (error) {
-        
         throw error;
     }
 };
@@ -255,7 +250,9 @@ const loadDashboard = async (req, res) => {
                     endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
             }
 
-    
+            const formatDate = (date) => {
+                return date.toISOString().split('T')[0];
+            };
 
             const categorySalesData = await getCategorySalesData(startDate, endDate);
             const paymentMethodsData = await getPaymentMethodsData(startDate, endDate);
@@ -264,7 +261,6 @@ const loadDashboard = async (req, res) => {
             const topCategories = await getTopSellingItems('category', 10, startDate, endDate);
             const topBrands = await getTopSellingItems('brand', 10, startDate, endDate);
 
-  
             const chartData = {
                 categorySalesData: categorySalesData.length ? categorySalesData : [{ category: 'No Data', totalSales: 0 }],
                 paymentMethodsData: paymentMethodsData.length ? paymentMethodsData : [{ _id: 'No Data', count: 0 }],
@@ -276,8 +272,8 @@ const loadDashboard = async (req, res) => {
                 topCategories,
                 topBrands,
                 filter,
-                customStartDate: customStartDate || '',
-                customEndDate: customEndDate || ''
+                customStartDate: formatDate(startDate),
+                customEndDate: formatDate(endDate)
             });
         } catch (error) {
             console.log("Unexpected error during loading dashboard", error);

@@ -123,7 +123,7 @@ const updateOrderStatus = async (req, res) => {
               wallet.transactions.push({
                 type: 'credit',
                 amount: refundAmount,
-                description: `Refund for ${status.toLowerCase()} item ${item.itemOrderId} in order ${order.orderId}`,
+                description: `Refund for ${status.toLowerCase()} order item ${item.itemOrderId}`,
                 date: new Date()
               });
               await wallet.save();
