@@ -8,11 +8,11 @@
     <%- include("../../views/partials/user/breadcrumb") %>
    
     <div class="row">
-        <!-- Include the sidebar partial -->
+        
         <div class="col-md-3">
             <%- include("../../views/partials/user/sidebar") %>
         </div>
-        <div class="col-md-9 dashboard-content" id="dashboardContent">
+        <div class="col-md-6 dashboard-content" id="dashboardContent">
             <div class="container">
                 <h2>Personal Information</h2>
                 <form id="personal-info-form">
@@ -134,7 +134,7 @@ editBtn.addEventListener('click', () => toggleEditing(true));
 cancelBtn.addEventListener('click', () => {
     toggleEditing(false);
     clearErrorMessages();
-    form.reset(); // Reset form to original values
+    form.reset(); 
 });
 
 saveBtn.addEventListener('click', (event) => {

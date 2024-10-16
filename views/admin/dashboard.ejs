@@ -9,7 +9,7 @@
 <body>
     <div class="container-fluid mt-4">
         <h2 class="mb-4">Welcome</h2>
-
+        <br><br>
         <div class="row mb-4">
             <div class="col-md-12">
                 <div class="card">
@@ -231,7 +231,7 @@ if (categorySalesData && categorySalesData.length > 0) {
                                 label += ': ';
                             }
                             if (context.parsed !== null) {
-                                label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed);
+                                label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'INR' }).format(context.parsed);
                             }
                             return label;
                         }

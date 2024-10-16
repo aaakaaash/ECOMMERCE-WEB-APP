@@ -65,8 +65,14 @@ const loadSingleProduct = async (req, res, next) => {
 
         let userData = null;
         if (userId) {
-            userData = await User.findById(userId).exec();
+          userData = await User.findById(userId).populate("cart").exec();
+        
+          if (userData && userData.cart && !userData.cart.items) {
+            userData.cart.items = [];
+          }
         }
+        
+        res.locals.user = userData;
 
         
         res.render("single", { 

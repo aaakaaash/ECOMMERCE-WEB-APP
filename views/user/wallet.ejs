@@ -4,39 +4,68 @@
   .dashboard-content {
     padding: 20px;
   }
-  
+
   .wallet-balance {
     background-color: #f8f9fa;
     border-radius: 8px;
     padding: 20px;
   }
-  
+
   .table th {
     font-weight: 600;
   }
-  
+
   .badge {
     font-size: 0.85em;
     padding: 0.35em 0.65em;
   }
-  
+
   .card {
     border: none;
     border-radius: 10px;
   }
-  
+
   .card-title {
     color: #333;
     font-weight: 600;
   }
-  
+
   .alert {
     border-radius: 8px;
   }
+
+
+  @media (max-width: 576px) {
+
+    .dashboard-container {
+      flex-direction: column;
+    }
+    .dashboard-content {
+      padding: 10px;
+    }
+
+    .wallet-balance {
+      padding: 10px;
+    }
+
+    .table th, .table td {
+      font-size: 0.8rem;
+    }
+
+    .badge {
+      font-size: 0.7em;
+      padding: 0.3em 0.5em;
+    }
+
+    .d-flex {
+      flex-direction: column;
+    }
+
+    .card-title {
+      font-size: 1.5rem;
+    }
+  }
 </style>
-
-
-
 
 
 <%- include("../../views/partials/user/header") %>

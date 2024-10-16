@@ -70,43 +70,64 @@ const cart = async (req, res, next) => {
       await cart.save();
     }
 
-    
+  
     let totalPrice = 0;
     let totalItems = 0;
     let totalDiscount = 0;
     const platformFee = 0;
     const deliveryCharges = 0;
     let distinctProductCount = 0;
+    let cartUpdated = false;
 
+    
     if (cart.items.length > 0) {
       const distinctProducts = new Set();
+
       for (const item of cart.items) {
         if (item.product) {
-          totalPrice += item.product.regularPrice * item.quantity;
-          totalItems += item.quantity;
+          
+          const currentPrice =
+            item.product.offerPrice && item.product.offerPrice < item.product.salePrice
+              ? item.product.offerPrice
+              : item.product.salePrice < item.product.regularPrice
+              ? item.product.salePrice
+              : item.product.regularPrice;
 
-          const discountAmount =
-            item.product.offerPrice &&
-            item.product.offerPrice < item.product.salePrice
+          const currentDiscountAmount =
+            item.product.offerPrice && item.product.offerPrice < item.product.regularPrice
               ? item.product.regularPrice - item.product.offerPrice
               : item.product.salePrice < item.product.regularPrice
               ? item.product.regularPrice - item.product.salePrice
               : 0;
 
-          totalDiscount += discountAmount * item.quantity;
+          
+          if (
+            item.price !== currentPrice || 
+            item.discountAmount !== currentDiscountAmount || 
+            item.regularPrice !== item.product.regularPrice
+          ) {
+            item.price = currentPrice;
+            item.discountAmount = currentDiscountAmount;
+            item.regularPrice = item.product.regularPrice;
+            cartUpdated = true;
+          }
+
+          totalPrice += currentPrice * item.quantity;
+          totalDiscount += currentDiscountAmount * item.quantity;
+          totalItems += item.quantity;
           distinctProducts.add(item.product._id.toString());
         }
       }
+
       distinctProductCount = distinctProducts.size;
 
-      
-      await cart.save();
+    
+      if (cartUpdated) {
+        await cart.save();
+      }
     }
 
-    
-    const totalAmount =
-      totalPrice - totalDiscount + platformFee + deliveryCharges;
-
+    const totalAmount = totalPrice - totalDiscount + platformFee + deliveryCharges;
     
     return res.render("cart", {
       cart,
@@ -214,7 +235,7 @@ const addToCart = async (req, res, next) => {
     await cart.save();
 
     await User.findByIdAndUpdate(userId, { cart: cart._id });
-
+    
     res.json({
       message: "Item added to cart successfully",
       cartItemsCount: cart.items.length,
@@ -352,7 +373,6 @@ const removeFromCart = async (req, res) => {
 const removeDeletedItem = async (req, res) => {
   try {
     const { itemId } = req.body;
-    console.log(itemId);
 
     await Cart.updateMany(
       { "items._id": itemId },

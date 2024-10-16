@@ -45,14 +45,44 @@ const placeOrder = async (req, res, next) => {
       let totalDiscount = 0; 
       const platformFee = 0;
       const deliveryCharges = 0;
+      let cartUpdated = false; 
 
-     
       cart.items.forEach(item => {
-        totalPrice += item.product.regularPrice * item.quantity;
-        totalDiscount += item.discountAmount * item.quantity;  
+        const product = item.product;
+
+    
+        const price =
+          product.offerPrice && product.offerPrice < product.salePrice
+            ? product.offerPrice
+            : product.salePrice < product.regularPrice
+            ? product.salePrice
+            : product.regularPrice;
+
+        const discountAmount =
+          product.offerPrice && product.offerPrice < product.regularPrice
+            ? product.regularPrice - product.offerPrice
+            : product.salePrice < product.regularPrice
+            ? product.regularPrice - product.salePrice
+            : 0;
+
+        
+        if (item.price !== price || item.discountAmount !== discountAmount) {
+          item.price = price;
+          item.discountAmount = discountAmount;
+          item.regularPrice = product.regularPrice;
+          cartUpdated = true; 
+        }
+
+        totalPrice += product.regularPrice * item.quantity;
+        totalDiscount += discountAmount * item.quantity;
       });
 
       const finalTotal = totalPrice - totalDiscount + platformFee + deliveryCharges;
+
+      
+      if (cartUpdated) {
+        await cart.save();
+      }
 
       res.render("checkout-Page", { 
         cart, 
@@ -206,8 +236,6 @@ const removeCoupon = async (req, res, next) => {
   }
 };
 
-
-
 const loadPayment = async (req, res, next) => {
 
   const userId = req.session.user || req.user;
@@ -232,10 +260,35 @@ const loadPayment = async (req, res, next) => {
     
     let totalPrice = 0;
     let totalDiscount = 0;
+    let cartUpdated = false;  
 
     cart.items.forEach(item => {
-      totalPrice += item.product.regularPrice * item.quantity;
-      totalDiscount += item.discountAmount * item.quantity; 
+      const product = item.product;
+
+      const price =
+        product.offerPrice && product.offerPrice < product.salePrice
+          ? product.offerPrice
+          : product.salePrice < product.regularPrice
+          ? product.salePrice
+          : product.regularPrice;
+
+      const discountAmount =
+        product.offerPrice && product.offerPrice < product.regularPrice
+          ? product.regularPrice - product.offerPrice
+          : product.salePrice < product.regularPrice
+          ? product.regularPrice - product.salePrice
+          : 0;
+
+      
+      if (item.price !== price || item.discountAmount !== discountAmount) {
+        item.price = price;
+        item.discountAmount = discountAmount;
+        item.regularPrice = product.regularPrice;
+        cartUpdated = true;  
+      }
+
+      totalPrice += product.regularPrice * item.quantity;
+      totalDiscount += discountAmount * item.quantity;
     });
 
     const platformFee = 0;
@@ -257,6 +310,9 @@ const loadPayment = async (req, res, next) => {
       finalTotal = totalPrice - totalDiscount + platformFee + deliveryCharges; 
     }
 
+    if (cartUpdated) {
+      await cart.save();
+    }
     
     res.render('payment-page', {
       user,
