@@ -13,6 +13,8 @@ const ReferralOffer = require("../../models/referralOfferSchema");
 const Referral = require("../../models/referralSchema");
 const Wallet = require("../../models/walletSchema");
 
+const Image = require("../../models/imageSchema")
+
 const {
   applyReferralOffer,
   creditWallet,
@@ -114,6 +116,23 @@ const loadHomepage = async (req, res, next) => {
       .limit(1)
       .exec();
 
+      const bannerImages = await Image.find({
+        imageType: 'banner',
+        page: 'home'
+      }).sort({ altText: 1 }).limit(3); 
+
+      const backgroundImage1 = await Image.findOne({
+        imageType: 'background',
+        page: 'home',
+        altText: 'midbanner'
+      });
+      
+      const backgroundImage2 = await Image.findOne({
+        imageType: 'background',
+        page: 'home',
+        altText: 'midbanner1'
+      });
+
     return res.render("home", {
       user: userData,
       products: products,
@@ -122,6 +141,9 @@ const loadHomepage = async (req, res, next) => {
       totalPages: totalPages,
       totalProducts: totalProducts,
       offer: offer.length ? offer[0] : null,
+      bannerImages: bannerImages,
+      backgroundImage1: backgroundImage1,
+      backgroundImage2: backgroundImage2
     });
   } catch (error) {
     console.log("Home page not found:", error);

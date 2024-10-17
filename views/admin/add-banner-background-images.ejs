@@ -1,0 +1,189 @@
+<%- include("../../views/partials/admin/header") %>
+
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<section class="content-main">
+    <div class="content-header">
+        <h2 class="content-title">Add New Image</h2>
+    </div>
+    <br><br>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="POST" action="/admin/banner-background/add-banner-background" enctype="multipart/form-data" onsubmit="return validateForm()">
+                        <!-- Image Upload -->
+                        <div class="mb-4">
+                            <label class="form-label">Upload Image</label>
+                            <input class="form-control" type="file" name="image" id="imageInput" accept="image/png, image/jpeg" onchange="initializeCropper(event)">
+                            <div id="image-error" class="error-message"></div>
+                        </div>
+
+                        <!-- Image Preview and Cropper -->
+                        <div class="mb-4">
+                            <img id="imagePreview" src="" alt="" style="width: 300px; height: auto;">
+                        </div>
+                        <div class="mb-4">
+                            <button type="button" class="btn btn-primary" id="cropButton" style="display: none;">Crop & Save</button>
+                        </div>
+
+                        <!-- Cropped Image Preview -->
+                        <div class="mb-4" id="croppedImageContainer" style="display: none;">
+                            <label class="form-label">Cropped Image Preview</label>
+                            <img id="croppedImagePreview" src="" alt="" style="width: 200px; height: auto;">
+                        </div>
+
+                        <!-- Image Type Dropdown -->
+                        <div class="mb-4">
+                            <label class="form-label">Image Type</label>
+                            <select class="form-select" name="imageType" required>
+                                <option value="">Select Image Type</option>
+                                <option value="banner">Banner</option>
+                                <option value="background">Background</option>
+                            </select>
+                            <div id="imageType-error" class="error-message"></div>
+                        </div>
+
+                        <!-- Page Dropdown -->
+                        <div class="mb-4">
+                            <label class="form-label">Page</label>
+                            <select class="form-select" name="page" required>
+                                <option value="">Select Page</option>
+                                <option value="home">Home</option>
+                                <option value="shop">Shop</option>
+                                <option value="about">About</option>
+                            </select>
+                            <div id="page-error" class="error-message"></div>
+                        </div>
+
+                        <!-- Alt Text -->
+                        <div class="mb-4">
+                            <label class="form-label">Position</label>
+                            <input type="text" name="altText" class="form-control" placeholder="Position of the image" required>
+                            <div id="altText-error" class="error-message"></div>
+                        </div>
+
+                        <button class="btn btn-primary" type="submit">Upload Image</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
+
+<script>
+    let cropper;
+    let croppedCanvas;
+    let imagePreview = document.getElementById('imagePreview');
+    let croppedImageContainer = document.getElementById('croppedImageContainer');
+    let croppedImagePreview = document.getElementById('croppedImagePreview');
+    let cropButton = document.getElementById('cropButton');
+
+    function initializeCropper(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            imagePreview.src = e.target.result;
+            if (cropper) cropper.destroy(); 
+            cropper = new Cropper(imagePreview, {
+                aspectRatio: 16 / 9,
+                viewMode: 1,
+                guides: true,
+                autoCropArea: 1,
+                background: false,
+            });
+            cropButton.style.display = 'inline-block'; 
+        };
+        reader.readAsDataURL(file);
+    }
+
+    cropButton.addEventListener('click', function () {
+        croppedCanvas = cropper.getCroppedCanvas({
+            width: 400,
+            height: 300
+        });
+
+        croppedImagePreview.src = croppedCanvas.toDataURL('image/jpeg', 1.0);
+        croppedImageContainer.style.display = 'block'; 
+
+        croppedCanvas.toBlob(blob => {
+            let file = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            document.getElementById('imageInput').files = dataTransfer.files;
+        });
+    });
+
+    function validateForm() {
+    let isValid = true;
+    const imageInput = document.getElementById('imageInput').value;
+    const imageType = document.querySelector('select[name="imageType"]').value;
+    const page = document.querySelector('select[name="page"]').value;
+    const altText = document.querySelector('input[name="altText"]').value;
+
+    if (!imageInput) {
+        document.getElementById('image-error').textContent = 'Please upload an image.';
+        isValid = false;
+    }
+    if (!imageType) {
+        document.getElementById('imageType-error').textContent = 'Please select an image type.';
+        isValid = false;
+    }
+    if (!page) {
+        document.getElementById('page-error').textContent = 'Please select a page.';
+        isValid = false;
+    }
+    if (!altText) {
+        document.getElementById('altText-error').textContent = 'Please provide a position.';
+        isValid = false;
+    }
+
+    return isValid;
+}
+
+
+function handleFormSubmit(event) {
+    event.preventDefault();
+    if (validateForm()) {
+        const form = event.target;
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                Swal.fire('Error', data.error, 'error');
+            } else {
+                Swal.fire('Success', 'Image uploaded successfully', 'success')
+                .then(() => {
+                    window.location.href = "/admin/banner-background";
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire('Error', 'An unexpected error occurred', 'error');
+        });
+    }
+}
+
+document.querySelector('form').addEventListener('submit', handleFormSubmit);
+
+document.querySelectorAll('input, select').forEach(input => {
+    input.addEventListener('input', function() {
+        document.getElementById(this.name + '-error').textContent = '';
+    });
+});
+</script>
+
+<%- include("../../views/partials/admin/footer") %>

@@ -112,7 +112,7 @@ const cart = async (req, res, next) => {
             cartUpdated = true;
           }
 
-          totalPrice += currentPrice * item.quantity;
+          totalPrice += item.regularPrice * item.quantity;
           totalDiscount += currentDiscountAmount * item.quantity;
           totalItems += item.quantity;
           distinctProducts.add(item.product._id.toString());

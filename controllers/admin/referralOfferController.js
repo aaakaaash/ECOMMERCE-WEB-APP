@@ -25,7 +25,6 @@ const createReferralOffer = async (req, res) => {
     referrerReward, 
     refereeReward, 
     walletCreditAmount,
-    firstOrderDiscountPercentage,
     startDate, 
     endDate, 
     status
@@ -50,7 +49,6 @@ const createReferralOffer = async (req, res) => {
       referrerReward,
       refereeReward,
       walletCreditAmount: walletCreditAmount || 0,
-      firstOrderDiscountPercentage: firstOrderDiscountPercentage || 0,
       startDate,
       endDate,
       status

@@ -15,6 +15,7 @@ const orderController  = require("../controllers/admin/orderController");
 const couponController  = require("../controllers/admin/couponController");
 const offerController  = require("../controllers/admin/offerController");
 const salesReportController = require("../controllers/admin/salesReportController");
+const backgroundImageController = require("../controllers/admin/backgroundImageController")
 const referralOfferController = require("../controllers/admin/referralOfferController");
 
 
@@ -129,6 +130,15 @@ router.delete("/offers/delete-offer/:offerId",adminAuth,offerController.deleteOf
 router.get('/sales-report',adminAuth, salesReportController.getSalesReport)
 router.post('/filter-sales',adminAuth, salesReportController.filterSalesReport);
 router.post('/download-report',adminAuth, salesReportController.downloadReport);
+
+// backgorund and banner image 
+
+router.get('/banner-background',adminAuth, backgroundImageController.getAllImages);
+router.get('/banner-background/add-banner-background',adminAuth,backgroundImageController.addNewImage);
+router.post("/banner-background/add-banner-background", adminAuth, upload.single('image'), backgroundImageController.saveData);
+router.get('/banner-background/edit-image/:id', adminAuth, backgroundImageController.editImage);
+router.put('/banner-background/edit-image/:id', adminAuth, upload.single('image'), backgroundImageController.saveEditImage);
+
 
 // referral offer
 

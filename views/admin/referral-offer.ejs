@@ -29,7 +29,6 @@
                     <th>Referee Reward</th>
                     <th>Referral Limit</th>
                     <th>Wallet Credit</th>
-                    <th>First Order Discount</th>
                     <th>Status</th>
                     <th>Actions</th>
                   </tr>
@@ -45,7 +44,7 @@
                         <td><%= offer.refereeReward %> rs</td>
                         <td><%= offer.referralLimit %></td>
                         <td><%= offer.walletCreditAmount %> rs</td>
-                        <td><%= offer.firstOrderDiscountPercentage %>%</td>
+
                         <td><span class="badge bg-<%= offer.status === 'active' ? 'success' : 'danger' %>"><%= offer.status %></span></td>
                         <td>
                           <!-- Action Buttons -->
@@ -101,7 +100,7 @@
             <div class="col-md-2">
               <div class="form-group">
                 <label for="referrerReward">Referrer Reward</label>
-                <input type="number" class="form-control" id="referrerReward" name="referrerReward" placeholder="Enter Referrer Reward" >
+                <input type="number" class="form-control" id="referrerReward" name="referrerReward" placeholder="Enter Referrer Reward" min="0">
               </div>
             </div>
         
@@ -109,7 +108,7 @@
             <div class="col-md-3">
               <div class="form-group">
                 <label for="refereeReward">Referee Reward</label>
-                <input type="number" class="form-control" id="refereeReward" name="refereeReward" placeholder="Enter Referee Reward" >
+                <input type="number" class="form-control" id="refereeReward" name="refereeReward" placeholder="Enter Referee Reward" min="0">
               </div>
             </div>
         
@@ -121,13 +120,6 @@
               </div>
             </div>
         
-            <!-- First Order Discount Percentage -->
-            <div class="col-md-3">
-              <div class="form-group">
-                <label for="firstOrderDiscountPercentage">First Order Discount (%)</label>
-                <input type="number" class="form-control" id="firstOrderDiscountPercentage" name="firstOrderDiscountPercentage" placeholder="Enter Discount Percentage" min="0" max="100">
-              </div>
-            </div>
         
             <!-- Start Date -->
             <div class="col-md-2">
@@ -181,13 +173,12 @@ document.getElementById('referralOfferForm').addEventListener('submit', async fu
   event.preventDefault();  
 
   var walletCredit = parseFloat(document.getElementById('walletCreditAmount').value) || 0;
-  var discountPercentage = parseFloat(document.getElementById('firstOrderDiscountPercentage').value) || 0;
 
-  if (walletCredit === 0 && discountPercentage === 0) {
+  if (walletCredit === 0) {
     Swal.fire({
       icon: 'warning',
       title: 'Incomplete Form',
-      text: 'Please enter either a Wallet Credit Amount or a First Order Discount Percentage.',
+      text: 'Please enter Wallet Credit Amount',
       confirmButtonText: 'OK'
     });
     return false;
@@ -195,6 +186,8 @@ document.getElementById('referralOfferForm').addEventListener('submit', async fu
 
   var startDate = new Date(document.getElementById('startDate').value);
   var endDate = new Date(document.getElementById('endDate').value);
+  var currentDate = new Date();  
+
 
   if (endDate <= startDate) {
     Swal.fire({
@@ -206,7 +199,17 @@ document.getElementById('referralOfferForm').addEventListener('submit', async fu
     return false;
   }
 
-  
+
+  if (endDate <= currentDate) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid End Date',
+      text: 'End Date must be after the current date.',
+      confirmButtonText: 'OK'
+    });
+    return false;
+  }
+
   const formData = new FormData(this);
 
   try {
