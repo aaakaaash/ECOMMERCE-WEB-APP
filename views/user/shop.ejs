@@ -44,7 +44,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 
     </div>
 		<!-- banner -->
-		<div class="banner_inner">
+		<div class="banner_inner" style="background: url('/uploads/images-UI/<%= bannerImage ? bannerImage.image : 'default-banner.jpg' %>') no-repeat 0px -73px; background-size: cover;">
 			<div class="services-breadcrumb">
 				<div class="inner_breadcrumb">
 
@@ -120,7 +120,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 						<!--/product right-->
 						<div class="left-ads-display col-lg-9">
 							<div class="wrapper_top_shop">
-								<div class="row">
+								<!-- <div class="row">
 										<div class="col-md-6 shop_left">
 												<img src="images/banner3.jpg" alt="">
 												<h6>40% off</h6>
@@ -130,7 +130,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 												<h6>50% off</h6>
 											</div>
 						
-								</div>
+								</div> -->
 								<% if (message) { %>
 									<h5><%= message %></h5> 
 								<% } else { %>

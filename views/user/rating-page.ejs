@@ -1,0 +1,75 @@
+
+<style>
+
+.product-details {
+    display: flex;
+    gap: 40px; 
+    align-items: center; 
+    flex-wrap: wrap;
+}
+
+</style>
+<div class="container-fluid">
+    <%- include("../../views/partials/user/header") %>
+
+        <%- include("../../views/partials/user/breadcrumb") %>
+
+        <div class="row">
+
+          <%- include("../../views/partials/user/sidebar") %>
+            <div class="col-md-9">
+                <header style="background-color: #dee2e6;">
+                    <h1 class="page_title" >Write a Review</h1>
+                    <br>
+                </header>
+                <br>
+
+                <!-- Product Details Section -->
+                <div class="product-details mb-4">
+                    <div class="d-flex align-items-center">
+                        <% if (product.productImage.length > 0) { %>
+                            <img src="/uploads/product-images/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="img-thumbnail" style="width: 150px; height: auto;">
+                        <% } else { %>
+                            <p>No image available</p>
+                        <% } %>
+                    </div>
+                    <div class="product">
+                        <h5>Name: <%= product.productName %></h5>
+                    </div>
+                    <div class="brand">
+                        <h5>Brand: <%= product.brand.brandName %></h5>
+                    </div>
+                </div>
+                
+
+                <!-- Review Form -->
+                <form action="/submit-review" method="POST">
+                    <input type="hidden" name="productId" value="<%= product._id %>">
+
+                    <div class="form-group">
+                        <label for="rating">Rating (1 to 5 Stars):</label>
+                        <select id="rating" name="rating" class="form-control" required>
+                            <option value="">Select rating</option>
+                            <option value="1">1 Star</option>
+                            <option value="2">2 Stars</option>
+                            <option value="3">3 Stars</option>
+                            <option value="4">4 Stars</option>
+                            <option value="5">5 Stars</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reviewText">Review:</label>
+                        <textarea id="reviewText" name="reviewText" rows="5" class="form-control" placeholder="Write your review here..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                </form>
+                <br>
+            </div>
+        </div>
+        <%- include("../../views/partials/user/footer") %>
+    </div>
+
+
+

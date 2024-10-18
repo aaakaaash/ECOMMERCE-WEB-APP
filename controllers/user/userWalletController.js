@@ -17,37 +17,45 @@ const razorpayInstance = require('../../config/razorpay');
 
 
 const wallet = async (req, res, next) => {
-    const userId = req.session.user || req.user;
+  const userId = req.session.user || req.user;
+  const page = parseInt(req.query.page) || 1; 
+  const limit = 5; 
 
-    try {
-        
-        const user = await User.findById(userId).populate('wallet').exec();
+  try {
+      const user = await User.findById(userId).populate('wallet').exec();
+      
+      if (!user) {
+          return res.status(404).send('User not found');
+      }
 
-        
-        if (!user) {
-            return res.status(404).send('User not found');
-        }
+      if (!user.wallet) {
+          return res.render('wallet', {
+              balance: 0, 
+              transactions: [],
+              currentPage: page,
+              totalPages: 0
+          });
+      }
+
+      const { balance, transactions } = user.wallet;
 
       
-        if (!user.wallet) {
-            return res.render('wallet', {
-                balance: 0, 
-                transactions: []
-            });
-        }
+      const totalTransactions = transactions.length;
+      const totalPages = Math.ceil(totalTransactions / limit);
+      const paginatedTransactions = transactions.slice((page - 1) * limit, page * limit);
 
-    
-        const { balance, transactions } = user.wallet;
+      return res.render('wallet', {
+          balance: balance,
+          transactions: paginatedTransactions, 
+          currentPage: page,
+          totalPages: totalPages
+      });
 
-        return res.render('wallet', {
-            balance: balance,
-            transactions: transactions
-        });
+  } catch (error) {
+      next(error);
+  }
+};
 
-    } catch (error) {
-        next(error);
-    }
-}
 
 const checkWalletBalance = async (req, res) => {
     try {

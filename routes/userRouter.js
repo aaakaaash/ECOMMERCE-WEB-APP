@@ -20,6 +20,8 @@ const setBreadcrumbs = require('../middlewares/breadCrumb')
 const userWishlistController = require("../controllers/user/userWishlistController")
 const userCouponController = require("../controllers/user/userCouponController");
 const userWalletController = require("../controllers/user/userWalletController");
+const userRatingController = require("../controllers/user/userRatingController");
+const debugMiddleware = require("../middlewares/debugMiddleware")
 
 
 router.use(nocache());
@@ -99,6 +101,9 @@ router.post("/user/my-order/order-details/re-checkout/:orderId", userAuth,userOr
 
 router.get("/user/my-order/:orderId/download-invoice/:itemId", userAuth, userOrderController.downloadInvoice);
 
+//Rating management
+
+router.get("/user/my-order/order-details/rate-product/:productId", userAuth,cartCount,setBreadcrumbs,userRatingController.getRateProduct);
 
 // wishlist management
 

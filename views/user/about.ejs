@@ -38,7 +38,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 	<div class="banner-top container-fluid" id="home">
 		<%-include("../../views/partials/user/header")%>
 		<!-- banner -->
-		<div class="banner_inner">
+		<div class="banner_inner" style="background: url('/uploads/images-UI/<%= bannerImage ? bannerImage.image : 'default-banner.jpg' %>') no-repeat 0px -73px; background-size: cover;">
 			<div class="services-breadcrumb">
 				<div class="inner_breadcrumb">
 
@@ -65,137 +65,25 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 					<div class="row">
 
 						<div class="col-lg-6 p-0">
-							<img src="images/banner1.jpg" alt="Goggles" class="img-fluid">
+							<img src="/uploads/images-UI/<%= backgroundImage1 ? backgroundImage1.image : 'default-banner.jpg' %>" alt="Goggles" class="img-fluid">
+
 						</div>
 						<div class="col-lg-6 about-info">
-							<h3 class="tittle-w3layouts text-left mb-lg-5 mb-3">About Us</h3>
-							<p class="my-xl-4 my-lg-3 my-md-4 my-3">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard
-								dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen
-								book.
-							</p>
+							<h2 class="tittle-w3layouts text-left mb-lg-5 mb-3">About Us</h2>
+							<p class="my-xl-4 my-lg-3 my-md-4 my-3" style="font-weight: bold;">
+								Welcome to GOGGLES SHOP, where innovation meets style. We are passionate about bringing a wide variety of goggles that cater to every need and preference. Our mission is to offer an immersive and user-friendly experience, making it easier for you to explore the fascinating world of goggles.
+							  
+								 we believe in pushing boundaries and creating an illusive world of endless possibilities for our users. Our carefully curated selection ensures that each pair offers not just protection but also a stylish expression of your personality.
+							  
+								shop now experience the perfect blend of functionality and fashion, and let us guide you to your ideal pair of goggles.
+							  </p>
 
 							<a href="shop.html" class="btn btn-sm animated-button gibson-three mt-4">Shop Now</a>
 
 						</div>
 					</div>
 				</div>
-				<h3 class="tittle-w3layouts text-center my-lg-4 my-4">Partners</h3>
-				<div class="partners-info">
-					<div class="row mt-lg-5 mt-3">
-						<div class="col-md-3 team-main-gd">
-							<div class="team-grid text-center">
-								<div class="team-img">
-									<img class="img-fluid rounded" src="images/team1.jpg" alt="">
-								</div>
-								<div class="team-info">
-									<h4>Partner 1</h4>
-									<span>Description </span>
-									<ul class="d-flex justify-content-center py-3 social-icons">
-										<li>
-											<a href="#">
-												<i class="fab fa-facebook-f"></i>
-											</a>
-										</li>
-										<li class="mx-3">
-											<a href="#">
-												<i class="fab fa-twitter"></i>
-											</a>
-										</li>
-										<li>
-											<a href="#">
-												<i class="fab fa-google-plus-g"></i>
-											</a>
-										</li>
-									</ul>
-								</div>
-							</div>
-						</div>
-					 <div class="col-md-3 team-main-gd">
-							<div class="team-grid text-center">
-								<div class="team-img">
-									<img class="img-fluid rounded" src="images/team2.jpg" alt="">
-								</div>
-								<div class="team-info">
-									<h4>Partner 2</h4>
-									<span>Description </span>
-									<ul class="d-flex justify-content-center py-3 social-icons">
-										<li>
-											<a href="#">
-												<i class="fab fa-facebook-f"></i>
-											</a>
-										</li>
-										<li class="mx-3">
-											<a href="#">
-												<i class="fab fa-twitter"></i>
-											</a>
-										</li>
-										<li>
-											<a href="#">
-												<i class="fab fa-google-plus-g"></i>
-											</a>
-										</li>
-									</ul>
-								</div>
-							</div>
-						</div>
-						<div class="col-md-3 team-main-gd">
-							<div class="team-grid text-center">
-								<div class="team-img">
-									<img class="img-fluid rounded" src="images/team3.jpg" alt="">
-								</div>
-								<div class="team-info">
-									<h4>Partner 3</h4>
-									<span>Description </span>
-									<ul class="d-flex justify-content-center py-3 social-icons">
-										<li>
-											<a href="#">
-												<i class="fab fa-facebook-f"></i>
-											</a>
-										</li>
-										<li class="mx-3">
-											<a href="#">
-												<i class="fab fa-twitter"></i>
-											</a>
-										</li>
-										<li>
-											<a href="#">
-												<i class="fab fa-google-plus-g"></i>
-											</a>
-										</li>
-									</ul>
-								</div>
-							</div>
-						</div>
-						<div class="col-md-3 team-main-gd">
-							<div class="team-grid text-center">
-								<div class="team-img">
-									<img class="img-fluid rounded" src="images/team4.jpg" alt="">
-								</div>
-								<div class="team-info">
-									<h4>Partner 4</h4>
-									<span>Description </span>
-									<ul class="d-flex justify-content-center py-3 social-icons">
-										<li>
-											<a href="#">
-												<i class="fab fa-facebook-f"></i>
-											</a>
-										</li>
-										<li class="mx-3">
-											<a href="#">
-												<i class="fab fa-twitter"></i>
-											</a>
-										</li>
-										<li>
-											<a href="#">
-												<i class="fab fa-google-plus-g"></i>
-											</a>
-										</li>
-									</ul>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
+			
 				<!-- /grids -->
 				<div class="bottom-sub-grid-content py-lg-5 py-3">
 					<div class="row">
@@ -239,17 +127,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 					</div>
 				</div>
 				<!-- //grids -->
-				<!--/meddle-->
-				<div class="row">
-					<div class="col-md-12 middle-slider my-4">
-						<div class="middle-text-info ">
-
-							<h3 class="tittle-w3layouts two text-center my-lg-4 mt-3">Summer Flash sale</h3>
-							<div class="simply-countdown-custom" id="simply-countdown-custom"></div>
-
-						</div>
-					</div>
-				</div>
+				
 				<!--//meddle-->
 
 				<!-- /testimonials -->
@@ -302,30 +180,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 					</div>
 				</div>
 				<!-- //testimonials -->
-				<div class="row galsses-grids pt-lg-5 pt-3">
-					<div class="col-lg-6 galsses-grid-left">
-						<figure class="effect-lexi">
-							<img src="images/banner4.jpg" alt="" class="img-fluid">
-							<figcaption>
-								<h3>Editor's
-									<span>Pick</span>
-								</h3>
-								<p> Express your style now.</p>
-							</figcaption>
-						</figure>
-					</div>
-					<div class="col-lg-6 galsses-grid-left">
-						<figure class="effect-lexi">
-							<img src="images/banner1.jpg" alt="" class="img-fluid">
-							<figcaption>
-								<h3>Editor's
-									<span>Pick</span>
-								</h3>
-								<p>Express your style now.</p>
-							</figcaption>
-						</figure>
-					</div>
-				</div>
+				
 
 				<!-- /clients-sec -->
 				<div class="testimonials p-lg-5 p-3 mt-4">

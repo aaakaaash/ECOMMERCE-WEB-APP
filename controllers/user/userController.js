@@ -160,6 +160,25 @@ const loadAboutpage = async (req, res, next) => {
     } else if (req.session.user) {
       userId = req.session.user;
     }
+
+    const bannerImage = await Image.findOne({
+      imageType: 'banner',
+      page: 'shop',
+      altText: 'inner'
+    });
+
+    const backgroundImage1 = await Image.findOne({
+      imageType: 'background',
+      page: 'about',
+      altText: 'first'
+    });
+    
+    const backgroundImage2 = await Image.findOne({
+      imageType: 'background',
+      page: 'about',
+      altText: 'second'
+    });
+
     if (userId) {
       let userData = userId
         ? await User.findById(userId).populate("cart").exec()
@@ -168,10 +187,12 @@ const loadAboutpage = async (req, res, next) => {
         userData.cart.items = [];
       }
       res.locals.user = userData;
-      return res.render("about", { user: userData });
+      return res.render("about", { user: userData, bannerImage,  backgroundImage1: backgroundImage1,
+        backgroundImage2: backgroundImage2 });
     } else {
       res.locals.user = null;
-      return res.render("about");
+      return res.render("about", { bannerImage,  backgroundImage1: backgroundImage1,
+        backgroundImage2: backgroundImage2 });
     }
   } catch (error) {
     console.log("about page not found:", error);
@@ -268,6 +289,13 @@ const loadShoppage = async (req, res, next) => {
       .populate("product")
       .exec();
 
+      const bannerImage = await Image.findOne({
+        imageType: 'banner',
+        page: 'shop',
+        altText: 'inner'
+      });
+
+
     return res.render("shop", {
       user: userData,
       products: products,
@@ -280,6 +308,7 @@ const loadShoppage = async (req, res, next) => {
       selectedCategory: category || "",
       searchQuery,
       message: products.length === 0 ? "No products found." : "",
+      bannerImage
     });
   } catch (error) {
     console.log("shop page not found:", error);
@@ -296,19 +325,24 @@ const loadContactpage = async (req, res, next) => {
     } else if (req.session.user) {
       userId = req.session.user;
     }
+
+    let userData = null;
     if (userId) {
-      let userData = userId
-        ? await User.findById(userId).populate("cart").exec()
-        : null;
+      userData = await User.findById(userId).populate("cart").exec();
       if (userData && userData.cart && !userData.cart.items) {
         userData.cart.items = [];
       }
-      res.locals.user = userData;
-      return res.render("contact", { user: userData });
-    } else {
-      res.locals.user = null;
-      return res.render("contact");
     }
+
+    const bannerImage = await Image.findOne({
+      imageType: 'banner',
+      page: 'shop',
+      altText: 'inner'
+    });
+
+    res.locals.user = userData;
+    return res.render("contact", { user: userData, bannerImage });
+
   } catch (error) {
     console.log("about page not found:", error);
     next(error);

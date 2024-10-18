@@ -11,6 +11,7 @@
             justify-content: space-between;
             margin-bottom: 20px;
         }
+
         .coin-icon {
             color: gold;
             margin-right: 5px;
@@ -127,10 +128,19 @@
                                     <% } %>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="order-status">
-                                        <p class="text-success"><%= selectedItem.itemOrderStatus %></p>
-                                    </div>
-                                </div>
+                                  <div class="order-status">
+                                      <p class="text-success"><%= selectedItem.itemOrderStatus %></p>
+                                  </div>
+                                  <div class="rating">
+                                    <% if (selectedItem.itemOrderStatus === 'Delivered') { %>
+                                      <button style="background-color: #007bff; border: none; padding: 10px 10px; color: white; border-radius: 5px;">
+                                        <a href="/user/my-order/order-details/rate-product/<%= selectedItem.product._id %>" style="color: white; text-decoration: none;">Rate this product</a>
+                                      </button>
+                                    <% } %>
+                                  </div>
+                                  
+                              </div>
+                               
                             </div>
                         </div>
                         

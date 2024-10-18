@@ -348,7 +348,7 @@ ul.cart-inner-info li {
 /* Since positioning the image, we need to help out the caption */
 
 .carousel-caption {
-    bottom: 13em;
+    bottom: 8em;
     z-index: 10;
     margin: 0 auto;
 }
@@ -452,6 +452,10 @@ ul.cart-inner-info li {
 
 .carousel-indicators .active {
     background: #1cbbb4;
+}
+
+.carousel-caption .btn {
+    margin-top: 60px; 
 }
 /* Gibson Buttons */
 

@@ -1,7 +1,6 @@
-// errorHandler.js
-function errorHandler(err, req, res, next) {
-    console.error(err.stack); 
 
+function errorHandler(err, req, res, next) {
+     
    
     if (err.status === 404) {
         res.status(404).render("page-404");
@@ -12,6 +11,7 @@ function errorHandler(err, req, res, next) {
     }
   
     else if (err.status >= 400 && err.status < 500) {
+        res.status(404).render("page-404");
         res.status(err.status).json({ success: false, message: err.message });
     }
   
