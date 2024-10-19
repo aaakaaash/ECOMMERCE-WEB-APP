@@ -23,7 +23,6 @@ const userSchema = new Schema({
         required: false,
         unique:true,
         sparse:true,
-        default: null
     },
     googleId: {
         type: String,
@@ -87,6 +86,14 @@ const userSchema = new Schema({
         unique: true,
         required : false
     },
+    referralLink: {
+        type: String,
+        unique: true,
+        required: false,
+        default: function() {
+            return `http://localhost:3000/signup/${this.referralCode}`;
+        }
+    },
     referrals: [{ 
         type: Schema.Types.ObjectId,
         ref: 'Referral'
@@ -112,6 +119,7 @@ const userSchema = new Schema({
         }
     }]
 });
+
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;

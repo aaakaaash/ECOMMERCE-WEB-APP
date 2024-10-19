@@ -145,32 +145,25 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 														<span class="money "><%= product.status %></span>
 												</div>
 												<ul class="stars">
-													<li>
+													<% for (let i = 1; i <= 5; i++) { %>
+													  <li>
 														<a href="#">
+														  <% if (product.averageRating >= i) { %>
 															<i class="fa fa-star" aria-hidden="true"></i>
-														</a>
-													</li>
-													<li>
-														<a href="#">
-															<i class="fa fa-star" aria-hidden="true"></i>
-														</a>
-													</li>
-													<li>
-														<a href="#">
-															<i class="fa fa-star" aria-hidden="true"></i>
-														</a>
-													</li>
-													<li>
-														<a href="#">
-															<i class="fa fa-star" aria-hidden="true"></i>
-														</a>
-													</li>
-													<li>
-														<a href="#">
+														  <% } else if (product.averageRating > i - 1 && product.averageRating < i) { %>
 															<i class="fa fa-star-half-o" aria-hidden="true"></i>
+														  <% } else { %>
+															<i class="fa fa-star-o" aria-hidden="true"></i>
+														  <% } %>
 														</a>
-													</li>
-												</ul>
+													  </li>
+													<% } %>
+												  </ul>
+												  
+												  <% if (product.totalRatings > 0) { %>
+													<span class="rating-count">(<%= product.totalRatings %> reviews)</span>
+												  <% } %>
+												  
 											</div>
 											<div class="googles single-item hvr-outline-out">
 												<form id="addToCartForm-<%= product._id %>" onsubmit="return false;">
@@ -253,7 +246,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 							</div>
 
 							<h4 class="sub-tittle-w3layouts my-lg-4 my-3">Satisfaction Guaranteed</h4>
-							<p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.</p>
+							<p></p>
 							<p>
 								<a href="/shop" class="btn btn-sm animated-button gibson-three mt-4">Shop Now</a>
 							</p>
@@ -265,7 +258,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 							</div>
 
 							<h4 class="sub-tittle-w3layouts my-lg-4 my-3">Fast Shipping</h4>
-							<p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.</p>
+							<p></p>
 							<p>
 								<a href="/shop" class="btn btn-sm animated-button gibson-three mt-4">Shop Now</a>
 							</p>
@@ -277,7 +270,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 							</div>
 
 							<h4 class="sub-tittle-w3layouts my-lg-4 my-3">UV Protection</h4>
-							<p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.</p>
+							<p></p>
 							<p>
 								<a href="/shop" class="btn btn-sm animated-button gibson-three mt-4">Shop Now</a>
 							</p>
@@ -295,7 +288,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 							</div>
 							<div class="mail-grid-text-info">
 								<h3>Genuine Product</h3>
-								<p>Lorem ipsum dolor sit amet, consectetur</p>
+								<p></p>
 							</div>
 						</div>
 						<div class="col-lg-3 footer-top-w3layouts-grid-sec">
@@ -304,7 +297,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 							</div>
 							<div class="mail-grid-text-info">
 								<h3>Secure Products</h3>
-								<p>Lorem ipsum dolor sit amet, consectetur</p>
+								<p></p>
 							</div>
 						</div>
 						<div class="col-lg-3 footer-top-w3layouts-grid-sec">
@@ -313,7 +306,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 							</div>
 							<div class="mail-grid-text-info">
 								<h3>Cash on Delivery</h3>
-								<p>Lorem ipsum dolor sit amet, consectetur</p>
+								<p></p>
 							</div>
 						</div>
 						<div class="col-lg-3 footer-top-w3layouts-grid-sec">
@@ -322,7 +315,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 							</div>
 							<div class="mail-grid-text-info">
 								<h3>Easy Delivery</h3>
-								<p>Lorem ipsum dolor sit amet, consectetur</p>
+								<p></p>
 							</div>
 						</div>
 					</div>
@@ -577,7 +570,7 @@ function addToCart(productId) {
 	}
   }
   
-  // Initialize the cart count on page load
+  
   document.addEventListener('DOMContentLoaded', function() {
 	const cartCountElement = document.querySelector('.cart-count');
 	if (cartCountElement) {

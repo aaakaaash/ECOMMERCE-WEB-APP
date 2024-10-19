@@ -74,20 +74,20 @@ router.delete('/cart/remove-deleted-item',userAuth,userCartController.removeDele
 
 // order management
 
-router.get("/cart/place-order",userAuth,userOrderController.placeOrder);
+router.get("/cart/place-order",userAuth,cartCount,userOrderController.placeOrder);
 
 router.post("/cart/apply-coupon",userAuth,userOrderController.addCoupon);
 router.post("/cart/remove-coupon", userAuth, userOrderController.removeCoupon);
 
-router.post("/cart/place-order/make-payment",userAuth,userOrderController.loadPayment);
-router.post("/cart/place-order/make-payment/confirm-order",userAuth,userOrderController.confirmOrder);
+router.post("/cart/place-order/make-payment",userAuth,cartCount,userOrderController.loadPayment);
+router.post("/cart/place-order/make-payment/confirm-order",userAuth,cartCount,userOrderController.confirmOrder);
 
 router.get('/user/payment/razorpay-checkout', userAuth, userOrderController.razorpayCheckout);
 router.post("/razorpay-callback", userAuth,userOrderController.verifyRazorpayPayment);
 router.post("/verify-razorpay-payment", userAuth,userOrderController.verifyRazorpayPayment);
 
 
-router.get("/user/order-confirmation", userAuth,userOrderController.orderConfirmationPage);
+router.get("/user/order-confirmation", userAuth,cartCount,userOrderController.orderConfirmationPage);
 
 router.get("/user/my-order",userAuth,cartCount,setBreadcrumbs,userOrderController.myOrder);
 router.post("/user/my-order/cancel/:itemOrderId/:cancelReason", userAuth, userOrderController.cancelOrder);
@@ -104,6 +104,9 @@ router.get("/user/my-order/:orderId/download-invoice/:itemId", userAuth, userOrd
 //Rating management
 
 router.get("/user/my-order/order-details/rate-product/:productId", userAuth,cartCount,setBreadcrumbs,userRatingController.getRateProduct);
+router.post("/user/my-order/order-details/rate-product/", userAuth,cartCount,setBreadcrumbs,userRatingController.submitRating);
+
+
 
 // wishlist management
 

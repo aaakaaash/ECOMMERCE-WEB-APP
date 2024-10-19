@@ -63,18 +63,32 @@ app.set("views",[path.join(__dirname,'views/user'),path.join(__dirname,'views/ad
 
 app.use(express.static(path.join(__dirname,"public")));
 
+app.use(preventCache);
+
 app.use("/",userRouter);
-
-
 
 app.use("/admin",adminRouter);
 
 
-
-app.use(preventCache);
+app.use((req, res, next) => {
+    const err = new Error('Not Found');
+    err.status = 404;
+    next(err);
+});
 
 
 app.use(errorHandler);
+
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    process.exit(1);
+});
+
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    process.exit(1);
+});
 
 
 app.listen(process.env.PORT,()=>{

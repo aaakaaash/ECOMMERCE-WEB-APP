@@ -56,7 +56,7 @@ const sendVerificationEmail = async (email, otp) => {
             html: `<b><h4>Your OTP: ${otp}</h4></b>`
         };
 
-        const info = await transporter.sendMail(mailOptions); // Fixed variable name
+        const info = await transporter.sendMail(mailOptions); 
         console.log("Email sent:", info.messageId);
         return true;
 

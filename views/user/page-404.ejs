@@ -1,10 +1,3 @@
-<!--
-	Author: W3layouts
-	Author URL: http://w3layouts.com
-	License: Creative Commons Attribution 3.0 Unported
-	License URL: http://creativecommons.org/licenses/by/3.0/
--->
-
 <!DOCTYPE html>
 <html lang="zxx">
 
@@ -12,8 +5,7 @@
 	<title>Goggles Ecommerce Category Bootstrap responsive Web Template | 404 :: w3layouts</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta charset="utf-8">
-	<meta name="keywords" content="Goggles a Responsive web template, Bootstrap Web Templates, Flat Web Templates, Android Compatible web template, 
-Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, SonyEricsson, Motorola web design" />
+	<meta name="keywords" content="Goggles a Responsive web template, Bootstrap Web Templates, Flat Web Templates, Android Compatible web template, Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, SonyEricsson, Motorola web design" />
 	<script>
 		addEventListener("load", function () {
 			setTimeout(hideURLbar, 0);
@@ -23,100 +15,72 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 			window.scrollTo(0, 1);
 		}
 	</script>
-	<link href="css/bootstrap.css" rel='stylesheet' type='text/css' />
-	<link href="css/login_overlay.css" rel='stylesheet' type='text/css' />
-	<link href="css/style6.css" rel='stylesheet' type='text/css' />
-	<link rel="stylesheet" href="css/shop.css" type="text/css" />
-	<link href="css/style.css" rel='stylesheet' type='text/css' />
-	<link href="css/fontawesome-all.css" rel="stylesheet">
-	<link href="//fonts.googleapis.com/css?family=Inconsolata:400,700" rel="stylesheet">
-	<link href="//fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800"
-	    rel="stylesheet">
+	
+	<style>
+		html, body {
+			height: 100%; /* Full height for the body */
+			margin: 0; /* Remove default margin */
+		}
+		.wrapper {
+			display: flex;
+			flex-direction: column; /* Align children vertically */
+			min-height: 100vh; /* Full height for the wrapper */
+		}
+		.header {
+			flex: 0 0 auto; /* Fix the header size */
+		}
+		.footer {
+			flex: 0 0 auto; /* Fix the footer size */
+		}
+		.content {
+			flex: 1 0 auto; /* Allow the content to grow */
+			padding: 20px; /* Add some padding */
+		}
+	</style>
 </head>
 
-<body>
-	<div class="banner-top container-fluid" id="home">
-		<!-- header -->
+	<div class="wrapper">
 		<%-include("../../views/partials/user/header")%>
-		<!-- banner -->
-		<div class="banner_inner">
-			<div class="services-breadcrumb">
-				<div class="inner_breadcrumb">
 
-					<ul class="short">
-						<li>
-							<a href="/">Home</a>
-							<i>|</i>
-						</li>
-						<li>404</li>
-					</ul>
+		<div class="content">
+			<div class="banner-top container-fluid" id="home">
+				<!-- banner -->
+				<div class="banner_inner">
+					<div class="services-breadcrumb">
+						<div class="inner_breadcrumb">
+							<ul class="short">
+								<li>
+									<a href="/">Home</a>
+									<i>|</i>
+								</li>
+								<li>Error</li>
+							</ul>
+						</div>
+					</div>
 				</div>
-			</div>
+				<!--//banner -->
 
+				<!--/error-->
+				<section class="banner-bottom-wthreelayouts py-lg-5 py-3">
+					<div class="container-fluid">
+						<div class="error_page">
+							<h4>Error <%= statusCode %></h4>
+							<p><%= errorMessage %></p>
+							<a class="b-home" href="/">Back to Home</a>
+						</div>
+					</div>
+				</section>
+			</div>
 		</div>
-		<!--//banner -->
+
+		<!--footer -->
+		<%-include("../../views/partials/user/footer")%>
+		<!-- //footer -->
 	</div>
-	<!--// header_top -->
-	<!--/404-->
-	<section class="banner-bottom-wthreelayouts py-lg-5 py-3">
-		<div class="container-fluid">
-			<div class="error_page">
-				<h4>404</h4>
-				<p>This link dead link</p>
-				<form action="#" method="post">
-					<input class="serch" type="search" name="serch" placeholder="Search here" required="">
-					<button class="btn1">
-						<i class="fa fa-search" aria-hidden="true"></i>
-					</button>
-					<div class="clearfix"> </div>
-				</form>
-				<ul class="footer-social text-center mt-lg-4 mt-3">
-
-					<li class="mx-2">
-						<a href="#">
-							<span class="fab fa-facebook-f"></span>
-						</a>
-					</li>
-					<li class="mx-2">
-						<a href="#">
-							<span class="fab fa-twitter"></span>
-						</a>
-					</li>
-					<li class="mx-2">
-						<a href="#">
-							<span class="fab fa-google-plus-g"></span>
-						</a>
-					</li>
-					<li class="mx-2">
-						<a href="#">
-							<span class="fab fa-linkedin-in"></span>
-						</a>
-					</li>
-					<li class="mx-2">
-						<a href="#">
-							<span class="fas fa-rss"></span>
-						</a>
-					</li>
-					<li class="mx-2">
-						<a href="#">
-							<span class="fab fa-vk"></span>
-						</a>
-					</li>
-				</ul>
-				<a class="b-home" href="/">Back to Home</a>
-			</div>
-
-		</div>
-	</section>
-	<!--//404-->
-	<!--footer -->
-	<%-include("../../views/partials/user/footer")%>
-	<!-- //footer -->
 
 	<!--jQuery-->
 	<script src="js/jquery-2.2.3.min.js"></script>
 	<!-- newsletter modal -->
-
 	<!--search jQuery-->
 	<script src="js/modernizr-2.6.2.min.js"></script>
 	<script src="js/classie-search.js"></script>
@@ -182,24 +146,11 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
     </script>
     <script>
         $(document).ready(function() {
-            /*
-            						var defaults = {
-            							  containerID: 'toTop', // fading element id
-            							containerHoverID: 'toTopHover', // fading element hover id
-            							scrollSpeed: 1200,
-            							easingType: 'linear' 
-            						 };
-            						*/
-
             $().UItoTop({
                 easingType: 'easeOutQuart'
             });
-
         });
     </script>
-    <!--// end-smoth-scrolling -->
-
-
 	<script src="js/bootstrap.js"></script>
 	<!-- js file -->
 </body>

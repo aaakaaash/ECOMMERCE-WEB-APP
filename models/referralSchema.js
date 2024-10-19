@@ -12,7 +12,7 @@ const referralSchema = new Schema({
         type: String,
         unique: true,
         default: function() {
-            return `https://localhost:3000/referral/${this.referralId}`;
+            return `http://localhost:3000/signup/${this.referralId}`;
         }
     },
     referrerUserId: {

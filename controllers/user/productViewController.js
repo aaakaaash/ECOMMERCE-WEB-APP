@@ -8,6 +8,7 @@ const Product = require("../../models/productSchema")
 const Category = require("../../models/categorySchema")
 const Brand = require("../../models/brandSchema")
 const Offer = require("../../models/offerSchema")
+const {calculateAverageRatings} = require("../user/userRatingController")
 
 const loadSingleProduct = async (req, res, next) => {
     try {
@@ -17,10 +18,10 @@ const loadSingleProduct = async (req, res, next) => {
             return res.status(400).send('Invalid product ID');
         }
         
-    
         const product = await Product.findById(productId)
             .populate('category')
-            .populate('brand') 
+            .populate('brand')
+            .lean()  
             .exec();
         
         if (!product) {
@@ -31,55 +32,59 @@ const loadSingleProduct = async (req, res, next) => {
             return res.status(403).send('This product is under an unlisted category.');
         }
 
-    
         const listedBrands = await Brand.find({ isListed: true }).select('_id').exec();
         const listedBrandIds = listedBrands.map(brand => brand._id.toString()); 
         
-    
         if (!product.brand || !listedBrandIds.includes(product.brand._id.toString())) {
             return res.status(403).send('This product is under an unlisted brand.');
         }
 
-        
         const relatedProducts = await Product.find({
             category: product.category._id,
             isBlocked: false,
             _id: { $ne: product._id } 
         })
-        .limit(4) 
+        .limit(4)
+        .lean()  // Use lean() for better performance
         .exec();
 
-        
+        // Calculate average ratings for the main product and related products
+        const allProductIds = [product._id, ...relatedProducts.map(p => p._id)];
+        const averageRatings = await calculateAverageRatings(allProductIds);
+
+        // Add rating information to the main product
+        product.averageRating = averageRatings[product._id.toString()]?.averageRating || 0;
+        product.totalRatings = averageRatings[product._id.toString()]?.totalRatings || 0;
+
+        // Add rating information to related products
+        const relatedProductsWithRatings = relatedProducts.map(relatedProduct => ({
+            ...relatedProduct,
+            averageRating: averageRatings[relatedProduct._id.toString()]?.averageRating || 0,
+            totalRatings: averageRatings[relatedProduct._id.toString()]?.totalRatings || 0
+        }));
+
         const categories = await Category.find({}).exec();
 
-    
-        let userId = null;
-        if (req.user) {
-            userId = req.user;
-        } else if (req.session.user) {
-            userId = req.session.user;
-        }
+        let userId = req.user || req.session.user;
 
-        
         const offer = await Offer.find().populate('category').populate('product').exec();
 
         let userData = null;
         if (userId) {
-          userData = await User.findById(userId).populate("cart").exec();
+            userData = await User.findById(userId).populate("cart").exec();
         
-          if (userData && userData.cart && !userData.cart.items) {
-            userData.cart.items = [];
-          }
+            if (userData && userData.cart && !userData.cart.items) {
+                userData.cart.items = [];
+            }
         }
         
         res.locals.user = userData;
 
-        
         res.render("single", { 
             user: userData,
             product: product,
             categories: categories,
-            relatedProducts: relatedProducts, 
+            relatedProducts: relatedProductsWithRatings, 
             offer
         });
     } catch (error) {
@@ -87,8 +92,6 @@ const loadSingleProduct = async (req, res, next) => {
         next(error);
     }
 };
-
-
 
 
 module.exports = {

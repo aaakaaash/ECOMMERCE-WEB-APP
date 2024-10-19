@@ -106,15 +106,27 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 								<% } %>
 							  </p>
 							  
-							<div class="rating1">
+							  <div class="rating1">
 								<ul class="stars">
-									<li><a href="#"><i class="fa fa-star" aria-hidden="true"></i></a></li>
-									<li><a href="#"><i class="fa fa-star" aria-hidden="true"></i></a></li>
-									<li><a href="#"><i class="fa fa-star" aria-hidden="true"></i></a></li>
-									<li><a href="#"><i class="fa fa-star-half-o" aria-hidden="true"></i></a></li>
-									<li><a href="#"><i class="fa fa-star-o" aria-hidden="true"></i></a></li>
+								  <% for (let i = 1; i <= 5; i++) { %>
+									<li>
+									  <a href="#">
+										<% if (product.averageRating >= i) { %>
+										  <i class="fa fa-star" aria-hidden="true"></i>
+										<% } else if (product.averageRating > i - 1 && product.averageRating < i) { %>
+										  <i class="fa fa-star-half-o" aria-hidden="true"></i>
+										<% } else { %>
+										  <i class="fa fa-star-o" aria-hidden="true"></i>
+										<% } %>
+									  </a>
+									</li>
+								  <% } %>
 								</ul>
-							</div>
+							  
+								<% if (product.totalRatings > 0) { %>
+								  <span class="rating-count">(<%= product.totalRatings %> reviews)</span>
+								<% } %>
+							  </div>
 							<br>
 							<div class="color-quality">
 								<div style="display: flex; align-items: center;">
@@ -124,14 +136,6 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 									</p>
 								</div>
 
-								<!-- <div class="color-quality-right">
-									
-									<select class="frm-field required sect">
-										<% categories.forEach(category => { %>
-											<option value="<%= category._id %>"><%= category.name %></option>
-										<% }) %>
-									</select>
-								</div> -->
 
 								<div style="display: flex; align-items: center;">
 									<h5 style="margin-right: 10px;">Brand:</h5>
@@ -144,18 +148,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 							
 							
 							<div class="occasional">
-								<!-- <h5>Types :</h5>
-								<div class="colr ert">
-									<label class="radio"><input type="radio" name="radio" checked=""><i></i> Irayz Butterfly (Black)</label>
-								</div>
-								<div class="colr">
-									<label class="radio"><input type="radio" name="radio"><i></i> Irayz Butterfly (Grey)</label>
-								</div>
-								<div class="colr">
-									<label class="radio"><input type="radio" name="radio"><i></i> Irayz Butterfly (White)</label>
-								</div>
-								<div class="clearfix"> </div> -->
-								<br><br>
+							
 							</div>
 							<div class="occasion-cart">
 								<div class="googles single-item singlepage" style="display: flex; gap: 10px;">
@@ -210,7 +203,6 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 							<div id="horizontalTab">
 								<ul class="resp-tabs-list">
 									<li>Description</li>
-									<li>Reviews</li>
 									<li>Information</li>
 								</ul>
 								<div class="resp-tabs-container">
@@ -238,15 +230,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 													</div>
 													<div class="clearfix"> </div>
 												</div>
-												<div class="add-review">
-													<h4>Add a review</h4>
-													<form action="#" method="post">
-														<input class="form-control" type="text" name="Name" placeholder="Enter your name..." required="">
-														<input class="form-control" type="email" name="Email" placeholder="Enter your email..." required="">
-														<textarea name="Message" required=""></textarea>
-														<input type="submit" value="SEND">
-													</form>
-												</div>
+											
 											</div>
 										</div>
 									</div>
@@ -301,22 +285,24 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                                             </div>
                                         </div>
                                         <ul class="stars">
-                                            <li>
-                                                <a href="#"><i class="fa fa-star" aria-hidden="true"></i></a>
-                                            </li>
-                                            <li>
-                                                <a href="#"><i class="fa fa-star" aria-hidden="true"></i></a>
-                                            </li>
-                                            <li>
-                                                <a href="#"><i class="fa fa-star" aria-hidden="true"></i></a>
-                                            </li>
-                                            <li>
-                                                <a href="#"><i class="fa fa-star" aria-hidden="true"></i></a>
-                                            </li>
-                                            <li>
-                                                <a href="#"><i class="fa fa-star-half-o" aria-hidden="true"></i></a>
-                                            </li>
-                                        </ul>
+											<% for (let i = 1; i <= 5; i++) { %>
+											  <li>
+												<a href="#">
+												  <% if (relatedProduct.averageRating >= i) { %>
+													<i class="fa fa-star" aria-hidden="true"></i>
+												  <% } else if (relatedProduct.averageRating > i - 1 && relatedProduct.averageRating < i) { %>
+													<i class="fa fa-star-half-o" aria-hidden="true"></i>
+												  <% } else { %>
+													<i class="fa fa-star-o" aria-hidden="true"></i>
+												  <% } %>
+												</a>
+											  </li>
+											<% } %>
+										  </ul>
+										  
+										  <% if (relatedProduct.totalRatings > 0) { %>
+											<span class="rating-count">(<%= relatedProduct.totalRatings %> reviews)</span>
+										  <% } %>
                                     </div>
                                     <div class="googles single-item hvr-outline-out">
                                         <form id="addToCartForm-<%= relatedProduct._id %>" onsubmit="return false;">

@@ -30,6 +30,21 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 	    rel="stylesheet">
         
 </head>
+<style>
+
+.cart-count {
+    color: orangered;
+}
+
+.cart-count.hidden {
+    display: none;
+}
+
+.cart-count.visible {
+    display: inline;
+}
+
+</style>
 
 <!-- header -->
 <header>
@@ -75,8 +90,8 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                         <a href="/cart" class="top_googles_cart">
                             My Cart 
                             <i class="fas fa-cart-arrow-down"></i>
-                            <span class="cart-count" style="color: orangered;">
-                                <%= locals.user && locals.user.cart && locals.user.cart.items ? locals.user.cart.items.length : '' %>
+                            <span class="cart-count <%= (locals.user.cart && locals.user.cart.items && locals.user.cart.items.length > 0) ? 'visible' : 'hidden' %>">
+                                <%= locals.user.cart?.items?.length || 0 %>
                             </span>
                         </a>
                     <% } else { %>
@@ -86,6 +101,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                         </a>
                     <% } %>
                 </li>
+                
                 
                 
             </ul>

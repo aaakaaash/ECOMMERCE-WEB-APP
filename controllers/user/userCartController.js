@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 const env = require("dotenv").config();
 const User = require("../../models/userSchema");
 const Product = require("../../models/productSchema");
-const Cart = require("../../models/CartSchema");
+const Cart = require("../../models/cartSchema");
 const Offer = require("../../models/offerSchema");
 
 const cart = async (req, res, next) => {

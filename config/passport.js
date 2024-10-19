@@ -4,6 +4,9 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const User = require("../models/userSchema");
 const env = require("dotenv").config();
 
+const Wallet = require("../models/walletSchema")
+const Cart = require("../models/cartSchema")
+
 
 
 passport.use(new GoogleStrategy({
@@ -22,7 +25,18 @@ passport.use(new GoogleStrategy({
                     name:profile.displayName,
                     email:profile.emails[0].value,
                     googleId:profile.id,
+                    role: "user", 
+          isVerified: true
                 })
+
+                const newWallet = new Wallet({ user: user._id, balance: 0 });
+        await newWallet.save();
+        user.wallet = newWallet._id;
+
+                const newCart = new Cart({ userId: user._id, items: [] });
+                await newCart.save();
+                user.cart = newCart._id
+
                 await user.save();
                 return done(null,user);
             }
