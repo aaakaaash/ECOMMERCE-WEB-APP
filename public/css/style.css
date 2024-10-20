@@ -784,6 +784,7 @@ figure.effect-lexi:hover p {
 
 .modal-header {
     border-bottom: none;
+    display: none;
 }
 
 .close {
@@ -803,6 +804,7 @@ figure.effect-lexi:hover p {
 
 .modal-body {
     padding: 0;
+    display: none;
 }
 
 .modal-content {

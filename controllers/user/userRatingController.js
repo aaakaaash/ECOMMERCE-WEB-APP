@@ -13,9 +13,6 @@ const getRateProduct = async (req, res, next) => {
         
         const { productId } = req.params;
 
-        console.log('User ID:', userId);
-        console.log('Product ID:', productId);
-
         if (!userId) {
             let error = new Error('User not authorized');
             error.status = 403;

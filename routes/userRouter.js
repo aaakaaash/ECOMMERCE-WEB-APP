@@ -21,7 +21,7 @@ const userWishlistController = require("../controllers/user/userWishlistControll
 const userCouponController = require("../controllers/user/userCouponController");
 const userWalletController = require("../controllers/user/userWalletController");
 const userRatingController = require("../controllers/user/userRatingController");
-const debugMiddleware = require("../middlewares/debugMiddleware")
+const userInviteController = require("../controllers/user/userInviteController");
 
 
 router.use(nocache());
@@ -124,6 +124,10 @@ router.get("/user/my-coupons",userAuth,cartCount,userCouponController.myCoupons)
 
 router.get("/user/my-wallet",userAuth,cartCount,setBreadcrumbs,userWalletController.wallet);
 router.post('/user/check-wallet-balance', userAuth,userWalletController.checkWalletBalance);
+
+// invite friends
+
+router.get("/user/invite-friends",userAuth,cartCount,setBreadcrumbs,userInviteController.inviteFriends);
 
 
 // user google authentication managaement

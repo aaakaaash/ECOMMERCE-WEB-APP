@@ -365,13 +365,14 @@
                 </div>
             </div>
         </div>
-        <br>
+        
     </div>
+    <br>
     <%-include("../../views/partials/user/footer")%>
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
        
 
@@ -387,7 +388,12 @@
     const selectedAddress = document.getElementById('selectedAddress').value;
     if (!selectedAddress) {
         e.preventDefault();
-        alert('Please select an address before proceeding to payment.');
+        Swal.fire({
+        title: 'Address Required',
+        text: 'Please select an address, if not added yet  add it from your profile.',
+        icon: 'warning',
+        confirmButtonText: 'OK'
+    });
     }
 });
 

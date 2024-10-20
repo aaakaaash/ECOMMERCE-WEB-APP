@@ -60,7 +60,7 @@ function errorHandler(err, req, res, next) {
     }
   
     
-    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+    if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
       return res.status(statusCode).json({ 
         success: false, 
         status: statusCode,

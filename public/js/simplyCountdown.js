@@ -4,7 +4,6 @@
  * Date : 27/06/2015
  * License : MIT
  * Version : 1.0.0
- * Author : Vincent Loy <vincent.loy1@gmail.com>
  */
 /*global window, document*/
 (function (exports) {
@@ -66,6 +65,12 @@
             minutes,
             seconds,
             countdown = document.getElementById(eltId);
+
+        // Add this check
+        if (!countdown) {
+            console.warn('Countdown element with id "' + eltId + '" not found.');
+            return; // Exit the function if the element is not found
+        }
 
         window.setInterval(function () {
             var spanTag,
@@ -157,8 +162,10 @@
 
                 fullCountDown += sectionTag.outerHTML;
 
-
-                countdown.innerHTML = fullCountDown;
+                // Replace the original line with this check
+                if (countdown) {
+                    countdown.innerHTML = fullCountDown;
+                }
             }
         }, 1000);
     };
