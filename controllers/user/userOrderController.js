@@ -84,7 +84,7 @@ const placeOrder = async (req, res, next) => {
         await cart.save();
       }
 
-      res.render("checkout-Page", { 
+      res.render("checkout-page", { 
         cart, 
         addresses,
         distinctProductCount,
