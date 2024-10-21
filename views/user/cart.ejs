@@ -257,9 +257,6 @@ function updateQuantity(productId, change) {
         try {
             const response = await fetch('/cart/place-order', {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
             });
 
             if (response.ok) {

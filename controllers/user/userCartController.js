@@ -10,7 +10,7 @@ const Offer = require("../../models/offerSchema");
 
 const cart = async (req, res, next) => {
   try {
-    const userId = req.session.user || req.user;
+    const userId = res.locals.user._id;
 
     if (!userId) {
       return res.status(401).json({ error: "User not authenticated" });
