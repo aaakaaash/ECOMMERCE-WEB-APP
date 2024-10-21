@@ -331,7 +331,7 @@
       });
 
       if (response.ok) {
-        window.location.href = response.url; // Redirect to the rating page if no error
+        window.location.href = response.url; 
       } else {
         const result = await response.json();
         Swal.fire({

@@ -17,7 +17,7 @@ const razorpayInstance = require('../../config/razorpay');
 
 
 const wallet = async (req, res, next) => {
-  const userId = req.session.user || req.user;
+  const userId = res.locals.user._id;
   const page = parseInt(req.query.page) || 1; 
   const limit = 5; 
 
@@ -61,13 +61,13 @@ const checkWalletBalance = async (req, res) => {
     try {
       const { amount } = req.body;
 
-      const userId = req.user?.session || req.user?._id || req.user;
+      const userId = res.locals.user._id;
 
       const user = await User.findById(userId).populate('wallet');
       if (!user || !user.wallet) {
         return res.json({ success: false, message: 'User or wallet not found' });
       }
-  
+ 
       if (user.wallet.balance < amount) {
         return res.json({ success: false, message: 'Insufficient balance in wallet' });
       }

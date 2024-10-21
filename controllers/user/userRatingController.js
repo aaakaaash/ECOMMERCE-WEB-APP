@@ -13,6 +13,11 @@ const getRateProduct = async (req, res, next) => {
         
         const { productId } = req.params;
 
+        const existingRating = await Rating.findOne({ userId, productId });
+        if (existingRating) {
+            return res.status(400).json({ message: 'You have already rated this product' });
+        }
+
         if (!userId) {
             let error = new Error('User not authorized');
             error.status = 403;
@@ -45,13 +50,7 @@ const getRateProduct = async (req, res, next) => {
             return next(error);
         }
 
-        
-        const existingRating = await Rating.findOne({ userId, productId });
-        if (existingRating) {
-            return res.status(400).json({ message: 'You have already rated this product' });
-        }
-
-
+    
         return res.render('rating-page', { product });
         
     } catch (error) {
@@ -81,10 +80,6 @@ const submitRating = async (req, res) => {
             userId: userId,
             productId: productId
         });
-
-        if (existingReview) {
-            return res.status(400).json({ message: "You have already submitted a review for this product." });
-        }
 
         
         const userOrder = await Order.findOne({

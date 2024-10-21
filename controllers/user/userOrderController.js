@@ -21,7 +21,7 @@ const fs = require('fs');
 
 const placeOrder = async (req, res, next) => {
 
-  const userId = req.session.user || req.user;
+  const userId = res.locals.user._id;
 
   try {
     const cart = await Cart.findOne({ userId: userId })
@@ -238,9 +238,13 @@ const removeCoupon = async (req, res, next) => {
 
 const loadPayment = async (req, res, next) => {
 
-  const userId = req.session.user || req.user;
 
   try {
+
+    if (!res.locals.user) {
+      return res.status(401).json({ message: 'User not authenticated.' });
+  }
+
     const { userId, address, appliedCouponId } = req.body;
 
     const user = await User.findById(userId);
@@ -335,6 +339,8 @@ const loadPayment = async (req, res, next) => {
 
 
 const confirmOrder = async (req, res) => {
+
+  const userId = res.locals.user._id;
   try {
     const { userId, address, items, couponDiscountAmount, totalPrice, finalTotal, appliedCouponId, discountAmount, paymentMethod } = req.body;
 
@@ -515,6 +521,7 @@ const processWalletPayment = async (userId, totalAmount) => {
       throw new Error('User or wallet not found');
     }
 
+    console.log(totalAmount)
     if (user.wallet.balance < totalAmount) {
       throw new Error('Insufficient balance in wallet');
     }
@@ -538,7 +545,7 @@ const processWalletPayment = async (userId, totalAmount) => {
 
 const razorpayCheckout = async (req, res, next) => {
 
-  const currentUser = req.session.user || req.user;
+  const userId = res.locals.user._id;
   
 
   try {
