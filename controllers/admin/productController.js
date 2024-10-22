@@ -20,7 +20,7 @@ const getProductAddPage = async (req,res) => {
 
         const brand = await Brand.find({isListed: true});
 
-        res.render("Product-add", {
+        res.render("product-add", {
             cat:category,
             brand
         });

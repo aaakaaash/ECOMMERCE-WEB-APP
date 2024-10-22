@@ -79,8 +79,13 @@ app.use(preventCache);
 
 app.use("/",userRouter);
 
+
 app.use("/admin",adminRouter);
 
+app.use("/admin", (err, req, res, next) => {
+    console.error(err.message);
+    res.redirect("/admin/pageerror");
+});
 
 app.use((req, res, next) => {
     const err = new Error('Not Found');
