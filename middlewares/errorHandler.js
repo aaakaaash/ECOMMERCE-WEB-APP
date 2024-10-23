@@ -1,6 +1,4 @@
 function errorHandler(err, req, res, next) {
-    
-  console.log(err.message)
   
     let statusCode = err.status || 500;
     let errorMessage = err.message || "An unexpected error occurred.";

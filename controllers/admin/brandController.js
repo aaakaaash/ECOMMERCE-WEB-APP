@@ -23,7 +23,7 @@ const brandInfo = async (req, res) => {
         const totalBrands = await Brand.countDocuments(query);
         const totalPages = Math.ceil(totalBrands / limit);
 
-        res.render("Brand", {
+        res.render("brand", {
             brand: brandData,
             currentPage: page,
             totalPages: totalPages,
