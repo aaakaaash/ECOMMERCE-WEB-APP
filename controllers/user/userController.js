@@ -601,8 +601,6 @@ const login = async (req, res, next) => {
         findUser.cart = newCart._id;
 
         await findUser.save();
-        console.log("hello")
-        console.log(findUser)
       } else {
         
         if (!findUser.googleId) {

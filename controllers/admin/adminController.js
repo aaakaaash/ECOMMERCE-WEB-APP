@@ -24,9 +24,12 @@ const login = async (req, res, next)=>{
     try {
         const {email, password} = req.body;
         const admin = await User.findOne({email, role:"admin"});
-        if(admin){
+        if (!admin) {
+            return res.redirect("/admin/login");
+        }
 
-            const passwordMatch = bcrypt.compare(password, admin.password)
+        if(admin){
+            const passwordMatch = await bcrypt.compare(password, admin.password);
             if(passwordMatch) {
                 req.session.admin = true;
                 return res.redirect('/admin/dashboard');
